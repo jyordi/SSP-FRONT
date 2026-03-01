@@ -1,0 +1,328 @@
+<div class="container">
+  <form [formGroup]="entrevistaForm" (ngSubmit)="onSubmit()" class="form-card">
+
+    <h1 style="color: var(--text-primary); margin-bottom: 2rem; font-size: 1.8rem; text-align: center;">Evaluación Clínica y Social</h1>
+
+    @if (currentSection === 1) {
+      <div class="section-header">
+        <h2>Generales</h2>
+      </div>
+
+      <div class="section-body">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Nombre</label>
+            <input type="text" formControlName="nombre">
+          </div>
+          <div class="form-group">
+            <label>Edad</label>
+            <input type="number" formControlName="edad">
+          </div>
+          <div class="form-group">
+            <label>Sobrenombre</label>
+            <input type="text" formControlName="sobrenombre">
+          </div>
+          <div class="form-group">
+            <label>Fecha de nacimiento</label>
+            <input type="date" formControlName="fechaNacimiento">
+          </div>
+          <div class="form-group">
+            <label>CURP</label>
+            <input type="text" formControlName="curp">
+          </div>
+          <div class="form-group">
+            <label>Originario</label>
+            <input type="text" formControlName="originario">
+          </div>
+          <div class="form-group">
+            <label>Teléfono</label>
+            <input type="text" formControlName="telefono">
+          </div>
+          <div class="form-group">
+            <label>Escolaridad</label>
+            <input type="text" formControlName="escolaridad">
+          </div>
+          <div class="form-group">
+            <label>Estado Civil</label>
+            <input type="text" formControlName="estadoCivil">
+          </div>
+          <div class="form-group">
+            <label>Nacionalidad</label>
+            <input type="text" formControlName="nacionalidad">
+          </div>
+          <div class="form-group">
+            <label>Lengua Indígena</label>
+            <input type="text" formControlName="lenguaIndigena">
+          </div>
+          <div class="form-group">
+            <label>Religión</label>
+            <input type="text" formControlName="religion">
+          </div>
+          <div class="form-group full-width">
+            <label>Ocupación</label>
+            <input type="text" formControlName="ocupacion">
+          </div>
+          <div class="form-group full-width">
+            <label>Domicilio</label>
+            <input type="text" formControlName="domicilio">
+          </div>
+        </div>
+      </div>
+    }
+
+    @if (currentSection === 2) {
+      <div class="section-header">
+        <h2>Situación Jurídica</h2>
+      </div>
+
+      <div class="section-body">
+        <div class="form-group" style="margin-bottom: 1.5rem;">
+          <label>Fecha de Detención</label>
+          <input type="date" formControlName="fechaDetencion">
+        </div>
+        <div class="form-group" style="margin-bottom: 1.5rem;">
+          <label>Falta cívica</label>
+          <textarea formControlName="faltaCivica"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Relato de los hechos</label>
+          <textarea formControlName="relatoHechos"></textarea>
+        </div>
+      </div>
+    }
+
+    @if (currentSection === 3) {
+      <div class="section-header">
+        <h2>Núcleo Familiar</h2>
+      </div>
+
+      <div class="section-body">
+        <div formArrayName="familiares" class="family-container">
+          @for (familiar of familiares.controls; track $index; let i = $index) {
+            <div [formGroupName]="i" class="family-card">
+              <div class="family-grid">
+                <div class="form-group">
+                  <label>Nombre</label>
+                  <input type="text" formControlName="nombre">
+                </div>
+                <div class="form-group">
+                  <label>Parentesco</label>
+                  <input type="text" formControlName="parentesco">
+                </div>
+                <div class="form-group">
+                  <label>Edad</label>
+                  <input type="number" formControlName="edad">
+                </div>
+                <div class="form-group">
+                  <label>Estado Civil</label>
+                  <input type="text" formControlName="estadoCivil">
+                </div>
+                <div class="form-group">
+                  <label>Escolaridad</label>
+                  <input type="text" formControlName="escolaridad">
+                </div>
+                <div class="form-group">
+                  <label>Ocupación</label>
+                  <input type="text" formControlName="ocupacion">
+                </div>
+              </div>
+              <button type="button" class="btn-delete" (click)="removeFamiliar(i)">Eliminar</button>
+            </div>
+          }
+        </div>
+
+        <button type="button" class="btn-add" (click)="addFamiliar()">+ Agregar familiar</button>
+
+        <div class="form-group">
+          <label>Observaciones</label>
+          <textarea formControlName="observacionesFamilia"></textarea>
+        </div>
+      </div>
+    }
+
+    @if (currentSection === 4) {
+      <div class="section-header">
+        <h2>Uso de Sustancias</h2>
+      </div>
+
+      <div class="section-body">
+        <div class="form-grid">
+          <div class="form-group full-width">
+            <label>¿Consume bebidas embriagantes o algún psicotrópico?</label>
+            <div class="radio-group">
+              <label><input type="radio" value="si" formControlName="consumeAlcohol"> Sí</label>
+              <label><input type="radio" value="no" formControlName="consumeAlcohol"> No</label>
+            </div>
+            <textarea placeholder="Especifique" formControlName="especificaConsumo"></textarea>
+          </div>
+
+          <div class="form-group full-width">
+            <label>¿Ha recibido terapias psicológicas o de otra índole?</label>
+            <div class="radio-group">
+              <label><input type="radio" value="si" formControlName="haRecibidoTerapias"> Sí</label>
+              <label><input type="radio" value="no" formControlName="haRecibidoTerapias"> No</label>
+            </div>
+          </div>
+
+          <div class="form-group full-width">
+            <label>¿Necesita apoyo psicológico?</label>
+            <div class="radio-group">
+              <label><input type="radio" value="si" formControlName="necesitaApoyoPsicologico"> Sí</label>
+              <label><input type="radio" value="no" formControlName="necesitaApoyoPsicologico"> No</label>
+            </div>
+          </div>
+
+          <div class="form-group full-width">
+            <label>¿Acude a sesiones de grupos (AA, NA, etc.)?</label>
+            <div class="radio-group">
+              <label><input type="radio" value="si" formControlName="acudeSesionesGrupos"> Sí</label>
+              <label><input type="radio" value="no" formControlName="acudeSesionesGrupos"> No</label>
+            </div>
+            <textarea placeholder="Especifique en dónde" formControlName="especificadonde"></textarea>
+          </div>
+
+          <div class="form-group full-width">
+            <label>¿Ha estado en rehabilitación o anexo?</label>
+            <div class="radio-group">
+              <label><input type="radio" value="si" formControlName="haEstadoRehabilitacion"> Sí</label>
+              <label><input type="radio" value="no" formControlName="haEstadoRehabilitacion"> No</label>
+            </div>
+            <textarea placeholder="Especifique en cuál" formControlName="especificaencual"></textarea>
+          </div>
+
+          <div class="form-group full-width">
+            <label>¿Pertenece a algún grupo cultural, religioso o deportivo?</label>
+            <div class="radio-group">
+              <label><input type="radio" value="si" formControlName="perteneceGrupoCultural"> Sí</label>
+              <label><input type="radio" value="no" formControlName="perteneceGrupoCultural"> No</label>
+            </div>
+            <textarea placeholder="Especifique a cuál" formControlName="especifiquegrupo"></textarea>
+          </div>
+        </div>
+      </div>
+    }
+
+    @if (currentSection === 5) {
+      <div class="section-header">
+        <h2>Emociones</h2>
+      </div>
+
+      <div class="section-body">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Miedo</label>
+            <input type="text" formControlName="miedo">
+          </div>
+          <div class="form-group">
+            <label>Alegría</label>
+            <input type="text" formControlName="alegria">
+          </div>
+          <div class="form-group">
+            <label>Enojo</label>
+            <input type="text" formControlName="enojo">
+          </div>
+          <div class="form-group">
+            <label>Tristeza</label>
+            <input type="text" formControlName="tristeza">
+          </div>
+          <div class="form-group">
+            <label>Amor</label>
+            <input type="text" formControlName="amor">
+          </div>
+        </div>
+      </div>
+    }
+
+    @if (currentSection === 6) {
+      <div class="section-header">
+        <h2>Destrezas y Salud</h2>
+      </div>
+
+      <div class="section-body">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Destrezas o habilidades</label>
+            <textarea formControlName="destrezas"></textarea>
+          </div>
+          <div class="form-group">
+            <label>Practica algún deporte</label>
+            <textarea formControlName="deportes"></textarea>
+          </div>
+          <div class="form-group">
+            <label>Actividades que realiza en su tiempo libre</label>
+            <textarea formControlName="tiempoLibre"></textarea>
+          </div>
+          <div class="form-group">
+            <label>Estado general de salud</label>
+            <textarea formControlName="saludGeneral"></textarea>
+          </div>
+          <div class="form-group">
+            <label>¿Padece alguna enfermedad crónico-degenerativa?</label>
+            <div class="radio-group">
+              <label><input type="radio" value="si" formControlName="enfermedadCronica"> Sí</label>
+              <label><input type="radio" value="no" formControlName="enfermedadCronica"> No</label>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>¿Lleva tratamiento?</label>
+            <div class="radio-group">
+              <label><input type="radio" value="si" formControlName="llevaTratamiento"> Sí</label>
+              <label><input type="radio" value="no" formControlName="llevaTratamiento"> No</label>
+            </div>
+            <textarea placeholder="Indique cuál" formControlName="detalleTratamiento"></textarea>
+          </div>
+        </div>
+      </div>
+    }
+
+    @if (currentSection === 7) {
+      <div class="section-header">
+        <h2>Proyecto de Vida</h2>
+      </div>
+
+      <div class="section-body">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Personal</label>
+            <textarea formControlName="proyectoPersonal"></textarea>
+          </div>
+          <div class="form-group">
+            <label>Familiar</label>
+            <textarea formControlName="proyectoFamiliar"></textarea>
+          </div>
+          <div class="form-group">
+            <label>Laboral</label>
+            <textarea formControlName="proyectoLaboral"></textarea>
+          </div>
+          <div class="form-group">
+            <label>Espiritual</label>
+            <textarea formControlName="proyectoEspiritual"></textarea>
+          </div>
+          <div class="form-group">
+            <label>Académico</label>
+            <textarea formControlName="proyectoAcademico"></textarea>
+          </div>
+          <div class="form-group">
+            <label>Social</label>
+            <textarea formControlName="proyectoSocial"></textarea>
+          </div>
+        </div>
+      </div>
+    }
+
+    <div class="button-container">
+      @if (currentSection > 1) {
+        <button type="button" class="btn-secondary" (click)="prevSection()">← Regresar</button>
+      }
+
+      @if (currentSection < totalSections) {
+        <button type="button" class="btn-primary" (click)="nextSection()">Siguiente →</button>
+      }
+
+      @if (currentSection === totalSections) {
+        <button type="submit" class="btn-success">Guardar Evaluación</button>
+      }
+    </div>
+
+  </form>
+</div>
