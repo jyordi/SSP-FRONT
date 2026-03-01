@@ -1,0 +1,81 @@
+/* PALETA OFICIAL DEL DOCX */
+:root {
+  --brand-primary: #7B1D3A; --brand-hover: #9E2A4A; --gold-accent: #C8952A;
+  --bg-white: #ffffff; --neutral-bg: #f3f4f6;
+  --text-primary: #111827; --text-secondary: #374151; --text-tertiary: #6b7280;
+  
+  /* Estados */
+  --success-bg: #dcfce7; --success-text: #166534;
+  --error-bg: #fee2e2; --error-text: #991b1b;
+  
+  /* Botones del docx */
+  --edit-bg: #fef3c7; --edit-hover: #fde68a; --edit-text: #78350f;
+  --cancel-border: #d1d5db;
+}
+
+.dashboard-wrapper { min-height: 100vh; background-color: var(--neutral-bg); font-family: 'Segoe UI', sans-serif; }
+
+/* Navbar Vino Sólido */
+.top-nav { background: var(--brand-primary); padding: 0.8rem 2rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 4px solid var(--gold-accent); box-shadow: 0 4px 15px rgba(123, 29, 58, 0.2); }
+.nav-brand { display: flex; align-items: center; gap: 12px; color: var(--bg-white); font-weight: 700; font-size: 1.2rem; }
+.mini-logo { width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--bg-white); background: white; }
+.nav-actions { display: flex; align-items: center; gap: 1.5rem; }
+.user-name { color: var(--bg-white); font-size: 0.9rem; font-weight: 600; opacity: 0.9; }
+.btn-logout { background: transparent; border: 1px solid rgba(255,255,255,0.4); color: var(--bg-white); padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; transition: all 0.3s; }
+.btn-logout:hover { background: var(--bg-white); color: var(--brand-primary); }
+
+.content-area { max-width: 1200px; margin: 0 auto; padding: 2.5rem 1.5rem; }
+
+/* Cabecera de página */
+.page-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2rem; }
+.title-primary { color: var(--brand-primary); font-size: 2rem; margin: 0 0 0.2rem 0; font-weight: 800; }
+.subtitle { color: var(--text-tertiary); margin: 0; font-size: 1rem; }
+.btn-primary { background: var(--brand-primary); color: white; border: none; padding: 0.8rem 1.5rem; border-radius: 8px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 10px rgba(123,29,58,0.2); transition: all 0.3s; }
+.btn-primary.black-text { color: black; }
+.btn-primary:hover { background: var(--brand-hover); transform: translateY(-2px); }
+
+/* utility for small svg margin */
+.icon-margin { margin-right: 8px; }
+
+/* Buscador */
+.search-bar { position: relative; margin-bottom: 2.5rem; }
+.search-icon { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--text-tertiary); width: 20px; }
+.search-bar input { width: 100%; padding: 1rem 1rem 1rem 3rem; border: 1px solid var(--cancel-border); border-radius: 10px; font-size: 1rem; color: var(--text-primary); transition: all 0.3s; outline: none; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
+.search-bar input:focus { border-color: var(--brand-primary); box-shadow: 0 0 0 3px rgba(123,29,58,0.1); }
+
+/* Grid de Tarjetas */
+.cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem; }
+
+/* Diseño de Tarjeta individual */
+.user-card { background: var(--bg-white); border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid #e5e7eb; overflow: hidden; display: flex; flex-direction: column; transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s; }
+.user-card:hover { transform: translateY(-5px); box-shadow: 0 12px 25px rgba(123,29,58,0.1); border-color: var(--brand-primary); }
+
+.card-header { padding: 1.2rem 1.5rem 0.5rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f3f4f6; }
+.folio-text { font-size: 0.75rem; color: var(--text-tertiary); font-weight: 600; }
+.badge { padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.75rem; font-weight: 700; }
+.badge-success { background: var(--success-bg); color: var(--success-text); }
+.badge-error { background: var(--error-bg); color: var(--error-text); }
+.badge-warning { background: var(--edit-bg); color: var(--edit-text); }
+
+.card-body { padding: 1.5rem; flex-grow: 1; }
+.user-name-card { color: var(--text-primary); margin: 0 0 0.25rem 0; font-size: 1.2rem; font-weight: 700; }
+.user-crime { color: var(--text-secondary); font-size: 0.85rem; margin: 0 0 1.5rem 0; }
+
+/* Barra de progreso */
+.progress-labels { display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 600; color: var(--text-tertiary); margin-bottom: 0.5rem; }
+.progress-bar-bg { width: 100%; height: 8px; background: #e5e7eb; border-radius: 4px; overflow: hidden; margin-bottom: 1.5rem; }
+.progress-bar-fill { height: 100%; background: var(--gold-accent); border-radius: 4px; transition: width 1s ease-in-out; }
+.fill-success { background: #10b981; }
+
+.appointment-info { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--text-secondary); background: #f9fafb; padding: 0.75rem; border-radius: 6px; border: 1px solid #f3f4f6; }
+
+/* Footer de la tarjeta con el botón EDITAR (Amarillo del DOCX) */
+.card-footer { padding: 1rem 1.5rem; background: #fafafa; border-top: 1px solid #f3f4f6; }
+.btn-edit { width: 100%; background: var(--edit-bg); color: var(--edit-text); border: none; padding: 0.75rem; border-radius: 8px; font-weight: 700; cursor: pointer; transition: all 0.3s; display: flex; justify-content: center; align-items: center; gap: 5px; }
+.btn-edit:hover { background: var(--edit-hover); transform: scale(1.02); }
+
+/* Animaciones de Entrada fluidas */
+.fade-in-down { animation: fadeInDown 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.fade-in-up { opacity: 0; animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+@keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes fadeInDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }

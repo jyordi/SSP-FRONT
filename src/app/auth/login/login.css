@@ -1,0 +1,710 @@
+/* ==========================================================================
+   LOGIN.CSS — Sistema de Autenticación SSPC Oaxaca
+   Versión: 4.0.0
+   Descripción: Estilos con fondo claro institucional, paleta oficial,
+                logo circular mejorado, botón que cambia a vino cuando
+                el formulario está completo, overlay de éxito y
+                animaciones fluidas.
+   Autor: DGPDPC — Dirección General de Prevención del Delito
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. VARIABLES GLOBALES — Paleta oficial COLORES_PRINCIPALES.docx
+   -------------------------------------------------------------------------- */
+:root {
+  /* Paleta institucional */
+  --brand-primary:   #850a31;
+  --brand-hover:     #9E2A4A;
+  --brand-dark:      #5A1229;
+  --brand-light:     #a82448;
+  --gold-accent:     #C8952A;
+  --gold-light:      #e8b84b;
+
+  /* Estados */
+  --success-bg:      #dcfce7;
+  --success-text:    #166534;
+  --error-bg:        #fee2e2;
+  --error-text:      #991b1b;
+
+  /* Texto */
+  --text-primary:    #111827;
+  --text-secondary:  #374151;
+  --text-tertiary:   #6b7280;
+  --text-muted:      #9ca3af;
+  --text-error:      #dc2626;
+
+  /* Fondos oficiales */
+  --bg-white:        #ffffff;
+  --bg-page:         #f4f0ed;
+  --bg-light:        #f9fafb;
+  --bg-pink-pale:    #fdf8f9;
+  --bg-yellow-light: #fff8e7;
+
+  /* Bordes */
+  --border-primary:  #e5e7eb;
+  --border-input:    #d1d5db;
+  --border-soft:     #f3f4f6;
+
+  /* Sombras */
+  --shadow-card:     0 8px 32px rgba(123,29,58,0.10), 0 2px 8px rgba(0,0,0,0.06);
+  --shadow-btn:      0 10px 28px rgba(123,29,58,0.40);
+  --shadow-input:    0 3px 10px rgba(123,29,58,0.10);
+
+  /* Curvas de animación */
+  --ease-smooth: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --t-fast: 0.22s;
+  --t-mid:  0.40s;
+  --t-slow: 0.70s;
+
+  /* Radios */
+  --radius-sm:   8px;
+  --radius-md:   12px;
+  --radius-lg:   18px;
+  --radius-full: 9999px;
+}
+
+/* --------------------------------------------------------------------------
+   2. RESET
+   -------------------------------------------------------------------------- */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* --------------------------------------------------------------------------
+   3. WRAPPER — Fondo claro institucional
+   -------------------------------------------------------------------------- */
+.login-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  padding: 1.5rem;
+  position: relative;
+  overflow: hidden;
+  background-color: var(--bg-page);
+}
+
+/* Halos de color muy sutiles para profundidad sin oscurecer */
+.login-wrapper::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 15% 15%, rgba(123,29,58,0.04) 0%, transparent 48%),
+    radial-gradient(circle at 85% 85%, rgba(123,29,58,0.03) 0%, transparent 48%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Franja animada vino-dorado en el borde superior del viewport */
+.login-wrapper::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 4px;
+  background: linear-gradient(
+    90deg,
+    var(--brand-dark) 0%, var(--brand-primary) 30%,
+    var(--gold-accent) 50%, var(--brand-primary) 70%,
+    var(--brand-dark) 100%
+  );
+  background-size: 200% 100%;
+  animation: viewportBorder 5s linear infinite;
+  z-index: 2;
+}
+@keyframes viewportBorder {
+  0%   { background-position: 0%   0%; }
+  100% { background-position: 200% 0%; }
+}
+
+/* --------------------------------------------------------------------------
+   4. TARJETA
+   -------------------------------------------------------------------------- */
+.login-card {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 420px;
+  padding: 2.8rem 2.5rem 2.2rem;
+  border-radius: var(--radius-lg);
+  background: var(--bg-white);
+  box-shadow: var(--shadow-card);
+  border: 1px solid var(--border-primary);
+  overflow: hidden;
+  will-change: transform;
+}
+
+/* Borde superior animado vino → dorado */
+.login-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 4px;
+  background: linear-gradient(
+    90deg,
+    var(--brand-dark) 0%, var(--brand-primary) 20%,
+    var(--gold-accent) 50%, var(--brand-primary) 80%,
+    var(--brand-dark) 100%
+  );
+  background-size: 200% 100%;
+  animation: borderFlow 3.5s linear infinite;
+}
+
+/* Degradado rosado sutil en la parte interna superior */
+.login-card::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 80px;
+  background: linear-gradient(to bottom, var(--bg-pink-pale) 0%, transparent 100%);
+  pointer-events: none;
+}
+@keyframes borderFlow {
+  0%   { background-position: 0%   0%; }
+  100% { background-position: 200% 0%; }
+}
+
+/* --------------------------------------------------------------------------
+   5. ANIMACIONES DE ENTRADA Y ESTADO
+   -------------------------------------------------------------------------- */
+
+/* Entrada de la tarjeta */
+.fade-in-up {
+  animation: fadeInUp var(--t-slow) var(--ease-smooth) forwards;
+}
+@keyframes fadeInUp {
+  0%   { opacity: 0; transform: translateY(32px) scale(0.97); }
+  100% { opacity: 1; transform: translateY(0)    scale(1); }
+}
+
+/* Alerta que desciende */
+.slide-down {
+  animation: slideDown var(--t-mid) var(--ease-smooth) forwards;
+}
+@keyframes slideDown {
+  0%   { opacity: 0; transform: translateY(-12px) scale(0.97); }
+  100% { opacity: 1; transform: translateY(0)      scale(1); }
+}
+
+/* Vibración en error */
+.shake {
+  animation: shake 0.55s cubic-bezier(.36,.07,.19,.97) both;
+}
+@keyframes shake {
+  10%, 90%      { transform: translate3d(-3px, 0, 0); }
+  20%, 80%      { transform: translate3d(5px, 0, 0);  }
+  30%, 50%, 70% { transform: translate3d(-7px, 0, 0); }
+  40%, 60%      { transform: translate3d(7px, 0, 0);  }
+}
+
+/* Fade simple */
+.fade-in { animation: fadeIn 0.3s ease-in; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+/* --------------------------------------------------------------------------
+   6. LOGO CIRCULAR MEJORADO
+   Anillo giratorio vino-dorado + glow pulsante + imagen perfectamente circular
+   -------------------------------------------------------------------------- */
+.header-section {
+  text-align: center;
+  margin-bottom: 2.2rem;
+}
+
+/*
+  Contenedor con posición relativa para los pseudo-elementos del anillo.
+  Se añade padding para que el glow exterior no quede recortado.
+*/
+.logo-container {
+  width: 108px;
+  height: 108px;
+  margin: 0 auto 1.3rem;
+  border-radius: var(--radius-full);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* padding extra para que el pulso de glow exterior no se recorte */
+  padding: 4px;
+  overflow: hidden;
+}
+
+/*
+  Anillo exterior giratorio con gradiente cónico vino → dorado → vino.
+  Se posiciona con inset negativo para rodear la imagen.
+*/
+.logo-container::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-full);
+  background: conic-gradient(
+    from 0deg,
+    var(--brand-dark)    0%,
+    var(--brand-primary) 20%,
+    var(--gold-accent)   45%,
+    var(--gold-light)    50%,
+    var(--gold-accent)   55%,
+    var(--brand-primary) 80%,
+    var(--brand-dark)    100%
+  );
+  animation: rotateBorder 3.5s linear infinite;
+  z-index: 0;
+}
+
+/* Glow pulsante exterior en tono vino suave */
+.logo-container::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: var(--radius-full);
+  animation: pulseLogoGlow 3s ease-out infinite;
+  z-index: 0;
+}
+
+@keyframes rotateBorder { to { transform: rotate(360deg); } }
+
+@keyframes pulseLogoGlow {
+  0%   { box-shadow: 0 0 0 0    rgba(123,29,58,0.20); }
+  70%  { box-shadow: 0 0 0 10px rgba(123,29,58,0);    }
+  100% { box-shadow: 0 0 0 0    rgba(123,29,58,0);    }
+}
+
+/*
+  Imagen circular perfecta.
+  - border-radius: 50% garantiza círculo aunque el contenedor no sea cuadrado.
+  - border: 4px solid white crea la separación visual entre imagen y anillo.
+  - z-index: 1 la pone encima de los pseudo-elementos ::before y ::after.
+  - object-fit: cover evita deformación si la imagen no es cuadrada.
+*/
+.sspc-logo {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--bg-white);
+  border: 4px solid var(--bg-white);
+  display: block;
+  box-shadow: 0 2px 12px rgba(123,29,58,0.15);
+}
+
+.brand-title {
+  color: var(--brand-dark);
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.4px;
+  line-height: 1.25;
+  margin-bottom: 4px;
+}
+
+.brand-subtitle {
+  color: var(--gold-accent);
+  font-size: 0.76rem;
+  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: 1.6px;
+}
+
+/* --------------------------------------------------------------------------
+   7. FORMULARIO E INPUTS
+   -------------------------------------------------------------------------- */
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.3rem;
+}
+
+/* ── Alerta de credenciales incorrectas ── */
+.error-alert {
+  background: var(--error-bg);
+  color: var(--error-text);
+  padding: 11px 16px;
+  border-radius: var(--radius-sm);
+  font-size: 0.84rem;
+  text-align: center;
+  font-weight: 600;
+  border: 1px solid #fca5a5;
+}
+
+/* ── Alerta de bloqueo temporal ── */
+.lockout-alert {
+  background: var(--bg-yellow-light);
+  border: 1px solid #fbbf24;
+  color: #78350f;
+  padding: 11px 16px;
+  border-radius: var(--radius-sm);
+  font-size: 0.84rem;
+  text-align: center;
+  font-weight: 600;
+  line-height: 1.5;
+  animation: slideDown var(--t-mid) var(--ease-smooth) forwards;
+}
+.lockout-countdown {
+  font-size: 1.1rem;
+  font-weight: 900;
+  color: var(--brand-primary);
+}
+
+/*
+  Mensaje de validación inline debajo del input.
+  Aparece con slide-down cuando el campo está tocado e inválido.
+*/
+.field-hint {
+  font-size: 0.76rem;
+  color: var(--text-error);
+  font-weight: 600;
+  margin-top: 4px;
+  padding-left: 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  animation: slideDown 0.3s var(--ease-smooth) forwards;
+}
+
+/* ── Contenedor del input ── */
+.input-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+/* Ícono SVG decorativo */
+.icon {
+  position: absolute;
+  left: 14px;
+  color: var(--text-muted);
+  width: 18px;
+  height: 18px;
+  transition:
+    color     var(--t-mid) var(--ease-smooth),
+    transform var(--t-mid) var(--ease-bounce);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Campo de texto base */
+.input-container input {
+  width: 100%;
+  padding: 0.9rem 1rem 0.9rem 2.75rem;
+  border: 1.5px solid var(--border-input);
+  border-radius: var(--radius-md);
+  font-size: 0.94rem;
+  font-family: inherit;
+  color: var(--text-primary);
+  background: var(--bg-light);
+  transition:
+    border-color var(--t-mid) var(--ease-smooth),
+    background   var(--t-mid) var(--ease-smooth),
+    box-shadow   var(--t-mid) var(--ease-smooth),
+    transform    var(--t-mid) var(--ease-smooth);
+  outline: none;
+}
+
+/* Focus: borde vino + elevación */
+.input-container input:focus {
+  border-color: var(--brand-primary);
+  background: var(--bg-white);
+  box-shadow: var(--shadow-input);
+  transform: translateY(-2px);
+}
+
+/* El ícono reacciona al focus del input hermano (~) */
+.input-container input:focus ~ .icon {
+  color: var(--brand-primary);
+  transform: scale(1.15) rotate(-5deg);
+}
+
+/* Estado inválido */
+.input-container.invalid input {
+  border-color: var(--text-error);
+  background: var(--error-bg);
+}
+.input-container.invalid .icon { color: var(--text-error); }
+
+/* Toggle visibilidad contraseña */
+.toggle-password {
+  position: absolute;
+  right: 13px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  padding: 4px;
+  border-radius: 4px;
+  transition: color var(--t-fast) ease, transform var(--t-fast) ease;
+  z-index: 1;
+}
+.toggle-password:hover { color: var(--brand-primary); transform: scale(1.14); }
+.input-container.has-toggle input { padding-right: 2.8rem; }
+
+/* --------------------------------------------------------------------------
+   8. BARRA DE INTENTOS FALLIDOS
+   -------------------------------------------------------------------------- */
+.attempts-bar-wrapper { display: flex; flex-direction: column; gap: 5px; }
+.attempts-label {
+  font-size: 0.77rem;
+  color: var(--text-tertiary);
+  font-weight: 600;
+  text-align: right;
+}
+.attempts-bar-track {
+  height: 5px;
+  background: var(--border-soft);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+.attempts-bar-fill {
+  height: 100%;
+  border-radius: var(--radius-full);
+  background: var(--brand-primary);
+  transition: width 0.5s var(--ease-smooth), background-color 0.4s ease;
+}
+.attempts-bar-fill.danger { background: var(--text-error); }
+
+/* --------------------------------------------------------------------------
+   9. BOTÓN PRINCIPAL
+   Estrategia:
+     - Estado VACÍO (por defecto): gris claro, texto apagado, sin animación
+     - Estado LISTO (.btn-ready): vino sólido animado con shimmer
+     - Estado CARGANDO: vino + spinner (no cambia color)
+   -------------------------------------------------------------------------- */
+
+/*
+  Estado por defecto — formulario vacío/incompleto.
+  Gris neutro para comunicar que aún no está listo.
+*/
+.btn-primary {
+  position: relative;
+  overflow: hidden;
+  border: 1.5px solid var(--border-primary);
+  padding: 0.95rem 1rem;
+  border-radius: var(--radius-md);
+  font-size: 1rem;
+  font-weight: 700;
+  font-family: inherit;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);             /* texto apagado cuando está vacío */
+  cursor: not-allowed;
+  min-height: 50px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: var(--bg-light);          /* gris claro base */
+  background-size: 200% 200%;
+
+  /* Transición suave entre todos los estados */
+  transition:
+    background   0.5s var(--ease-smooth),
+    border-color 0.5s var(--ease-smooth),
+    color        0.5s var(--ease-smooth),
+    box-shadow   0.3s ease,
+    transform    var(--t-fast) var(--ease-bounce);
+}
+
+/*
+  Estado LISTO — ambos campos tienen contenido.
+  Aplica el color vino sólido con gradiente animado y shimmer dorado.
+  El !important en background-size y animation asegura que sobrescriban
+  el estado base sin conflictos de especificidad con la animación.
+*/
+.btn-primary.btn-ready {
+  /* color vino sólido cuando el formulario está listo */
+  background: var(--brand-primary) !important;
+  border-color: var(--brand-dark);
+  color: var(--bg-white);
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(123,29,58,0.25);
+  animation: btnColorShift 3s infinite alternate;
+}
+
+@keyframes btnColorShift {
+  0%   { background: var(--brand-primary); }
+  100% { background: #5e2129; }
+}
+
+/*
+  Shimmer: barrido de luz blanca solo cuando está listo.
+  Se activa únicamente en .btn-ready para no distraer en estado vacío.
+*/
+.btn-primary.btn-ready::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -130%;
+  width: 70px;
+  height: 100%;
+  background: linear-gradient(
+    120deg,
+    transparent 15%,
+    rgba(255,255,255,0.26) 50%,
+    transparent 85%
+  );
+  animation: shimmer 3s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes shimmer {
+  0%   { left: -130%; }
+  55%  { left: 130%;  }
+  100% { left: 130%;  }
+}
+
+/* Hover en estado LISTO */
+.btn-primary.btn-ready:hover {
+  transform: translateY(-3px) scale(1.01);
+  box-shadow: var(--shadow-btn);
+  background: var(--brand-dark);
+}
+
+
+/* Hover sólido vino para mayor contraste al pasar el cursor */
+.btn-primary:hover:not([disabled]) {
+  background: var(--brand-primary) !important;
+  color: var(--bg-white) !important;
+  box-shadow: var(--shadow-btn);
+  transform: translateY(-3px);
+}
+
+/* Presionado */
+.btn-primary.btn-ready:active {
+  transform: translateY(1px) scale(0.99);
+  box-shadow: 0 3px 8px rgba(123,29,58,0.28);
+}
+
+/* Estado deshabilitado durante carga o bloqueo */
+.btn-primary[disabled] {
+  opacity: 0.80;
+  cursor: not-allowed;
+  animation-play-state: paused;
+  transform: none !important;
+}
+
+/* --------------------------------------------------------------------------
+   10. SPINNER DE CARGA
+   -------------------------------------------------------------------------- */
+.spinner {
+  width: 22px;
+  height: 22px;
+  border: 3px solid rgba(255,255,255,0.30);
+  border-radius: var(--radius-full);
+  border-top-color: #ffffff;
+  animation: spin 0.75s cubic-bezier(0.6, 0.2, 0.4, 0.8) infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* --------------------------------------------------------------------------
+   11. OVERLAY DE ÉXITO — Cubre toda la tarjeta al iniciar sesión exitosamente
+   -------------------------------------------------------------------------- */
+
+/*
+  El overlay se posiciona sobre la tarjeta completa con position: fixed
+  para cubrir toda la pantalla y dar una transición de página.
+  Inicia invisible (opacity: 0) y se anima con la clase .success-active.
+*/
+.success-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.2rem;
+  background: var(--bg-white);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s var(--ease-smooth);
+}
+
+/* Activa el overlay con fade-in cuando el login es exitoso */
+.success-overlay.success-active {
+  opacity: 1;
+  pointer-events: all;
+}
+
+/* Ícono de palomita dentro de un círculo vino */
+.success-icon {
+  width: 72px;
+  height: 72px;
+  border-radius: var(--radius-full);
+  background: var(--brand-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: successPop 0.6s var(--ease-bounce) forwards;
+  box-shadow: 0 8px 24px rgba(123,29,58,0.35);
+}
+
+@keyframes successPop {
+  0%   { opacity: 0; transform: scale(0.4) rotate(-20deg); }
+  60%  { transform: scale(1.12) rotate(4deg); }
+  100% { opacity: 1; transform: scale(1) rotate(0deg); }
+}
+
+.success-icon svg {
+  width: 36px;
+  height: 36px;
+  color: white;
+}
+
+/* Texto de bienvenida */
+.success-title {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--brand-dark);
+  letter-spacing: -0.3px;
+  animation: fadeInUp 0.5s 0.2s var(--ease-smooth) both;
+}
+
+.success-subtitle {
+  font-size: 0.85rem;
+  color: var(--text-tertiary);
+  font-weight: 500;
+  animation: fadeInUp 0.5s 0.35s var(--ease-smooth) both;
+}
+
+/* Barra de progreso de redirección */
+.success-bar-track {
+  width: 180px;
+  height: 4px;
+  background: var(--border-soft);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  animation: fadeInUp 0.5s 0.45s var(--ease-smooth) both;
+}
+
+.success-bar-fill {
+  height: 100%;
+  width: 0%;
+  border-radius: var(--radius-full);
+  background: linear-gradient(90deg, var(--brand-primary), var(--gold-accent));
+  animation: progressFill 1.5s 0.5s var(--ease-smooth) forwards;
+}
+
+@keyframes progressFill {
+  0%   { width: 0%; }
+  100% { width: 100%; }
+}
+
+/* --------------------------------------------------------------------------
+   12. PIE DE LA TARJETA
+   -------------------------------------------------------------------------- */
+.footer-text {
+  text-align: center;
+  margin-top: 1.8rem;
+  font-size: 0.73rem;
+  color: var(--text-muted);
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+/* --------------------------------------------------------------------------
+   13. RESPONSIVE
+   -------------------------------------------------------------------------- */
+@media (max-width: 480px) {
+  .login-card      { padding: 2.2rem 1.5rem 1.8rem; border-radius: var(--radius-md); }
+  .brand-title     { font-size: 1.3rem; }
+  .logo-container  { width: 90px; height: 90px; }
+}
