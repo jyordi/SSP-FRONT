@@ -1,0 +1,82 @@
+<h2>{{ editando ? 'Editar' : 'Registrar' }} Actividad</h2>
+
+<form [formGroup]="form" (ngSubmit)="guardar()" class="form-card">
+
+  <div class="form-row">
+    <div class="field full">
+      <label>Nombre de la actividad *</label>
+      <input formControlName="nombreActividad" placeholder="Ej: Taller de carpintería, Curso de cocina...">
+      @if (f['nombreActividad'].invalid && f['nombreActividad'].touched) {
+        <span class="error">El nombre de la actividad es requerido</span>
+      }
+    </div>
+  </div>
+
+  <div class="form-row">
+    <div class="field">
+      <label>Impartidor del taller *</label>
+      <input formControlName="impartidor" placeholder="Nombre del impartidor">
+      @if (f['impartidor'].invalid && f['impartidor'].touched) {
+        <span class="error">El impartidor es requerido</span>
+      }
+    </div>
+
+    <div class="field">
+      <label>Responsable del taller *</label>
+      <input formControlName="responsable" placeholder="Nombre del responsable">
+      @if (f['responsable'].invalid && f['responsable'].touched) {
+        <span class="error">El responsable es requerido</span>
+      }
+    </div>
+  </div>
+
+  <div class="form-row">
+    <div class="field">
+      <label>Lugar *</label>
+      <input formControlName="lugar" placeholder="Ej: Parque, Auditorio...">
+      @if (f['lugar'].invalid && f['lugar'].touched) {
+        <span class="error">El lugar es requerido</span>
+      }
+    </div>
+
+    <div class="field">
+      <label>Fecha *</label>
+      <input formControlName="fecha" type="date">
+      @if (f['fecha'].invalid && f['fecha'].touched) {
+        <span class="error">La fecha es requerida</span>
+      }
+    </div>
+  </div>
+
+  <div class="form-row">
+    <div class="field">
+      <label>Número de participantes *</label>
+      <input formControlName="numParticipantes" type="number" min="1">
+      @if (f['numParticipantes'].invalid && f['numParticipantes'].touched) {
+        <span class="error">Debe ser al menos 1 participante</span>
+      }
+    </div>
+
+    <div class="field">
+      <label>¿Se llevó a cabo?</label>
+      <select formControlName="estado">
+        <option>Se llevó a cabo</option>
+        <option>No se llevó a cabo</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="field full">
+    <label>Descripción</label>
+    <textarea formControlName="descripcion" rows="4"
+      placeholder="Describe la actividad realizada..."></textarea>
+  </div>
+
+  <div class="form-actions">
+    <a routerLink="/voluntarios/actividades" class="btn-cancel">Cancelar</a>
+    <button type="submit" class="btn-primary">
+      {{ editando ? 'Actualizar' : 'Guardar' }} Actividad
+    </button>
+  </div>
+
+</form>

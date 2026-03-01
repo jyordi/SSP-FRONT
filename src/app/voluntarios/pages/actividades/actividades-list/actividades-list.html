@@ -1,0 +1,62 @@
+<div class="list-header">
+  <h2>Actividades realizadas</h2>
+  <a routerLink="/voluntarios/actividades/nueva" class="btn-primary">+ Registrar Actividad</a>
+</div>
+
+<div class="filters">
+  <input
+    [ngModel]="searchTerm()"
+    (ngModelChange)="searchTerm.set($event)"
+    class="search-input"
+    placeholder="Search...">
+  <select
+    [ngModel]="filtroEstado()"
+    (ngModelChange)="filtroEstado.set($event)"
+    class="filter-select">
+    <option>Todos</option>
+    <option>Se llevó a cabo</option>
+    <option>No se llevó a cabo</option>
+  </select>
+</div>
+
+<table class="tabla">
+  <thead>
+    <tr>
+      <th>Nombre de la actividad</th>
+      <th>Impartidor</th>
+      <th>Responsable</th>
+      <th>Lugar</th>
+      <th>Fecha</th>
+      <th>Participantes</th>
+      <th>Estado</th>
+      <th>Acciones</th>
+    </tr>
+  </thead>
+  <tbody>
+    @for (a of actividades(); track a.id) {
+      <tr>
+        <td>
+          <div class="nombre">{{ a.nombreActividad || '—' }}</div>
+        </td>
+        <td>{{ a.impartidor }}</td>
+        <td>{{ a.responsable }}</td>
+        <td>{{ a.lugar }}</td>
+        <td>{{ a.fecha }}</td>
+        <td class="participantes">{{ a.numParticipantes }}</td>
+        <td>
+          <span class="badge" [class.realizado]="a.estado === 'Se llevó a cabo'">
+            {{ a.estado }}
+          </span>
+        </td>
+        <td class="acciones">
+          <a [routerLink]="['/voluntarios/actividades/editar', a.id]" class="btn-edit">✏️</a>
+          <button (click)="eliminar(a.id!)" class="btn-delete">🗑️</button>
+        </td>
+      </tr>
+    } @empty {
+      <tr>
+        <td colspan="8" class="empty">No hay actividades registradas aún</td>
+      </tr>
+    }
+  </tbody>
+</table>

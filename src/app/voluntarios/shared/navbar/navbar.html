@@ -1,0 +1,26 @@
+<nav class="navbar">
+  <div class="brand">
+    <div class="logo-circle">{{ config.brandIcon }}</div>
+    <div>
+      <span class="brand-name">{{ config.brandName }}</span>
+      <span class="brand-sub">{{ config.brandSubtitle }}</span>
+    </div>
+  </div>
+
+  <div class="nav-links">
+    @for (link of config.links; track link.path) {
+      <a [routerLink]="link.path" routerLinkActive="active">
+        {{ link.label }}
+      </a>
+    }
+  </div>
+
+  <div class="nav-end">
+    @if (config.showSearch) {
+      <input class="search" type="text" [placeholder]="config.searchPlaceholder || 'Buscar...'">
+    }
+    @if (config.showAvatar) {
+      <div class="avatar">{{ config.avatarText || 'U' }}</div>
+    }
+  </div>
+</nav>

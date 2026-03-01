@@ -1,0 +1,130 @@
+.list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.list-header h2 {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+}
+
+.btn-primary {
+  background: #7B1D3A;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: .65rem 1.25rem;
+  font-weight: 600;
+  font-size: .875rem;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background .2s;
+}
+.btn-primary:hover { background: #9E2A4A; }
+
+.filters {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.search-input, .filter-select {
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: .5rem 1rem;
+  font-size: .875rem;
+  outline: none;
+  transition: border-color .2s;
+}
+.search-input { width: 260px; }
+.search-input:focus, .filter-select:focus { border-color: #7B1D3A; }
+
+.tabla {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0,0,0,.08);
+}
+
+.tabla thead tr {
+  background: #7B1D3A;
+  color: white;
+}
+
+.tabla th {
+  padding: .85rem 1rem;
+  text-align: left;
+  font-size: .8rem;
+  font-weight: 600;
+  letter-spacing: .5px;
+  text-transform: uppercase;
+}
+
+.tabla td {
+  padding: .9rem 1rem;
+  font-size: .875rem;
+  color: #374151;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.tabla tbody tr:hover { background: #fdf2f4; }
+
+.nombre { font-weight: 600; color: #111827; }
+
+.participantes {
+  font-weight: 700;
+  color: #7B1D3A;
+  text-align: center;
+}
+
+.badge {
+  display: inline-block;
+  padding: .3rem .85rem;
+  border-radius: 20px;
+  font-size: .78rem;
+  font-weight: 600;
+  background: #fee2e2;
+  color: #991b1b;
+}
+.badge.realizado {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.acciones { display: flex; gap: .5rem; }
+
+.btn-edit {
+  background: #fef3c7;
+  border: none;
+  border-radius: 6px;
+  padding: .4rem .6rem;
+  cursor: pointer;
+  text-decoration: none;
+  font-size: 1rem;
+  transition: background .2s;
+}
+.btn-edit:hover { background: #fde68a; }
+
+.btn-delete {
+  background: #fee2e2;
+  border: none;
+  border-radius: 6px;
+  padding: .4rem .6rem;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background .2s;
+}
+.btn-delete:hover { background: #fca5a5; }
+
+.empty {
+  text-align: center;
+  padding: 3rem;
+  color: #9ca3af;
+  font-size: .9rem;
+}

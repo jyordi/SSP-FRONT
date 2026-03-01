@@ -1,0 +1,63 @@
+<div class="list-header">
+  <h2>Listado de Personas Registradas</h2>
+  <a routerLink="/voluntarios/personas/nuevo" class="btn-primary">+ Registrar Persona</a>
+</div>
+
+<div class="filters">
+  <input
+    [ngModel]="searchTerm()"
+    (ngModelChange)="searchTerm.set($event)"
+    class="search-input"
+    placeholder="Search...">
+  <select
+    [ngModel]="filtroEstado()"
+    (ngModelChange)="filtroEstado.set($event)"
+    class="filter-select">
+    <option>Todos</option>
+    <option>Activo</option>
+    <option>Inactivo</option>
+  </select>
+</div>
+
+<table class="tabla">
+  <thead>
+    <tr>
+      <th>Nombre</th>
+      <th>Sobrenombre</th>
+      <th>CURP</th>
+      <th>Motivo de ingreso</th>
+      <th>Fecha inicio</th>
+      <th>Fecha término</th>
+      <th>Estado</th>
+      <th>Acciones</th>
+    </tr>
+  </thead>
+  <tbody>
+    @for (p of personas(); track p.id) {
+      <tr (click)="verPersona(p.id!)" class="fila-clickeable">
+        <td>
+          <div class="persona-nombre">{{ p.nombre }}</div>
+          <div class="persona-sub">Folio: {{ p.folio || '—' }}</div>
+        </td>
+        <td>{{ p.sobrenombre || '—' }}</td>
+        <td>{{ p.curp || '—' }}</td>
+        <td>{{ p.motivoIngreso || '—' }}</td>
+        <td>{{ p.fechaInicioTratamiento || '—' }}</td>
+        <td>{{ p.fechaTerminoTratamiento || '—' }}</td>
+        <td>
+          <span class="badge" [class.activo]="p.estado === 'Activo'">
+            {{ p.estado }}
+          </span>
+        </td>
+        <td class="acciones">
+          <a [routerLink]="['/voluntarios/personas/editar', p.id]" class="btn-edit" (click)="$event.stopPropagation()">✏️</a>
+          <button (click)="eliminar(p.id!, $event)" class="btn-delete">🗑️</button>
+        </td>
+      </tr>
+    } @empty {
+      <tr>
+        <td colspan="8" class="empty">No hay personas registradas aún</td>
+      </tr>
+    }
+  </tbody>
+</table>

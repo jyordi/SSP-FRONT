@@ -1,0 +1,87 @@
+.navbar {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  padding: 0 2rem;
+  height: 64px;
+  background: white;
+  border-bottom: 1px solid #e5e7eb;
+  box-shadow: 0 1px 3px rgba(0,0,0,.08);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+}
+
+.logo-circle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #7B1D3A;
+  display: grid;
+  place-items: center;
+  font-size: 1.2rem;
+}
+
+.brand-name {
+  display: block;
+  font-weight: 700;
+  color: #7B1D3A;
+  font-size: .95rem;
+}
+
+.brand-sub {
+  display: block;
+  font-size: .7rem;
+  color: #888;
+}
+
+.nav-links {
+  display: flex;
+  gap: 1.5rem;
+  margin-left: auto;
+}
+
+.nav-links a {
+  text-decoration: none;
+  color: #555;
+  font-size: .9rem;
+  padding: .25rem 0;
+  border-bottom: 2px solid transparent;
+  transition: all .2s;
+}
+
+.nav-links a.active,
+.nav-links a:hover {
+  color: #7B1D3A;
+  border-color: #7B1D3A;
+}
+
+.nav-end {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-left: 2rem;
+}
+
+.search {
+  border: 1px solid #ddd;
+  border-radius: 20px;
+  padding: .4rem 1rem;
+  font-size: .85rem;
+  outline: none;
+}
+
+.avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #7B1D3A;
+  color: white;
+  display: grid;
+  place-items: center;
+  font-weight: 600;
+  cursor: pointer;
+}
