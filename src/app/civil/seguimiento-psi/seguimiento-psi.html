@@ -1,0 +1,134 @@
+<div class="container">
+  <form [formGroup]="notaEvolucionForm" (ngSubmit)="onSubmit()" class="form-card">
+
+    <h1 style="color: var(--text-primary); margin-bottom: 0.5rem; font-size: 1.8rem; text-align: center;">
+      Valoración Clínica Psicológica
+    </h1>
+    <p style="color: var(--text-tertiary); text-align: center; margin-bottom: 2rem; font-size: 1.1rem;">
+      Nota de Evolución Psicológica
+    </p>
+
+    <div class="section-header">
+      <h2>1. Datos del Usuario</h2>
+    </div>
+
+    <div class="section-body">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Núm. de Expediente</label>
+          <input type="text" formControlName="numExpediente" placeholder="Ej. EXP-2026-001">
+        </div>
+
+        <div class="form-group">
+          <label>Nombre del Usuario</label>
+          <input type="text" formControlName="nombreUsuario">
+        </div>
+
+        <div class="form-group">
+          <label>Edad</label>
+          <input type="number" formControlName="edad">
+        </div>
+
+        <div class="form-group">
+          <label>Sexo</label>
+          <select formControlName="sexo">
+            <option value="">Seleccione...</option>
+            <option value="F">Femenino</option>
+            <option value="M">Masculino</option>
+            <option value="O">Otro</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-header">
+      <h2>2. Datos de la Sesión</h2>
+    </div>
+
+    <div class="section-body">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Fecha</label>
+          <input type="date" formControlName="fecha">
+        </div>
+
+        <div class="form-group">
+          <label>Hora</label>
+          <input type="time" formControlName="hora">
+        </div>
+
+        <div class="form-group">
+          <label>Núm. de Sesión</label>
+          <input type="number" formControlName="numSesion">
+        </div>
+
+        <div class="form-group">
+          <label>Fecha de la Próxima Sesión</label>
+          <input type="date" formControlName="fechaProximaSesion">
+        </div>
+      </div>
+    </div>
+
+    <div class="section-header">
+      <h2>3. Desarrollo de la Sesión</h2>
+    </div>
+
+    <div class="section-body">
+      <div class="form-grid">
+        <div class="form-group full-width">
+          <label>Objetivo de la Sesión</label>
+          <textarea formControlName="objetivoSesion" placeholder="Describe el objetivo principal..."></textarea>
+        </div>
+
+        <div class="form-group full-width">
+          <label>Conducta y Disposición</label>
+          <textarea formControlName="conductaDisposicion" placeholder="Observaciones sobre la actitud del usuario..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>Tema</label>
+          <input type="text" formControlName="tema">
+        </div>
+
+        <div class="form-group">
+          <label>Estrategia</label>
+          <input type="text" formControlName="estrategia">
+        </div>
+
+        <div class="form-group full-width">
+          <label>Resumen de la Sesión (Actividades y Estrategias Aplicadas)</label>
+          <textarea formControlName="resumenSesion" style="min-height: 120px;"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-header">
+      <h2>4. Plan y Observaciones</h2>
+    </div>
+
+    <div class="section-body">
+      <div class="form-grid">
+        <div class="form-group full-width">
+          <label>Plan Terapéutico para la Siguiente Sesión</label>
+          <textarea formControlName="planTerapeutico"></textarea>
+        </div>
+
+        <div class="form-group full-width">
+          <label>Actividades Asignadas para el Usuario</label>
+          <textarea formControlName="actividadesAsignadas"></textarea>
+        </div>
+
+        <div class="form-group full-width">
+          <label>Observaciones Adicionales</label>
+          <textarea formControlName="observaciones"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="button-container">
+      <button type="button" class="btn-secondary">Cancelar</button>
+      <button type="submit" class="btn-success">Guardar Nota</button>
+    </div>
+
+  </form>
+</div>
