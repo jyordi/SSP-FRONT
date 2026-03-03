@@ -1,67 +1,100 @@
 <div class="dashboard-wrapper">
+  
   <header class="top-nav fade-in-down">
     <div class="nav-brand">
       <img src="https://pbs.twimg.com/profile_images/1553024740645867521/Y01tlpcP_400x400.jpg" alt="Logo SSPC" class="mini-logo">
-      <span>Módulo de Justicia Penal</span>
+      <span>Reconecta con la Paz</span>
     </div>
     <div class="nav-actions">
-      <span class="user-name">Psic. Avelina Escárcega</span>
+      <span class="user-name">{{user}}</span>
       <button class="btn-logout" (click)="cerrarSesion()">Cerrar Sesión</button>
     </div>
   </header>
 
   <main class="content-area">
+    
     <div class="page-header fade-in-up">
-      <div>
+      <div class="header-text-group">
         <h2 class="title-primary">Seguimiento de Expedientes</h2>
         <p class="subtitle">Gestione a las personas usuarias activas en el programa Reconecta con la Paz.</p>
       </div>
       
-      <button class="btn-primary pulse-hover black-text" (click)="nuevoIngreso()">
+      <button class="btn-primary pulse-hover" (click)="nuevoIngreso()">
         <svg class="icon-margin" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
         Nuevo Ingreso
       </button>
-      
     </div>
 
-    <div class="search-bar fade-in-up delay-1">
-      <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-      <input type="text" placeholder="Buscar por nombre, folio o delito...">
+    <div class="controls-section fade-in-up delay-1">
+      
+      <div class="search-bar">
+        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        <input type="text" placeholder="Buscar por nombre, folio, delito..." [(ngModel)]="searchTerm">
+      </div>
+
+      <div class="filter-chips">
+        <button class="chip" [class.active]="filtroActual === 'Todos'" (click)="seleccionarFiltro('Todos')">Todos</button>
+        <button class="chip" [class.active]="filtroActual === 'Penal'" (click)="seleccionarFiltro('Penal')">Penal</button>
+        <button class="chip" [class.active]="filtroActual === 'Cívico'" (click)="seleccionarFiltro('Cívico')">Cívico</button>
+        <button class="chip" [class.active]="filtroActual === 'Voluntario'" (click)="seleccionarFiltro('Voluntario')">Voluntariado</button>
+        <div class="chip-divider"></div>
+        <button class="chip chip-warning" [class.active]="filtroActual === 'Incompletos'" (click)="seleccionarFiltro('Incompletos')">⚠️ Incompletos</button>
+      </div>
     </div>
 
     <div class="cards-grid">
-      <div class="user-card fade-in-up" *ngFor="let exp of expedientes; let i = index" [style.animation-delay]="(i * 0.1) + 's'">
+      
+      <div *ngIf="expedientesFiltrados.length === 0" class="no-results fade-in-up">
+        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color: #9ca3af; margin-bottom: 1rem;"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        <p>No se encontraron expedientes con los filtros actuales.</p>
+      </div>
+
+      <div class="user-card fade-in-up" *ngFor="let exp of expedientesFiltrados; let i = index" 
+           [style.animation-delay]="(i * 0.08) + 's'" 
+           [ngClass]="{
+             'borde-penal': exp.tipo === 'Penal',
+             'borde-civico': exp.tipo === 'Cívico',
+             'borde-voluntario': exp.tipo === 'Voluntario',
+             'alerta-incompleto': exp.estatus === 'Incompleto'
+           }">
         
         <div class="card-header">
-          <span class="badge" [ngClass]="{'badge-success': exp.avance === 100, 'badge-warning': exp.avance > 10 && exp.avance < 100, 'badge-error': exp.avance <= 10}">
-            {{ exp.estatus }}
-          </span>
+          <div class="tags-container">
+            <span class="badge-tipo" [ngClass]="'tipo-' + exp.tipo.toLowerCase()">{{ exp.tipo }}</span>
+          </div>
           <span class="folio-text">{{ exp.folio }}</span>
         </div>
 
         <div class="card-body">
           <h3 class="user-name-card">{{ exp.nombre }}</h3>
-          <p class="user-crime"><strong>Delito:</strong> {{ exp.delito }}</p>
+          <p class="user-crime">{{ exp.delito }}</p>
           
-          <div class="progress-section">
-            <div class="progress-labels">
-              <span>Avance de horas</span>
-              <span>{{ exp.avance }}%</span>
+          <ng-container *ngIf="exp.estatus !== 'Incompleto'">
+            <div class="progress-section">
+              <div class="progress-labels">
+                <span class="status-text" [ngClass]="{'text-success': exp.estatus === 'Completado', 'text-warning': exp.estatus === 'Riesgo'}">{{ exp.estatus }}</span>
+                <span class="percentage">{{ exp.avance }}%</span>
+              </div>
+              <div class="progress-bar-bg">
+                <div class="progress-bar-fill" [style.width]="exp.avance + '%'" [ngClass]="{'fill-success': exp.avance === 100}"></div>
+              </div>
             </div>
-            <div class="progress-bar-bg">
-              <div class="progress-bar-fill" [style.width]="exp.avance + '%'" [ngClass]="{'fill-success': exp.avance === 100}"></div>
-            </div>
-          </div>
+          </ng-container>
 
-          <div class="appointment-info">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-            <span>Próxima cita: <strong>{{ exp.proximaCita }}</strong></span>
-          </div>
+          <ng-container *ngIf="exp.estatus === 'Incompleto'">
+            <div class="incomplete-alert">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+              <div>
+                <strong>Registro Pausado</strong><br>
+                <span>Falta: {{ exp.faseActual }}</span>
+              </div>
+            </div>
+          </ng-container>
         </div>
 
         <div class="card-footer">
-          <button class="btn-edit" (click)="continuarSeguimiento(exp.id)">
-            Continuar Seguimiento →
+          <button class="btn-action" (click)="continuarSeguimiento(exp.id)">
+            {{ exp.estatus === 'Incompleto' ? 'Completar Datos →' : 'Ver Detalles →' }}
           </button>
         </div>
 
