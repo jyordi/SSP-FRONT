@@ -1,0 +1,220 @@
+/* =========================================
+   VARIABLES GLOBALES
+   ========================================= */
+.perfil-container {
+  --brand-primary: #7B1D3A;
+  --brand-hover: #9E2A4A;
+  --bg-page: #f4f0ed;
+  --bg-white: #ffffff;
+  --bg-pink-pale: #fdf8f9;
+  --border-primary: #e5e7eb;
+  --border-input: #d1d5db;
+  --text-primary: #111827;
+  --text-secondary: #374151;
+  --text-tertiary: #6b7280;
+
+  background-color: var(--bg-page);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  padding: 2rem;
+}
+
+/* Animación suave al cambiar de pantalla */
+.fade-in {
+  animation: fadeIn 0.4s ease-in-out;
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* =========================================
+   VISTA 1: SELECTOR DE PERFILES
+   ========================================= */
+.titulos-header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.titulos-header h1 {
+  color: var(--brand-primary);
+  font-size: 2.2rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem 0;
+}
+
+.titulos-header p {
+  color: var(--text-tertiary);
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+.perfiles-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.5rem;
+  width: 100%;
+  max-width: 1000px;
+}
+
+.perfil-card {
+  background-color: var(--bg-white);
+  border: 2px solid transparent; 
+  border-radius: 12px;
+  padding: 2.5rem 1.5rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.04);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.perfil-card p {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  transition: color 0.3s ease;
+}
+
+.perfil-card:hover {
+  transform: translateY(-8px);
+  border-color: var(--brand-primary);
+  background-color: var(--bg-pink-pale);
+  box-shadow: 0 12px 20px rgba(123, 29, 58, 0.1);
+}
+
+.perfil-card:hover p {
+  color: var(--brand-primary);
+}
+
+.icon-wrapper {
+  background-color: #f9fafb;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+  transition: background-color 0.3s ease;
+}
+
+.icon {
+  font-size: 40px;
+}
+
+.perfil-card:hover .icon-wrapper {
+  background-color: #fdf2f4;
+}
+
+/* =========================================
+   VISTA 2: FORMULARIO DE LOGIN
+   ========================================= */
+.login-wrapper {
+  width: 100%;
+  max-width: 450px;
+}
+
+.login-card {
+  background-color: var(--bg-white);
+  border-radius: 12px;
+  padding: 2.5rem;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--border-primary);
+}
+
+.btn-volver {
+  background: none;
+  border: none;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  font-size: 0.9rem;
+  padding: 0;
+  margin-bottom: 1.5rem;
+  transition: color 0.2s;
+  font-weight: 500;
+}
+
+.btn-volver:hover {
+  color: var(--brand-primary);
+}
+
+.login-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.login-icon {
+  margin: 0 auto 1rem auto;
+  background-color: var(--bg-pink-pale);
+}
+
+.login-header h2 {
+  color: var(--text-primary);
+  margin: 0 0 0.5rem 0;
+  font-size: 1.5rem;
+}
+
+.login-header p {
+  color: var(--text-tertiary);
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.form-login .form-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 1.2rem;
+}
+
+.form-login label {
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 0.4rem;
+}
+
+.form-login input {
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border-input);
+  border-radius: 6px;
+  font-size: 1rem;
+  color: var(--text-secondary);
+  background-color: var(--bg-white);
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.form-login input:focus {
+  border-color: var(--brand-primary);
+  box-shadow: 0 0 0 3px rgba(123, 29, 58, 0.15);
+}
+
+.btn-ingresar {
+  width: 100%;
+  background-color: var(--brand-primary);
+  color: var(--bg-white);
+  border: none;
+  padding: 0.8rem;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-top: 1rem;
+  transition: background-color 0.2s, transform 0.1s;
+}
+
+.btn-ingresar:hover {
+  background-color: var(--brand-hover);
+}
+
+.btn-ingresar:active {
+  transform: scale(0.98);
+}
