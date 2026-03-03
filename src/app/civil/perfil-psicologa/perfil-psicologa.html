@@ -1,0 +1,126 @@
+<div class="dashboard-layout">
+
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <h2>Área de Psicología</h2>
+    </div>
+
+    <nav class="sidebar-nav">
+      <button [class.active]="vistaActual === 'inicio'" (click)="cambiarVista('inicio')">
+        <span class="icon">🏠</span> Inicio
+      </button>
+      <button [class.active]="vistaActual === 'nueva-entrevista'" (click)="cambiarVista('nueva-entrevista')">
+        <span class="icon">📝</span> Nueva Entrevista
+      </button>
+      <button [class.active]="vistaActual === 'nueva-nota'" (click)="cambiarVista('nueva-nota')">
+        <span class="icon">📋</span> Notas de Evolución
+      </button>
+      <button [class.active]="vistaActual === 'historial'" (click)="cambiarVista('historial')">
+        <span class="icon">📂</span> Historial y Expedientes
+      </button>
+    </nav>
+
+    <div class="sidebar-footer">
+      <button class="btn-logout" (click)="cerrarSesion()">
+        <span class="icon">🚪</span> Cerrar Sesión
+      </button>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    
+    <header class="topbar">
+      <div class="topbar-title">
+        <h3>Portal Institucional</h3>
+      </div>
+      <div class="user-profile">
+        <div class="avatar">👩‍⚕️</div>
+        <div class="user-info">
+          <strong>Psicóloga En Turno</strong>
+          <span>En línea</span>
+        </div>
+      </div>
+    </header>
+
+    <div class="content-area">
+
+      @if (vistaActual === 'inicio') {
+        <div class="fade-in">
+          <h1 class="page-title">Bienvenida al sistema</h1>
+          <p class="page-subtitle">¿Qué acción desea realizar hoy?</p>
+
+          <div class="quick-actions-grid">
+            <div class="action-card" (click)="cambiarVista('nueva-entrevista')">
+              <div class="action-icon">📝</div>
+              <h3>Crear Entrevista</h3>
+              <p>Iniciar una Evaluación Clínica y Social nueva.</p>
+            </div>
+            
+            <div class="action-card" (click)="cambiarVista('nueva-nota')">
+              <div class="action-icon">📋</div>
+              <h3>Redactar Nota</h3>
+              <p>Agregar una Nota de Evolución a un paciente.</p>
+            </div>
+
+            <div class="action-card" (click)="cambiarVista('historial')">
+              <div class="action-icon">📂</div>
+              <h3>Ver Historial</h3>
+              <p>Consultar los expedientes de los usuarios.</p>
+            </div>
+          </div>
+        </div>
+      }
+
+      @if (vistaActual === 'nueva-entrevista') {
+        <div class="fade-in">
+          <app-formu-psico></app-formu-psico>
+        </div>
+      }
+
+      @if (vistaActual === 'nueva-nota') {
+        <div class="fade-in">
+          <app-seguimiento-psi></app-seguimiento-psi>
+        </div>
+      }
+
+      @if (vistaActual === 'historial') {
+        <div class="fade-in">
+          <h1 class="page-title">Historial de Expedientes</h1>
+          
+          <div class="table-card">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Expediente</th>
+                  <th>Nombre del Usuario</th>
+                  <th>Última Sesión</th>
+                  <th>Estado</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (paciente of expedientes; track paciente.expediente) {
+                  <tr>
+                    <td><strong>{{ paciente.expediente }}</strong></td>
+                    <td>{{ paciente.nombre }}</td>
+                    <td>{{ paciente.fechaUltima }}</td>
+                    <td>
+                      <span class="badge" [ngClass]="paciente.estado === 'Activo' || paciente.estado === 'En Seguimiento' ? 'badge-success' : 'badge-neutral'">
+                        {{ paciente.estado }}
+                      </span>
+                    </td>
+                    <td>
+                      <button class="btn-action">Ver Detalles</button>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      }
+
+    </div>
+  </main>
+
+</div>
