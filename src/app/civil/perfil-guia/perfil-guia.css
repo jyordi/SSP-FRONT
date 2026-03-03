@@ -138,3 +138,218 @@
 .line-input { border-bottom: 1px solid black; display: inline-block; min-width: 150px; padding: 0 0.5rem; }
 .doc-table th { text-align: center; }
 .doc-table td { height: 50px; } /* Altura fija para que puedan firmar */
+
+/* =========================================
+   BOTONES DE ACCIÓN (Editar, Eliminar, Descargar)
+   ========================================= */
+.acciones-flex {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+/* Botón Editar (Amarillo) */
+.btn-edit {
+  background-color: #fef3c7; /* --edit-bg */
+  color: #78350f; /* --edit-text */
+  border: none;
+  padding: 0.4rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.btn-edit:hover {
+  background-color: #fde68a; /* --edit-hover */
+}
+
+/* Botón Eliminar (Rojo) */
+.btn-delete {
+  background-color: #fee2e2; /* --delete-bg */
+  color: #991b1b;
+  border: none;
+  padding: 0.4rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.btn-delete:hover {
+  background-color: #fca5a5; /* --delete-hover */
+}
+
+/* Botón Descargar PDF (Azul) */
+.btn-download {
+  background-color: #3b82f6; /* --download-bg */
+  color: #ffffff;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.btn-download:hover {
+  background-color: #2563eb; /* --download-hover */
+}
+
+.action-bar-right {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 1rem;
+  gap: 1rem; /* Espacio entre el botón de descargar y crear nuevo */
+}
+
+/* =========================================
+   ESTILOS PARA IMPRESIÓN (Cuando se usa window.print)
+   ========================================= */
+@media print {
+  /* Ocultamos la barra lateral, botones y cosas que no van en el PDF */
+  .sidebar, .topbar, .tabs-container, .action-bar-right, .btn-back {
+    display: none !important;
+  }
+  
+  /* Hacemos que el contenido ocupe toda la hoja */
+  .main-content {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+  }
+  
+  /* Quitamos sombras y fondos de pantalla para ahorrar tinta */
+  .dashboard-layout, .content-area {
+    background-color: white !important;
+    overflow: visible !important;
+  }
+
+  
+}
+/* =========================================
+   VENTANA MODAL FLOTANTE (ESTILOS GLOBALES)
+   ========================================= */
+.modal-overlay {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  background-color: rgba(0, 0, 0, 0.6) !important; /* Fondo oscuro */
+  backdrop-filter: blur(3px) !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  z-index: 99999 !important; /* Capa máxima para sobreponerse a todo */
+}
+
+.modal-content {
+  background-color: #ffffff !important;
+  border-radius: 12px !important;
+  width: 90% !important;
+  max-width: 600px !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3) !important;
+  font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif !important;
+}
+
+.modal-header {
+  background-color: #7B1D3A !important; /* Color vino principal */
+  color: #ffffff !important;
+  padding: 1.2rem 1.5rem !important;
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+}
+
+.modal-header h2 {
+  margin: 0 !important;
+  font-size: 1.25rem !important;
+  font-weight: 600 !important;
+  color: #ffffff !important;
+}
+
+.btn-close {
+  background: transparent !important;
+  border: none !important;
+  color: #ffffff !important;
+  font-size: 1.5rem !important;
+  cursor: pointer !important;
+}
+
+.modal-body {
+  padding: 2rem !important;
+  background-color: #ffffff !important;
+}
+
+.modal-body label {
+  font-size: 0.95rem !important;
+}
+
+.modal-body input,
+.modal-body textarea {
+  border: 1px solid #d1d5db !important; /* border-input */
+  border-radius: 6px !important;
+  padding: 0.8rem !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  font-family: inherit !important;
+}
+
+.modal-body input:focus,
+.modal-body textarea:focus {
+  outline: none !important;
+  border-color: #7B1D3A !important;
+}
+
+/* =========================================
+   ESTILOS PARA DOCUMENTOS EDITABLES (ASISTENCIA)
+   ========================================= */
+.doc-input {
+  border: none;
+  border-bottom: 1px solid var(--text-primary);
+  background: transparent;
+  font-family: inherit;
+  font-size: 1rem;
+  color: var(--text-primary);
+  padding: 0.2rem 0.5rem;
+  outline: none;
+  font-weight: 500;
+}
+
+.doc-input:focus {
+  border-bottom: 2px solid var(--brand-primary);
+  background-color: var(--bg-pink-pale);
+}
+
+.table-input {
+  width: 100%;
+  border: none;
+  background: transparent;
+  font-family: inherit;
+  font-size: 0.95rem;
+  padding: 0.8rem;
+  outline: none;
+  box-sizing: border-box;
+  resize: vertical; /* Permite hacer más grande el textarea de observaciones */
+  color: var(--text-secondary);
+}
+
+.table-input:focus {
+  background-color: var(--bg-pink-pale);
+}
+
+/* Ocultar elementos al imprimir/descargar PDF */
+@media print {
+  .no-print { 
+    display: none !important; 
+  }
+  .table-input, .doc-input {
+    border: none !important;
+    background: transparent !important;
+  }
+}
