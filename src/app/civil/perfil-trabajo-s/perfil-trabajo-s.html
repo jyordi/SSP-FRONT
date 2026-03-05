@@ -1,0 +1,201 @@
+<div class="dashboard-layout">
+
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="logo-icon">🤝</div>
+      <h2>Trabajo Social</h2>
+    </div>
+
+    <nav class="sidebar-nav">
+      <button [class.active]="vistaLateral === 'pendientes'" (click)="cambiarVistaLateral('pendientes')">
+        <span class="icon">⏳</span> Pendientes
+      </button>
+      <button [class.active]="vistaLateral === 'historial'" (click)="cambiarVistaLateral('historial')">
+        <span class="icon">📂</span> Historial Completado
+      </button>
+    </nav>
+
+    <div class="sidebar-footer">
+      <button class="btn-logout" (click)="cerrarSesion()">
+        <span class="icon">🚪</span> Cerrar Sesión
+      </button>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    
+    <header class="topbar">
+      <div class="topbar-title">
+        <h3>Portal Institucional - Trabajo Social</h3>
+      </div>
+      <div class="user-profile">
+        <div class="avatar">👩‍💼</div>
+        <div class="user-info">
+          <strong>Trabajador(a) Social</strong>
+          <span>En línea</span>
+        </div>
+      </div>
+    </header>
+
+    <div class="content-area">
+
+      @if (vistaPrincipal === 'lista') {
+        <div class="fade-in">
+          <h1 class="page-title">{{ vistaLateral === 'pendientes' ? 'Expedientes Pendientes' : 'Historial de Evaluaciones' }}</h1>
+          <p class="page-subtitle">
+            {{ vistaLateral === 'pendientes' ? 'Seleccione un joven para redactar su estudio y plan de trabajo.' : 'Consulte los estudios y planes ya finalizados.' }}
+          </p>
+
+          <div class="cards-grid">
+            @for (persona of personasFiltradas; track persona.id) {
+              <div class="profile-card" (click)="verDetalle(persona)">
+                <div class="profile-card-header">
+                  <div class="profile-avatar" [ngStyle]="{'background-color': persona.estado === 'completado' ? 'var(--success-bg)' : 'var(--bg-light)'}">
+                    {{ persona.estado === 'completado' ? '✅' : '📝' }}
+                  </div>
+                  <div>
+                    <h3>{{ persona.nombre }}</h3>
+                    <span>{{ persona.expediente }}</span>
+                  </div>
+                </div>
+                <div class="profile-card-body">
+                  <p><strong>Estado:</strong> 
+                    <span [ngStyle]="{'color': persona.estado === 'completado' ? 'var(--success-text)' : 'var(--brand-primary)', 'font-weight': '600'}">
+                      {{ persona.estado | uppercase }}
+                    </span>
+                  </p>
+                </div>
+                <button class="btn-ver-perfil">
+                  {{ persona.estado === 'pendiente' ? 'Iniciar Evaluación →' : 'Ver Documentos →' }}
+                </button>
+              </div>
+            }
+            
+            @if (personasFiltradas.length === 0) {
+              <div class="empty-state">
+                <p>No hay registros en esta sección por el momento.</p>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      @if (vistaPrincipal === 'detalle' && personaSeleccionada) {
+        <div class="fade-in">
+          
+          <div class="detalle-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <div>
+              <button class="btn-back" (click)="volverALista()">← Volver</button>
+              <h1 style="margin: 0; color: var(--text-primary); font-size: 2rem;">{{ personaSeleccionada.nombre }}</h1>
+              <p style="margin: 0; color: var(--text-tertiary);">Expediente: {{ personaSeleccionada.expediente }}</p>
+            </div>
+            
+            <div class="action-bar-right">
+              <button class="btn-download" (click)="descargarPDF('Documento_TS')">📄 Imprimir/PDF</button>
+              @if (personaSeleccionada.estado === 'pendiente') {
+                <button class="btn-success" (click)="guardarYCompletar()">💾 Guardar y Finalizar</button>
+              }
+            </div>
+          </div>
+
+          <div class="tabs-container">
+            <button class="tab" [class.active]="tabActual === 'estudio'" (click)="cambiarTab('estudio')">
+              📄 Estudio de Trabajo Social
+            </button>
+            <button class="tab" [class.active]="tabActual === 'plan'" (click)="cambiarTab('plan')">
+              🎯 Plan de Trabajo Individual
+            </button>
+          </div>
+
+          @if (tabActual === 'estudio') {
+            <div class="tab-content fade-in editor-container">
+              <div class="word-document">
+                <div class="doc-header-center">
+                  <h2>ESTUDIO DE TRABAJO SOCIAL</h2>
+                  <p>SUBSECRETARÍA DE PREVENCIÓN Y REINSERCIÓN SOCIAL</p>
+                </div>
+                
+                <div class="doc-body">
+                  <p><strong>Nombre:</strong> {{ personaSeleccionada.nombre }}</p>
+                  <p><strong>Expediente:</strong> {{ personaSeleccionada.expediente }}</p>
+                  <hr style="margin: 1rem 0; border: 0; border-top: 1px solid var(--border-input);">
+                  
+                  <textarea [(ngModel)]="personaSeleccionada.estudioWord" 
+                            class="word-textarea" 
+                            placeholder="Comience a redactar el estudio social aquí..."></textarea>
+                </div>
+              </div>
+            </div>
+          }
+
+          @if (tabActual === 'plan') {
+            <div class="tab-content fade-in">
+              <div class="form-card" style="padding: 2rem; background: white;">
+                
+                <h2 style="color: black; margin-bottom: 1.5rem; text-align: center; font-weight: bold;">PLAN DE TRABAJO INDIVIDUAL</h2>
+                
+                <div class="table-card" style="border: 2px solid black; border-radius: 0; overflow: hidden; margin-top: 1rem;">
+                  
+                  <div style="background-color: #e5e7eb; padding: 1rem; text-align: center; border-bottom: 2px solid black;">
+                    <h3 style="margin: 0; font-size: 1.1rem; font-weight: bold; color: black;">
+                      Proceso de seguimiento de actividades del programa <i style="font-family: serif;">“RECONECTA CON LA PAZ.”</i>
+                    </h3>
+                  </div>
+
+                  <table class="data-table" style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                      <tr>
+                        <th style="width: 20%; background-color: #e5e7eb; text-align: center; border: 1px solid black; border-bottom: 2px solid black; color: black; font-weight: bold;">ACTIVIDAD</th>
+                        <th style="width: 20%; background-color: #e5e7eb; text-align: center; border: 1px solid black; border-bottom: 2px solid black; color: black; font-weight: bold;">ESTATUS</th>
+                        <th style="width: 40%; background-color: #e5e7eb; text-align: center; border: 1px solid black; border-bottom: 2px solid black; color: black; font-weight: bold;">OBJETIVO</th>
+                        <th style="width: 20%; background-color: #e5e7eb; text-align: center; border: 1px solid black; border-bottom: 2px solid black; color: black; font-weight: bold;">CUMPLIMIENTO</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @for (actividad of personaSeleccionada.planTrabajo.actividadesSeguimiento; track actividad.nombre) {
+                        <tr>
+                          <td style="border: 1px solid black; font-weight: bold; text-align: center; padding: 1rem; color: black;">
+                            {{ actividad.nombre }}
+                          </td>
+                          
+                          <td style="border: 1px solid black; padding: 0;">
+                            <input type="text" [(ngModel)]="actividad.estatus" 
+                                   style="width: 100%; height: 100%; padding: 1rem; border: none; outline: none; text-align: center; font-family: inherit;">
+                          </td>
+                          
+                          <td style="border: 1px solid black; padding: 0;">
+                            <textarea [(ngModel)]="actividad.objetivo" rows="2"
+                                      style="width: 100%; height: 100%; padding: 1rem; border: none; outline: none; resize: vertical; font-family: inherit; box-sizing: border-box;"></textarea>
+                          </td>
+                          
+                          <td style="border: 1px solid black; padding: 0;">
+                            <textarea [(ngModel)]="actividad.cumplimiento" rows="2"
+                                      style="width: 100%; height: 100%; padding: 1rem; border: none; outline: none; resize: vertical; font-family: inherit; box-sizing: border-box;"></textarea>
+                          </td>
+                        </tr>
+                      }
+                      
+                      <tr>
+                        <td style="border: 1px solid black; font-weight: bold; text-align: center; padding: 1rem; color: black;">
+                          OBSERVACIONES
+                        </td>
+                        <td colspan="3" style="border: 1px solid black; padding: 0;">
+                          <textarea [(ngModel)]="personaSeleccionada.planTrabajo.observaciones" rows="3"
+                                    style="width: 100%; height: 100%; padding: 1rem; border: none; outline: none; resize: vertical; font-family: inherit; box-sizing: border-box;"></textarea>
+                        </td>
+                      </tr>
+
+                    </tbody>
+                  </table>
+                </div>
+
+              </div>
+            </div>
+          }
+
+        </div>
+      }
+
+    </div>
+  </main>
+</div>
