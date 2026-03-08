@@ -5,6 +5,7 @@ import { SelePerfil } from './civil/sele-perfil/sele-perfil';
 import { PerfilPsicologa } from './civil/perfil-psicologa/perfil-psicologa';
 import { PerfilGuia } from './civil/perfil-guia/perfil-guia';
 import { PerfilTrabajoS } from './civil/perfil-trabajo-s/perfil-trabajo-s';
+import { PerfilAdmin } from './civil/perfil-admin/perfil-admin';
 
 export const routes: Routes = [
     {
@@ -30,6 +31,10 @@ export const routes: Routes = [
     {
         path:'trabajos',
         component:PerfilTrabajoS
+    },
+    {
+        path:'admin',
+        component:PerfilAdmin
     },
     {
         path:'**',

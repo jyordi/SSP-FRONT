@@ -1,0 +1,215 @@
+<div class="dashboard-layout">
+
+  <aside class="sidebar" style="background-color: #111827;"> <div class="sidebar-header">
+      <div class="logo-icon">⚙️</div>
+      <h2>Administración</h2>
+    </div>
+
+    <nav class="sidebar-nav">
+      <button [class.active]="vistaLateral === 'expedientes'" (click)="cambiarVistaLateral('expedientes')">
+        <span class="icon">🗂️</span> Expediente Único
+      </button>
+      <button [class.active]="vistaLateral === 'estadisticas'" (click)="cambiarVistaLateral('estadisticas')">
+        <span class="icon">📈</span> Estadísticas Globales
+      </button>
+    </nav>
+
+    <div class="sidebar-footer">
+      <button class="btn-logout" (click)="cerrarSesion()">
+        <span class="icon">🚪</span> Cerrar Sesión
+      </button>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    
+    <header class="topbar">
+      <div class="topbar-title">
+        <h3>Portal Institucional - Dirección General</h3>
+      </div>
+      <div class="user-profile">
+        <div class="avatar" style="border-color: #111827;">👑</div>
+        <div class="user-info">
+          <strong>Administrador del Sistema</strong>
+          <span>Acceso Total</span>
+        </div>
+      </div>
+    </header>
+
+    <div class="content-area">
+
+      @if (vistaPrincipal === 'lista') {
+        <div class="fade-in">
+          <h1 class="page-title">Expediente Único de Usuarios</h1>
+          <p class="page-subtitle">Monitoreo global de avances por departamento.</p>
+
+          <div class="table-card">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Expediente</th>
+                  <th>Nombre Completo</th>
+                  <th>Avance (Horas)</th>
+                  <th>Estado Global</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (persona of expedientesMaestros; track persona.id) {
+                  <tr>
+                    <td><strong>{{ persona.expediente }}</strong></td>
+                    <td>{{ persona.nombre }}</td>
+                    <td>
+                      <div style="display: flex; align-items: center; gap: 10px;">
+                        <progress [value]="persona.guias.horasCubiertas" [max]="persona.guias.horasTotales" style="width: 100px;"></progress>
+                        <span style="font-size: 0.85rem;">{{ persona.guias.horasCubiertas }}/{{ persona.guias.horasTotales }}</span>
+                      </div>
+                    </td>
+                    <td>
+                      <span class="badge" [ngClass]="persona.guias.horasCubiertas >= persona.guias.horasTotales ? 'badge-success' : 'badge-neutral'">
+                        {{ persona.guias.horasCubiertas >= persona.guias.horasTotales ? 'Apto para Oficio' : 'En Seguimiento' }}
+                      </span>
+                    </td>
+                    <td>
+                      <button class="btn-action" style="border-color: #111827; color: #111827;" (click)="verDetalle(persona)">Ver Expediente Completo</button>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      }
+
+      @if (vistaPrincipal === 'detalle' && personaSeleccionada) {
+        <div class="fade-in">
+          
+          <button class="btn-back" (click)="volverALista()">← Volver al padrón</button>
+          
+          <div class="detalle-header" style="background: white; padding: 2rem; border-radius: 10px; border: 1px solid var(--border-primary); margin-bottom: 2rem;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+              <div>
+                <h1 style="margin: 0; color: var(--text-primary); font-size: 2.2rem;">{{ personaSeleccionada.nombre }}</h1>
+                <p style="margin: 5px 0 0 0; color: var(--text-tertiary); font-size: 1.1rem;">EXP: <strong>{{ personaSeleccionada.expediente }}</strong> | CURP: {{ personaSeleccionada.datosGenerales.curp }}</p>
+              </div>
+              <div style="text-align: right;">
+                <h3 style="margin: 0; font-size: 2.5rem; color: var(--brand-primary);">
+                  {{ personaSeleccionada.guias.horasCubiertas }}<span style="font-size: 1.2rem; color: var(--text-tertiary);">/{{ personaSeleccionada.guias.horasTotales }} hrs</span>
+                </h3>
+                <p style="margin: 0; font-size: 0.9rem; font-weight: bold;" [ngStyle]="{'color': puedeGenerarOficio() ? 'var(--success-text)' : 'var(--text-tertiary)'}">
+                  {{ puedeGenerarOficio() ? 'REQUISITO CUMPLIDO' : 'HORAS INCOMPLETAS' }}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="tabs-container">
+            <button class="tab" [class.active]="tabActual === 'resumen'" (click)="cambiarTab('resumen')">📊 Resumen General</button>
+            <button class="tab" [class.active]="tabActual === 'psicologia'" (click)="cambiarTab('psicologia')">🧠 Área Psicología</button>
+            <button class="tab" [class.active]="tabActual === 'guias'" (click)="cambiarTab('guias')">🧭 Área Guías</button>
+            <button class="tab" [class.active]="tabActual === 'tsocial'" (click)="cambiarTab('tsocial')">🤝 Área Trabajo Social</button>
+            <button class="tab" [class.active]="tabActual === 'oficio'" (click)="cambiarTab('oficio')" style="color: var(--brand-primary); font-weight: bold;">📜 Resolución / Oficio</button>
+          </div>
+
+          @if (tabActual === 'resumen') {
+            <div class="tab-content fade-in">
+              <div class="cards-grid">
+                <div class="profile-card">
+                  <h3 style="border-bottom: 2px solid var(--border-primary); padding-bottom: 0.5rem;">🧠 Estado Psicológico</h3>
+                  <p><strong>Entrevista Clínica:</strong> {{ personaSeleccionada.psicologia.entrevistaCompletada ? '✅ Completada' : '❌ Pendiente' }}</p>
+                  <p><strong>Notas de Evolución:</strong> {{ personaSeleccionada.psicologia.totalNotas }} registradas</p>
+                  <p><strong>Última sesión:</strong> {{ personaSeleccionada.psicologia.ultimaSesion }}</p>
+                </div>
+                <div class="profile-card">
+                  <h3 style="border-bottom: 2px solid var(--border-primary); padding-bottom: 0.5rem;">🤝 Trabajo Social</h3>
+                  <p><strong>Estudio Social:</strong> {{ personaSeleccionada.trabajoSocial.estudioRealizado ? '✅ Redactado' : '❌ Pendiente' }}</p>
+                  <p><strong>Plan de Trabajo:</strong> {{ personaSeleccionada.trabajoSocial.planTrabajoDefinido ? '✅ Definido' : '❌ Pendiente' }}</p>
+                </div>
+                <div class="profile-card">
+                  <h3 style="border-bottom: 2px solid var(--border-primary); padding-bottom: 0.5rem;">🧭 Avance Operativo</h3>
+                  <p><strong>Inasistencias:</strong> {{ personaSeleccionada.guias.inasistencias }} reportadas</p>
+                  <p><strong>Actividad Reciente:</strong> {{ personaSeleccionada.guias.actividadActual }}</p>
+                </div>
+              </div>
+            </div>
+          }
+
+          @if (tabActual === 'psicologia' || tabActual === 'guias' || tabActual === 'tsocial') {
+            <div class="tab-content fade-in">
+              <div class="empty-state">
+                <p style="font-size: 3rem; margin-bottom: 1rem;">🔍</p>
+                <h2>Modo Supervisión</h2>
+                <p>Aquí el administrador puede visualizar en modo lectura los formularios rellenados por el área correspondiente.</p>
+              </div>
+            </div>
+          }
+
+          @if (tabActual === 'oficio') {
+            <div class="tab-content fade-in">
+              <div class="form-card" style="text-align: center; padding: 4rem 2rem;">
+                
+                <h2 style="font-size: 1.8rem; margin-bottom: 1rem;">Oficio de Conclusión del Programa</h2>
+                
+                @if (puedeGenerarOficio()) {
+                  <div style="background-color: var(--success-bg); color: var(--success-text); padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem; max-width: 600px; margin-left: auto; margin-right: auto;">
+                    <strong>¡Requisitos Cumplidos!</strong><br>
+                    El usuario {{ personaSeleccionada.nombre }} ha cubierto la totalidad de sus {{ personaSeleccionada.guias.horasTotales }} horas. El documento está listo para generarse.
+                  </div>
+                  <button class="btn-download" style="margin: 0 auto; font-size: 1.2rem; padding: 1rem 2rem; background-color: var(--brand-primary);" (click)="descargarOficio()">
+                    📜 Generar Oficio en PDF
+                  </button>
+                } @else {
+                  <div style="background-color: #fef3c7; color: #92400e; padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem; max-width: 600px; margin-left: auto; margin-right: auto;">
+                    <strong>Documento Bloqueado</strong><br>
+                    Aún faltan {{ personaSeleccionada.guias.horasTotales - personaSeleccionada.guias.horasCubiertas }} horas por cubrir. El oficio solo puede generarse cuando el avance llegue al 100%.
+                  </div>
+                  <button class="btn-download" style="margin: 0 auto; font-size: 1.2rem; padding: 1rem 2rem; background-color: var(--text-tertiary); cursor: not-allowed;" disabled>
+                    🔒 Generar Oficio en PDF
+                  </button>
+                }
+
+              </div>
+            </div>
+          }
+
+        </div>
+      }
+
+    </div>
+  </main>
+</div>
+
+@if (personaSeleccionada) {
+<div class="hoja-impresion print-only">
+  
+  <div style="text-align: right; margin-bottom: 3rem; font-family: 'Times New Roman', Times, serif;">
+    <p><strong>Asunto:</strong> Constancia de Conclusión de Actividades</p>
+    <p>Ocotlán de Morelos, Oaxaca a {{ fechaHoy }}</p>
+  </div>
+
+  <div style="text-align: center; margin-bottom: 3rem; font-family: 'Times New Roman', Times, serif;">
+    <h2 style="text-decoration: underline; font-size: 16pt;">A QUIEN CORRESPONDA:</h2>
+  </div>
+
+  <div style="text-align: justify; line-height: 2; font-family: 'Times New Roman', Times, serif; font-size: 12pt;">
+    <p>
+      Por medio de la presente, la <strong>Dirección de Ejecución de Medidas para Adolescentes</strong>, hace constar que el (la) C. <strong>{{ personaSeleccionada.nombre | uppercase }}</strong>, con número de expediente <strong>{{ personaSeleccionada.expediente }}</strong>, ha concluido satisfactoriamente con el total de las <strong>{{ personaSeleccionada.guias.horasTotales }} horas</strong> asignadas dentro del programa "Reconecta con la Paz".
+    </p>
+    <p>
+      Durante su periodo en la institución, cumplió con las intervenciones del área de Psicología, completó el plan de Trabajo Social y cubrió sus actividades operativas sin incidencias que impidan su liberación del programa.
+    </p>
+    <p>
+      Se extiende la presente constancia para los fines legales e institucionales que al interesado(a) convengan.
+    </p>
+  </div>
+
+  <div style="text-align: center; margin-top: 6rem; font-family: 'Times New Roman', Times, serif;">
+    <p><strong>ATENTAMENTE</strong></p>
+    <br><br><br>
+    <p>_________________________________________________</p>
+    <p><strong>DIRECCIÓN GENERAL</strong></p>
+    <p>Subsecretaría de Prevención y Reinserción Social</p>
+  </div>
+
+</div>
+}
