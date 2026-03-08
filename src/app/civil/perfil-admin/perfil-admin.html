@@ -1,10 +1,10 @@
 <div class="dashboard-layout">
 
-  <aside class="sidebar" style="background-color: #111827;"> <div class="sidebar-header">
+  <aside class="sidebar" style="background-color: #111827;">
+    <div class="sidebar-header">
       <div class="logo-icon">⚙️</div>
       <h2>Administración</h2>
     </div>
-
     <nav class="sidebar-nav">
       <button [class.active]="vistaLateral === 'expedientes'" (click)="cambiarVistaLateral('expedientes')">
         <span class="icon">🗂️</span> Expediente Único
@@ -13,26 +13,21 @@
         <span class="icon">📈</span> Estadísticas Globales
       </button>
     </nav>
-
     <div class="sidebar-footer">
-      <button class="btn-logout" (click)="cerrarSesion()">
-        <span class="icon">🚪</span> Cerrar Sesión
-      </button>
+      <button class="btn-logout" (click)="cerrarSesion()"><span class="icon">🚪</span> Cerrar Sesión</button>
     </div>
   </aside>
 
   <main class="main-content">
     
     <header class="topbar">
-      <div class="topbar-title">
-        <h3>Portal Institucional - Dirección General</h3>
-      </div>
+      <div class="topbar-title"><h3>Portal Institucional - Dirección General</h3></div>
       <div class="user-profile">
+        <button class="btn-secondary" style="margin-right: 1.5rem; border: 1px solid var(--border-input); padding: 0.4rem 1rem; border-radius: 6px; cursor: pointer;" (click)="abrirModalPlantilla()">
+          ⚙️ Configurar Plantilla Oficial
+        </button>
         <div class="avatar" style="border-color: #111827;">👑</div>
-        <div class="user-info">
-          <strong>Administrador del Sistema</strong>
-          <span>Acceso Total</span>
-        </div>
+        <div class="user-info"><strong>Administrador del Sistema</strong><span>Acceso Total</span></div>
       </div>
     </header>
 
@@ -70,9 +65,7 @@
                         {{ persona.guias.horasCubiertas >= persona.guias.horasTotales ? 'Apto para Oficio' : 'En Seguimiento' }}
                       </span>
                     </td>
-                    <td>
-                      <button class="btn-action" style="border-color: #111827; color: #111827;" (click)="verDetalle(persona)">Ver Expediente Completo</button>
-                    </td>
+                    <td><button class="btn-action" style="border-color: #111827; color: #111827;" (click)="verDetalle(persona)">Ver Expediente</button></td>
                   </tr>
                 }
               </tbody>
@@ -81,93 +74,224 @@
         </div>
       }
 
+
+  
       @if (vistaPrincipal === 'detalle' && personaSeleccionada) {
         <div class="fade-in">
-          
           <button class="btn-back" (click)="volverALista()">← Volver al padrón</button>
           
           <div class="detalle-header" style="background: white; padding: 2rem; border-radius: 10px; border: 1px solid var(--border-primary); margin-bottom: 2rem;">
             <div style="display: flex; justify-content: space-between; align-items: flex-start;">
               <div>
                 <h1 style="margin: 0; color: var(--text-primary); font-size: 2.2rem;">{{ personaSeleccionada.nombre }}</h1>
-                <p style="margin: 5px 0 0 0; color: var(--text-tertiary); font-size: 1.1rem;">EXP: <strong>{{ personaSeleccionada.expediente }}</strong> | CURP: {{ personaSeleccionada.datosGenerales.curp }}</p>
+                <p style="margin: 5px 0 0 0; color: var(--text-tertiary); font-size: 1.1rem;">EXP: <strong>{{ personaSeleccionada.expediente }}</strong></p>
               </div>
               <div style="text-align: right;">
                 <h3 style="margin: 0; font-size: 2.5rem; color: var(--brand-primary);">
                   {{ personaSeleccionada.guias.horasCubiertas }}<span style="font-size: 1.2rem; color: var(--text-tertiary);">/{{ personaSeleccionada.guias.horasTotales }} hrs</span>
                 </h3>
-                <p style="margin: 0; font-size: 0.9rem; font-weight: bold;" [ngStyle]="{'color': puedeGenerarOficio() ? 'var(--success-text)' : 'var(--text-tertiary)'}">
-                  {{ puedeGenerarOficio() ? 'REQUISITO CUMPLIDO' : 'HORAS INCOMPLETAS' }}
-                </p>
               </div>
             </div>
           </div>
 
           <div class="tabs-container">
-            <button class="tab" [class.active]="tabActual === 'resumen'" (click)="cambiarTab('resumen')">📊 Resumen General</button>
+            
             <button class="tab" [class.active]="tabActual === 'psicologia'" (click)="cambiarTab('psicologia')">🧠 Área Psicología</button>
             <button class="tab" [class.active]="tabActual === 'guias'" (click)="cambiarTab('guias')">🧭 Área Guías</button>
             <button class="tab" [class.active]="tabActual === 'tsocial'" (click)="cambiarTab('tsocial')">🤝 Área Trabajo Social</button>
             <button class="tab" [class.active]="tabActual === 'oficio'" (click)="cambiarTab('oficio')" style="color: var(--brand-primary); font-weight: bold;">📜 Resolución / Oficio</button>
           </div>
 
-          @if (tabActual === 'resumen') {
+
+          <!-- ==========================================
+               VISTA: ÁREA DE PSICOLOGÍA
+               ========================================== -->
+          @if (tabActual === 'psicologia') {
             <div class="tab-content fade-in">
+              <div style="background-color: #fdf8f9; border-left: 4px solid var(--brand-primary); padding: 1rem; margin-bottom: 1.5rem; border-radius: 4px;">
+                <p style="margin: 0; color: var(--brand-dark); font-weight: 600;"> Área de Psicología</p>
+              </div>
+
               <div class="cards-grid">
-                <div class="profile-card">
-                  <h3 style="border-bottom: 2px solid var(--border-primary); padding-bottom: 0.5rem;">🧠 Estado Psicológico</h3>
-                  <p><strong>Entrevista Clínica:</strong> {{ personaSeleccionada.psicologia.entrevistaCompletada ? '✅ Completada' : '❌ Pendiente' }}</p>
-                  <p><strong>Notas de Evolución:</strong> {{ personaSeleccionada.psicologia.totalNotas }} registradas</p>
-                  <p><strong>Última sesión:</strong> {{ personaSeleccionada.psicologia.ultimaSesion }}</p>
+                <div class="form-card" style="grid-column: 1 / -1;">
+                  <h3 style="color: var(--brand-primary); border-bottom: 1px solid var(--border-input); padding-bottom: 0.5rem;">Entrevista Clínica Inicial</h3>
+                  <div style="margin-top: 1rem;">
+                    <p style="font-weight: bold; margin-bottom: 0.2rem;">Motivo de Consulta / Canalización:</p>
+                    <div style="background: var(--bg-light); padding: 1rem; border-radius: 6px; border: 1px solid var(--border-input);">
+                      {{ personaSeleccionada.psicologia.motivoConsulta }}
+                    </div>
+                  </div>
+                  <div style="margin-top: 1rem;">
+                    <p style="font-weight: bold; margin-bottom: 0.2rem;">Diagnóstico / Impresión Clínica:</p>
+                    <div style="background: var(--bg-light); padding: 1rem; border-radius: 6px; border: 1px solid var(--border-input);">
+                      {{ personaSeleccionada.psicologia.diagnostico }}
+                    </div>
+                  </div>
                 </div>
-                <div class="profile-card">
-                  <h3 style="border-bottom: 2px solid var(--border-primary); padding-bottom: 0.5rem;">🤝 Trabajo Social</h3>
-                  <p><strong>Estudio Social:</strong> {{ personaSeleccionada.trabajoSocial.estudioRealizado ? '✅ Redactado' : '❌ Pendiente' }}</p>
-                  <p><strong>Plan de Trabajo:</strong> {{ personaSeleccionada.trabajoSocial.planTrabajoDefinido ? '✅ Definido' : '❌ Pendiente' }}</p>
-                </div>
-                <div class="profile-card">
-                  <h3 style="border-bottom: 2px solid var(--border-primary); padding-bottom: 0.5rem;">🧭 Avance Operativo</h3>
-                  <p><strong>Inasistencias:</strong> {{ personaSeleccionada.guias.inasistencias }} reportadas</p>
-                  <p><strong>Actividad Reciente:</strong> {{ personaSeleccionada.guias.actividadActual }}</p>
+
+                <div class="form-card" style="grid-column: 1 / -1;">
+                  <h3 style="color: var(--brand-primary); border-bottom: 1px solid var(--border-input); padding-bottom: 0.5rem;">Historial de Notas de Evolución</h3>
+                  @for (nota of personaSeleccionada.psicologia.notasEvolucion; track nota.fecha) {
+                    <div style="background: white; padding: 1rem; border-left: 3px solid #3b82f6; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-top: 1rem;">
+                      <p style="font-size: 0.85rem; color: var(--text-tertiary); margin: 0 0 0.5rem 0;">Fecha de sesión: <strong>{{ nota.fecha }}</strong></p>
+                      <p style="margin: 0;">{{ nota.nota }}</p>
+                    </div>
+                  }
                 </div>
               </div>
             </div>
           }
 
-          @if (tabActual === 'psicologia' || tabActual === 'guias' || tabActual === 'tsocial') {
+          <!-- ==========================================
+               VISTA: ÁREA DE GUÍAS (OPERATIVO)
+               ========================================== -->
+          @if (tabActual === 'guias') {
             <div class="tab-content fade-in">
-              <div class="empty-state">
-                <p style="font-size: 3rem; margin-bottom: 1rem;">🔍</p>
-                <h2>Modo Supervisión</h2>
-                <p>Aquí el administrador puede visualizar en modo lectura los formularios rellenados por el área correspondiente.</p>
+              <div style="background-color: #fdf8f9; border-left: 4px solid var(--brand-primary); padding: 1rem; margin-bottom: 1.5rem; border-radius: 4px;">
+                <p style="margin: 0; color: var(--brand-dark); font-weight: 600;"> Área Operativa (Guías)</p>
+              </div>
+
+              <div class="table-card" style="margin-bottom: 2rem;">
+                <h3 style="padding: 1rem 1.5rem; margin: 0; background: var(--bg-light); border-bottom: 1px solid var(--border-primary);">Control de Horas Cubiertas</h3>
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Fecha</th>
+                      <th>Actividad Realizada</th>
+                      <th style="text-align: right;">Horas Acreditadas</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (hora of personaSeleccionada.guias.registrosHoras; track hora.fecha) {
+                      <tr>
+                        <td>{{ hora.fecha }}</td>
+                        <td>{{ hora.actividad }}</td>
+                        <td style="text-align: right; font-weight: bold; color: var(--success-text);">+ {{ hora.horas }} hrs</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+
+              @if (personaSeleccionada.guias.inasistencias.length > 0) {
+                <div class="table-card" style="border-color: #fca5a5;">
+                  <h3 style="padding: 1rem 1.5rem; margin: 0; background: #fee2e2; color: #991b1b; border-bottom: 1px solid #fca5a5;">Reporte de Inasistencias e Incidencias</h3>
+                  <table class="data-table">
+                    <thead>
+                      <tr>
+                        <th>Fecha</th>
+                        <th>Tipo</th>
+                        <th>Descripción de los hechos</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @for (falta of personaSeleccionada.guias.inasistencias; track falta.fecha) {
+                        <tr>
+                          <td style="font-weight: bold;">{{ falta.fecha }}</td>
+                          <td style="color: #991b1b; font-weight: 600;">{{ falta.tipo }}</td>
+                          <td>{{ falta.descripcion }}</td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                </div>
+              }
+            </div>
+          }
+
+          <!-- ==========================================
+               VISTA: ÁREA DE TRABAJO SOCIAL
+               ========================================== -->
+          @if (tabActual === 'tsocial') {
+            <div class="tab-content fade-in">
+              <div style="background-color: #fdf8f9; border-left: 4px solid var(--brand-primary); padding: 1rem; margin-bottom: 1.5rem; border-radius: 4px;">
+                <p style="margin: 0; color: var(--brand-dark); font-weight: 600;">Área de Trabajo Social</p>
+              </div>
+
+              <div class="form-card" style="margin-bottom: 2rem;">
+                <h3 style="color: var(--brand-primary); border-bottom: 1px solid var(--border-input); padding-bottom: 0.5rem; margin-top: 0;">Estudio de Trabajo Social</h3>
+                <div style="background: var(--bg-page); padding: 1.5rem; border-radius: 6px; border: 1px dashed var(--border-input); margin-top: 1rem; white-space: pre-wrap; font-family: 'Times New Roman', Times, serif; font-size: 1.1rem;">
+                  {{ personaSeleccionada.trabajoSocial.estudioWord }}
+                </div>
+              </div>
+
+              <div class="form-card">
+                <h3 style="color: var(--brand-primary); border-bottom: 1px solid var(--border-input); padding-bottom: 0.5rem; margin-top: 0;">Plan de Trabajo Individual</h3>
+                <table style="width: 100%; border-collapse: collapse; margin-top: 1rem;">
+                  <thead>
+                    <tr>
+                      <th style="border: 1px solid black; padding: 0.8rem; background-color: var(--bg-light);">ACTIVIDAD</th>
+                      <th style="border: 1px solid black; padding: 0.8rem; background-color: var(--bg-light);">ESTATUS</th>
+                      <th style="border: 1px solid black; padding: 0.8rem; background-color: var(--bg-light);">OBJETIVO</th>
+                      <th style="border: 1px solid black; padding: 0.8rem; background-color: var(--bg-light);">CUMPLIMIENTO</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (act of personaSeleccionada.trabajoSocial.planTrabajo.actividadesSeguimiento; track act.nombre) {
+                      <tr>
+                        <td style="border: 1px solid black; padding: 0.8rem; font-weight: bold;">{{ act.nombre }}</td>
+                        <td style="border: 1px solid black; padding: 0.8rem;">{{ act.estatus }}</td>
+                        <td style="border: 1px solid black; padding: 0.8rem;">{{ act.objetivo }}</td>
+                        <td style="border: 1px solid black; padding: 0.8rem;">{{ act.cumplimiento }}</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+                <div style="margin-top: 1rem; padding: 1rem; background: var(--bg-light); border: 1px solid var(--border-input); border-radius: 4px;">
+                  <strong>Observaciones de Trabajo Social: </strong> {{ personaSeleccionada.trabajoSocial.planTrabajo.observaciones }}
+                </div>
               </div>
             </div>
           }
+
+
 
           @if (tabActual === 'oficio') {
             <div class="tab-content fade-in">
-              <div class="form-card" style="text-align: center; padding: 4rem 2rem;">
-                
-                <h2 style="font-size: 1.8rem; margin-bottom: 1rem;">Oficio de Conclusión del Programa</h2>
+              <div class="form-card" style="padding: 2rem;">
+                <h2 style="font-size: 1.5rem; margin-bottom: 1.5rem; color: var(--brand-primary);">Datos para el Oficio de Conclusión</h2>
                 
                 @if (puedeGenerarOficio()) {
-                  <div style="background-color: var(--success-bg); color: var(--success-text); padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem; max-width: 600px; margin-left: auto; margin-right: auto;">
-                    <strong>¡Requisitos Cumplidos!</strong><br>
-                    El usuario {{ personaSeleccionada.nombre }} ha cubierto la totalidad de sus {{ personaSeleccionada.guias.horasTotales }} horas. El documento está listo para generarse.
+                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
+                    <div>
+                      <label style="font-weight: 600;">Nombre del Lcdo. (Encabezado)</label>
+                      <input type="text" [(ngModel)]="datosOficio.lcdoEncabezado" class="table-input" placeholder="Ej: JUAN PÉREZ LÓPEZ" style="border: 1px solid var(--border-input); border-radius: 6px;">
+                    </div>
+                    <div>
+                      <label style="font-weight: 600;">Número de Oficio Generado</label>
+                      <input type="text" [(ngModel)]="datosOficio.noOficio" class="table-input" placeholder="Ej: DGPD/045/2026" style="border: 1px solid var(--border-input); border-radius: 6px;">
+                    </div>
+                    <div>
+                      <label style="font-weight: 600;">Oficio Remitente (Referencia Inicial)</label>
+                      <input type="text" [(ngModel)]="datosOficio.oficioInicial" class="table-input" placeholder="Ej: JCM/102/2025" style="border: 1px solid var(--border-input); border-radius: 6px;">
+                    </div>
+                    <div>
+                      <label style="font-weight: 600;">Fecha del Oficio Inicial</label>
+                      <input type="text" [(ngModel)]="datosOficio.fechaInicial" class="table-input" placeholder="Ej: 15 de enero de 2025" style="border: 1px solid var(--border-input); border-radius: 6px;">
+                    </div>
+                    <div style="grid-column: 1 / -1;">
+                      <label style="font-weight: 600;">Nombre del Juez que lo remitió</label>
+                      <input type="text" [(ngModel)]="datosOficio.juezRemitente" class="table-input" placeholder="Ej: MATEO RAMÍREZ DÍAZ" style="border: 1px solid var(--border-input); border-radius: 6px;">
+                    </div>
+                    <div style="grid-column: 1 / -1;">
+                      <label style="font-weight: 600;">Actividades realizadas a destacar:</label>
+                      <input type="text" [(ngModel)]="datosOficio.actividad1" class="table-input" style="border: 1px solid var(--border-input); border-radius: 6px; margin-bottom: 0.5rem;">
+                      <input type="text" [(ngModel)]="datosOficio.actividad2" class="table-input" style="border: 1px solid var(--border-input); border-radius: 6px; margin-bottom: 0.5rem;">
+                      <input type="text" [(ngModel)]="datosOficio.actividad3" class="table-input" style="border: 1px solid var(--border-input); border-radius: 6px;">
+                    </div>
                   </div>
-                  <button class="btn-download" style="margin: 0 auto; font-size: 1.2rem; padding: 1rem 2rem; background-color: var(--brand-primary);" (click)="descargarOficio()">
-                    📜 Generar Oficio en PDF
-                  </button>
-                } @else {
-                  <div style="background-color: #fef3c7; color: #92400e; padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem; max-width: 600px; margin-left: auto; margin-right: auto;">
-                    <strong>Documento Bloqueado</strong><br>
-                    Aún faltan {{ personaSeleccionada.guias.horasTotales - personaSeleccionada.guias.horasCubiertas }} horas por cubrir. El oficio solo puede generarse cuando el avance llegue al 100%.
-                  </div>
-                  <button class="btn-download" style="margin: 0 auto; font-size: 1.2rem; padding: 1rem 2rem; background-color: var(--text-tertiary); cursor: not-allowed;" disabled>
-                    🔒 Generar Oficio en PDF
-                  </button>
-                }
 
+                  <div style="text-align: center;">
+                    <button class="btn-download" style="font-size: 1.2rem; padding: 1rem 2rem; background-color: var(--brand-primary);" (click)="descargarOficio()">
+                      📜 Generar y Descargar Oficio PDF
+                    </button>
+                  </div>
+                } @else {
+                  <div style="background-color: #fef3c7; color: #92400e; padding: 1.5rem; border-radius: 8px; text-align: center;">
+                    <strong>Documento Bloqueado</strong><br>
+                    Aún faltan horas por cubrir. El oficio solo puede generarse al llegar al 100%.
+                  </div>
+                }
               </div>
             </div>
           }
@@ -182,34 +306,116 @@
 @if (personaSeleccionada) {
 <div class="hoja-impresion print-only">
   
-  <div style="text-align: right; margin-bottom: 3rem; font-family: 'Times New Roman', Times, serif;">
-    <p><strong>Asunto:</strong> Constancia de Conclusión de Actividades</p>
-    <p>Ocotlán de Morelos, Oaxaca a {{ fechaHoy }}</p>
+  <div style="text-align: center; margin-bottom: 2rem; font-family: 'Times New Roman', Times, serif; font-size: 10pt; font-weight: bold;">
+    <p>{{ plantillaOficial.lemaAnual }}</p>
   </div>
 
-  <div style="text-align: center; margin-bottom: 3rem; font-family: 'Times New Roman', Times, serif;">
-    <h2 style="text-decoration: underline; font-size: 16pt;">A QUIEN CORRESPONDA:</h2>
+  <div style="display: flex; justify-content: space-between; font-family: 'Times New Roman', Times, serif; font-size: 11pt; margin-bottom: 2rem;">
+    <div style="width: 50%;">
+      <p style="margin: 0;"><strong>LCDO. {{ datosOficio.lcdoEncabezado }}</strong></p>
+      <p style="margin: 0;"><strong>Sección:</strong> {{ plantillaOficial.seccion }}</p>
+      <p style="margin: 0;"><strong>No. de oficio:</strong> {{ datosOficio.noOficio }}</p>
+      <p style="margin: 0;"><strong>Asunto:</strong> {{ plantillaOficial.asunto }}</p>
+    </div>
+    <div style="width: 40%; text-align: right;">
+      <p style="margin: 0;">Oaxaca de Juárez, Oaxaca, {{ fechaHoy }}</p>
+    </div>
   </div>
 
-  <div style="text-align: justify; line-height: 2; font-family: 'Times New Roman', Times, serif; font-size: 12pt;">
+  <div style="font-family: 'Times New Roman', Times, serif; font-size: 11pt; margin-bottom: 2rem; white-space: pre-wrap; font-weight: bold;">
+    {{ plantillaOficial.destinatario }}
+  </div>
+
+  <div style="text-align: justify; line-height: 1.8; font-family: 'Times New Roman', Times, serif; font-size: 12pt;">
     <p>
-      Por medio de la presente, la <strong>Dirección de Ejecución de Medidas para Adolescentes</strong>, hace constar que el (la) C. <strong>{{ personaSeleccionada.nombre | uppercase }}</strong>, con número de expediente <strong>{{ personaSeleccionada.expediente }}</strong>, ha concluido satisfactoriamente con el total de las <strong>{{ personaSeleccionada.guias.horasTotales }} horas</strong> asignadas dentro del programa "Reconecta con la Paz".
+      Por medio del presente, y en seguimiento al oficio <strong>{{ datosOficio.oficioInicial }}</strong>, fechado el <strong>{{ datosOficio.fechaInicial }}</strong> del año en curso, remitido por el Lcdo. <strong>{{ datosOficio.juezRemitente }}</strong>, Juez Cívico Municipal Especializado en Faltas Administrativas para la Buena Convivencia Comunitaria, me permito informar lo siguiente:
     </p>
     <p>
-      Durante su periodo en la institución, cumplió con las intervenciones del área de Psicología, completó el plan de Trabajo Social y cubrió sus actividades operativas sin incidencias que impidan su liberación del programa.
+      El C. <strong>{{ personaSeleccionada.nombre | uppercase }}</strong> con número de expediente: <strong>{{ personaSeleccionada.expediente }}</strong>, concluyó de manera exitosa su participación en el programa “Reconecta con la Paz”, implementado por esta Dirección como parte de las acciones para la reintegración social y prevención de la reincidencia.
     </p>
     <p>
-      Se extiende la presente constancia para los fines legales e institucionales que al interesado(a) convengan.
+      Durante su proceso, el beneficiario mostró compromiso y disposición para participar en las actividades psicosociales, culturales, comunitarias y formativas que contempla el programa.
+    </p>
+    <p>A lo largo de su estancia, llevó a cabo de forma satisfactoria las siguientes actividades:</p>
+    <ul style="list-style-type: decimal; margin-left: 2rem; margin-bottom: 1rem;">
+      <li>{{ datosOficio.actividad1 }}</li>
+      <li>{{ datosOficio.actividad2 }}</li>
+      <li>{{ datosOficio.actividad3 }}</li>
+    </ul>
+    <p>
+      En virtud de lo anterior, se considera que ha cumplido con los objetivos establecidos en su plan de intervención individual, concluyendo satisfactoriamente su proceso dentro del esquema de seguimiento del programa.
+    </p>
+    <p>
+      Para cualquier duda o aclaración, favor de comunicarse con el <strong>{{ plantillaOficial.coordinadorNombre }}</strong>, Coordinador del programa “Reconecta con la Paz”, al número <strong>{{ plantillaOficial.coordinadorTel }}</strong> o al correo electrónico <strong>{{ plantillaOficial.coordinadorCorreo }}</strong>. Sin otro particular, quedo a su disposición.
     </p>
   </div>
 
-  <div style="text-align: center; margin-top: 6rem; font-family: 'Times New Roman', Times, serif;">
-    <p><strong>ATENTAMENTE</strong></p>
+  <div style="text-align: center; margin-top: 3rem; font-family: 'Times New Roman', Times, serif; font-size: 11pt;">
+    <p style="font-weight: bold; letter-spacing: 2px;">A T E N T A M E N T E</p>
+    <p style="white-space: pre-wrap;">{{ plantillaOficial.lemasDespedida }}</p>
+    
     <br><br><br>
-    <p>_________________________________________________</p>
-    <p><strong>DIRECCIÓN GENERAL</strong></p>
-    <p>Subsecretaría de Prevención y Reinserción Social</p>
+    
+    <p style="font-weight: bold; margin: 0;">{{ plantillaOficial.directorNombre }}</p>
+    <p style="white-space: pre-wrap; margin: 0; font-weight: bold;">{{ plantillaOficial.directorCargo }}</p>
+  </div>
+
+  <div style="position: absolute; bottom: 2cm; left: 0; width: 100%; text-align: center; font-family: 'Times New Roman', Times, serif; font-size: 9pt; border-top: 1px solid black; padding-top: 5px;">
+    {{ plantillaOficial.piePagina }}
   </div>
 
 </div>
+}
+
+@if (mostrarModalPlantilla) {
+  <div class="modal-overlay">
+    <div class="modal-content fade-in" style="max-width: 700px; max-height: 90vh; overflow-y: auto;">
+      
+      <div class="modal-header">
+        <h2>Configurar Plantilla Oficial (Administración)</h2>
+        <button class="btn-close" (click)="cerrarModalPlantilla()">✖</button>
+      </div>
+
+      <div class="modal-body">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div class="form-group" style="grid-column: 1 / -1;">
+            <label style="font-weight: 600;">Lema Anual (Encabezado Superior)</label>
+            <input type="text" [(ngModel)]="plantillaOficial.lemaAnual" class="table-input" style="border: 1px solid var(--border-input);">
+          </div>
+          <div class="form-group" style="grid-column: 1 / -1;">
+            <label style="font-weight: 600;">Dirección / Sección</label>
+            <input type="text" [(ngModel)]="plantillaOficial.seccion" class="table-input" style="border: 1px solid var(--border-input);">
+          </div>
+          <div class="form-group" style="grid-column: 1 / -1;">
+            <label style="font-weight: 600;">Destinatario Principal (Juez Cívico)</label>
+            <textarea [(ngModel)]="plantillaOficial.destinatario" rows="3" class="table-input" style="border: 1px solid var(--border-input); resize: vertical;"></textarea>
+          </div>
+          <div class="form-group">
+            <label style="font-weight: 600;">Nombre del Coordinador (Dudas)</label>
+            <input type="text" [(ngModel)]="plantillaOficial.coordinadorNombre" class="table-input" style="border: 1px solid var(--border-input);">
+          </div>
+          <div class="form-group">
+            <label style="font-weight: 600;">Teléfono del Coordinador</label>
+            <input type="text" [(ngModel)]="plantillaOficial.coordinadorTel" class="table-input" style="border: 1px solid var(--border-input);">
+          </div>
+          <div class="form-group" style="grid-column: 1 / -1;">
+            <label style="font-weight: 600;">Lemas de Despedida (Sufragio efectivo...)</label>
+            <textarea [(ngModel)]="plantillaOficial.lemasDespedida" rows="2" class="table-input" style="border: 1px solid var(--border-input);"></textarea>
+          </div>
+          <div class="form-group">
+            <label style="font-weight: 600;">Nombre del Director(a) General</label>
+            <input type="text" [(ngModel)]="plantillaOficial.directorNombre" class="table-input" style="border: 1px solid var(--border-input);">
+          </div>
+          <div class="form-group">
+            <label style="font-weight: 600;">Cargo del Director(a)</label>
+            <textarea [(ngModel)]="plantillaOficial.directorCargo" rows="2" class="table-input" style="border: 1px solid var(--border-input);"></textarea>
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; margin-top: 1.5rem;">
+          <button class="btn-success" (click)="cerrarModalPlantilla()">Guardar Configuración</button>
+        </div>
+      </div>
+    </div>
+  </div>
 }

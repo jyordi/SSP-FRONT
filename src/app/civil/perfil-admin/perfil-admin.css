@@ -91,3 +91,43 @@ progress::-webkit-progress-value { background-color: var(--success-text); border
   }
   @page { margin: 2.5cm; }
 }
+
+/* =========================================
+   ESTILOS DE LA PLANTILLA PARA PDF (MACHOTE)
+   ========================================= */
+.print-only { display: none; }
+.table-input { width: 100%; padding: 0.8rem; font-family: inherit; font-size: 0.95rem; }
+
+/* MODAL CONFIGURADOR */
+.modal-overlay { position: fixed !important; top: 0 !important; left: 0 !important; width: 100vw !important; height: 100vh !important; background-color: rgba(0, 0, 0, 0.6) !important; backdrop-filter: blur(3px) !important; display: flex !important; justify-content: center !important; align-items: center !important; z-index: 99999 !important; }
+.modal-content { background-color: #ffffff !important; border-radius: 12px !important; width: 90% !important; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3) !important; font-family: 'Segoe UI', Roboto, sans-serif !important; }
+.modal-header { background-color: #111827 !important; color: #ffffff !important; padding: 1.2rem 1.5rem !important; display: flex !important; justify-content: space-between !important; align-items: center !important; }
+.modal-header h2 { margin: 0 !important; font-size: 1.25rem !important; font-weight: 600 !important; }
+.btn-close { background: transparent !important; border: none !important; color: #ffffff !important; font-size: 1.5rem !important; cursor: pointer !important; }
+.modal-body { padding: 2rem !important; }
+.btn-success { background-color: #10b981; color: white; border: none; padding: 0.8rem 1.5rem; border-radius: 6px; font-weight: 600; cursor: pointer; }
+
+/* CUANDO EL ADMIN IMPRIME EL OFICIO */
+@media print {
+  /* Ocultar interfaz del sistema */
+  .dashboard-layout, .modal-overlay { display: none !important; }
+  
+  /* Mostrar hoja en blanco y negro */
+  .print-only {
+    display: block !important;
+    width: 100%;
+    background-color: white;
+    color: black;
+    position: relative; /* Para poder fijar el pie de página hasta abajo */
+    min-height: 25cm;
+  }
+  
+  /* Quitar los márgenes por defecto del navegador web y poner los de un oficio formal */
+  @page { 
+    size: letter;
+    margin-top: 2.5cm;
+    margin-bottom: 2cm;
+    margin-left: 2.5cm;
+    margin-right: 2.5cm;
+  }
+}

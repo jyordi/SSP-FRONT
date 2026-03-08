@@ -165,7 +165,7 @@
                     <tr>
                       <th>TIPO DE INASISTENCIA</th>
                       <th>DESCRIPCIÓN DE LOS HECHOS</th>
-                      <th style="width: 100px;">ACCIONES</th>
+                      
                     </tr>
                   </thead>
                   <tbody>
@@ -173,12 +173,7 @@
                       <tr>
                         <td class="font-bold">{{ inasistencia.tipo }}</td>
                         <td>{{ inasistencia.descripcion }}</td>
-                        <td class="text-center">
-                          <div class="acciones-flex">
-                            <button class="btn-edit" (click)="editarRegistro('inasistencia', inasistencia.id)">✏️</button>
-                            <button class="btn-delete" (click)="eliminarRegistro('inasistencia', inasistencia.id)">🗑️</button>
-                          </div>
-                        </td>
+                        
                       </tr>
                     }
                   </tbody>
@@ -214,7 +209,7 @@
                       <th style="width: 20%;">HORARIO</th>
                       <th style="width: 40%;">ACTIVIDAD</th>
                       <th style="width: 25%;">SEDE</th>
-                      <th style="width: 15%;" class="no-print">ACCIONES</th>
+                      
                     </tr>
                   </thead>
                   <tbody>
