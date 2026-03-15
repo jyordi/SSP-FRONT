@@ -2,33 +2,59 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormuPsico } from '../formu-psico/formu-psico';
 import { SeguimientoPsi } from '../seguimiento-psi/seguimiento-psi';
+import { FormsModule } from '@angular/forms';
 @Component({
   selector: 'app-perfil-psicologa',
-  imports: [CommonModule, FormuPsico, SeguimientoPsi],
+  imports: [CommonModule, FormuPsico, SeguimientoPsi, FormsModule],
   templateUrl: './perfil-psicologa.html',
   styleUrl: './perfil-psicologa.css',
 })
 export class PerfilPsicologa {
-
-  // Controla qué pantalla se muestra en el área principal
-  vistaActual: string = 'inicio';
+vistaActual: string = 'inicio';
   
-  cambiarVista(vista: string) {
-    this.vistaActual = vista;
-  }
-  // Datos simulados para la tabla del historial
+  // Las 3 pestañas que me pediste dentro del detalle
+  tabDetalle: 'ver-entrevista' | 'crear-nota' | 'ficha-tecnica' = 'ver-entrevista';
+  
+  pacienteSeleccionado: any = null;
+
+  // Datos simulados (Le agregamos datos de entrevista para el modo lectura)
   expedientes = [
-    { expediente: 'EXP-2026-001', nombre: 'Juan Pérez López', fechaUltima: '2026-03-01', estado: 'Activo' },
-    { expediente: 'EXP-2026-002', nombre: 'María García Ruiz', fechaUltima: '2026-02-28', estado: 'En Seguimiento' },
-    { expediente: 'EXP-2026-003', nombre: 'Carlos López Díaz', fechaUltima: '2026-02-15', estado: 'Alta' },
-    { expediente: 'EXP-2026-004', nombre: 'Ana Martínez Soto', fechaUltima: '2026-01-20', estado: 'Inactivo' }
+    { 
+      expediente: 'EXP-2026-001', nombre: 'Juan Pérez López', fechaUltima: '2026-03-01', estado: 'Activo',
+      entrevistaRealizada: {
+        edad: 22, curp: 'PELJ040101HDFR00', escolaridad: 'Preparatoria', ocupacion: 'Estudiante',
+        fechaDetencion: '15/02/2026', motivo: 'Alteración del orden público en vía pública.',
+        diagnosticoPrevio: 'Ansiedad leve, refiere insomnio ocasional.'
+      }
+    },
+    { 
+      expediente: 'EXP-2026-002', nombre: 'María García Ruiz', fechaUltima: '2026-02-28', estado: 'En Seguimiento',
+      entrevistaRealizada: {
+        edad: 19, curp: 'GARM070512MDFR05', escolaridad: 'Secundaria', ocupacion: 'Empleada de mostrador',
+        fechaDetencion: '20/02/2026', motivo: 'Consumo de sustancias en vía pública.',
+        diagnosticoPrevio: 'Requiere seguimiento por riesgo de adicciones.'
+      }
+    }
   ];
 
-  
+  cambiarVista(vista: string) {
+    this.vistaActual = vista;
+    this.pacienteSeleccionado = null; 
+  }
 
-  // Función para el botón de cerrar sesión
+  // Al dar clic en la tabla
+  verDetalles(paciente: any) {
+    this.pacienteSeleccionado = paciente;
+    this.vistaActual = 'detalle';
+    this.tabDetalle = 'ver-entrevista'; // Por defecto abre el modo lectura de la entrevista
+  }
+
+  volverHistorial() {
+    this.vistaActual = 'historial';
+    this.pacienteSeleccionado = null;
+  }
+
   cerrarSesion() {
-    console.log('Cerrando sesión...');
-    // Aquí iría tu lógica para regresar a la pantalla de Login
+    console.log('Cerrando sesión de Psicología...');
   }
 }

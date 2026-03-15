@@ -1,7 +1,9 @@
 <div class="dashboard-layout">
 
-  <aside class="sidebar">
+  <!-- ================= BARRA LATERAL ================= -->
+  <aside class="sidebar" style="background-color: #0369a1;">
     <div class="sidebar-header">
+      <div class="logo-icon">🧠</div>
       <h2>Área de Psicología</h2>
     </div>
 
@@ -12,9 +14,7 @@
       <button [class.active]="vistaActual === 'nueva-entrevista'" (click)="cambiarVista('nueva-entrevista')">
         <span class="icon">📝</span> Nueva Entrevista
       </button>
-      <button [class.active]="vistaActual === 'nueva-nota'" (click)="cambiarVista('nueva-nota')">
-        <span class="icon">📋</span> Notas de Evolución
-      </button>
+      
       <button [class.active]="vistaActual === 'historial'" (click)="cambiarVista('historial')">
         <span class="icon">📂</span> Historial y Expedientes
       </button>
@@ -27,6 +27,7 @@
     </div>
   </aside>
 
+  <!-- ================= CONTENIDO PRINCIPAL ================= -->
   <main class="main-content">
     
     <header class="topbar">
@@ -34,7 +35,7 @@
         <h3>Portal Institucional</h3>
       </div>
       <div class="user-profile">
-        <div class="avatar">👩‍⚕️</div>
+        <div class="avatar" style="border-color: #0369a1;">👩‍⚕️</div>
         <div class="user-info">
           <strong>Psicóloga En Turno</strong>
           <span>En línea</span>
@@ -44,6 +45,7 @@
 
     <div class="content-area">
 
+      <!-- VISTA: INICIO -->
       @if (vistaActual === 'inicio') {
         <div class="fade-in">
           <h1 class="page-title">Bienvenida al sistema</h1>
@@ -56,11 +58,7 @@
               <p>Iniciar una Evaluación Clínica y Social nueva.</p>
             </div>
             
-            <div class="action-card" (click)="cambiarVista('nueva-nota')">
-              <div class="action-icon">📋</div>
-              <h3>Redactar Nota</h3>
-              <p>Agregar una Nota de Evolución a un paciente.</p>
-            </div>
+            
 
             <div class="action-card" (click)="cambiarVista('historial')">
               <div class="action-icon">📂</div>
@@ -71,18 +69,21 @@
         </div>
       }
 
+      <!-- VISTA: FORMULARIO ENTREVISTA (ANIDADO) -->
       @if (vistaActual === 'nueva-entrevista') {
         <div class="fade-in">
           <app-formu-psico></app-formu-psico>
         </div>
       }
 
+      <!-- VISTA: FORMULARIO NOTAS (ANIDADO) -->
       @if (vistaActual === 'nueva-nota') {
         <div class="fade-in">
           <app-seguimiento-psi></app-seguimiento-psi>
         </div>
       }
 
+      <!-- VISTA: HISTORIAL -->
       @if (vistaActual === 'historial') {
         <div class="fade-in">
           <h1 class="page-title">Historial de Expedientes</h1>
@@ -110,7 +111,7 @@
                       </span>
                     </td>
                     <td>
-                      <button class="btn-action">Ver Detalles</button>
+                      <button class="btn-action" (click)="verDetalles(paciente)">Ver Detalles</button>
                     </td>
                   </tr>
                 }
@@ -120,7 +121,78 @@
         </div>
       }
 
-    </div>
-  </main>
+      <!-- ==================================================== -->
+      <!-- VISTA: DETALLE DEL PACIENTE (Expediente)             -->
+      <!-- ==================================================== -->
+      @if (vistaActual === 'detalle' && pacienteSeleccionado) {
+        <div class="fade-in">
+          <button class="btn-back" (click)="volverHistorial()">← Volver al Historial</button>
+          
+          <div class="detalle-header" style="background: white; padding: 2rem; border-radius: 10px; border: 1px solid #e5e7eb; margin-bottom: 2rem;">
+            <h1 style="margin: 0; color: #111827; font-size: 2.2rem;">{{ pacienteSeleccionado.nombre }}</h1>
+            <p style="margin: 5px 0 0 0; color: #6b7280; font-size: 1.1rem;">EXP: <strong>{{ pacienteSeleccionado.expediente }}</strong></p>
+          </div>
 
-</div>
+          <!-- LAS 3 PESTAÑAS QUE PEDISTE -->
+          <div class="tabs-container">
+            <button class="tab" [class.active]="tabDetalle === 'ver-entrevista'" (click)="tabDetalle = 'ver-entrevista'">👁️ Ver Entrevista</button>
+            <button class="tab" [class.active]="tabDetalle === 'crear-nota'" (click)="tabDetalle = 'crear-nota'">📝 Crear Nota de Evolución</button>
+            <button class="tab" [class.active]="tabDetalle === 'ficha-tecnica'" (click)="tabDetalle = 'ficha-tecnica'">📄 Crear Ficha Técnica</button>
+          </div>
+
+          <!-- PESTAÑA 1: SOLO LECTURA DE LA ENTREVISTA YA HECHA -->
+          @if (tabDetalle === 'ver-entrevista') {
+            <div class="tab-content fade-in">
+              <div style="background-color: #f0f9ff; border-left: 4px solid #0369a1; padding: 1rem; margin-bottom: 1.5rem; border-radius: 4px;">
+                <p style="margin: 0; color: #0369a1; font-weight: 600;">Modo Lectura: Esta entrevista ya fue llenada anteriormente.</p>
+              </div>
+
+              <div class="form-card" style="background: white; padding: 2rem; border-radius: 8px; border: 1px solid #e5e7eb;">
+                <h3 style="color: #0369a1; border-bottom: 1px solid #e5e7eb; padding-bottom: 0.5rem; margin-top: 0;">1. Datos Generales</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 2rem; margin-top: 1rem;">
+                  <p style="margin: 0;"><strong>Edad:</strong> {{ pacienteSeleccionado.entrevistaRealizada?.edad }} años</p>
+                  <p style="margin: 0;"><strong>CURP:</strong> {{ pacienteSeleccionado.entrevistaRealizada?.curp }}</p>
+                  <p style="margin: 0;"><strong>Escolaridad:</strong> {{ pacienteSeleccionado.entrevistaRealizada?.escolaridad }}</p>
+                  <p style="margin: 0;"><strong>Ocupación:</strong> {{ pacienteSeleccionado.entrevistaRealizada?.ocupacion }}</p>
+                </div>
+
+                <h3 style="color: #0369a1; border-bottom: 1px solid #e5e7eb; padding-bottom: 0.5rem;">2. Situación Jurídica y Motivo</h3>
+                <div style="margin-top: 1rem;">
+                  <p style="margin: 0 0 0.5rem 0;"><strong>Fecha de Detención:</strong> {{ pacienteSeleccionado.entrevistaRealizada?.fechaDetencion }}</p>
+                  <p style="margin: 0; font-weight: bold;">Relato / Motivo:</p>
+                  <div style="background: #f9fafb; padding: 1rem; border-radius: 6px; border: 1px solid #e5e7eb; margin-top: 0.5rem;">
+                    {{ pacienteSeleccionado.entrevistaRealizada?.motivo }}
+                  </div>
+                </div>
+              </div>
+            </div>
+          }
+
+          <!-- PESTAÑA 2: LLAMAR AL FORMULARIO DE NOTAS DE EVOLUCIÓN -->
+          @if (tabDetalle === 'crear-nota') {
+            <div class="tab-content fade-in">
+              <app-seguimiento-psi></app-seguimiento-psi>
+            </div>
+          }
+
+          <!-- PESTAÑA 3: FICHA TÉCNICA (DE ADORNO) -->
+          @if (tabDetalle === 'ficha-tecnica') {
+            <div class="tab-content fade-in">
+              <div class="form-card" style="background: white; padding: 4rem 2rem; border-radius: 8px; border: 1px dashed #d1d5db; text-align: center; opacity: 0.8;">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">🚧</div>
+                <h2 style="color: #6b7280; margin-bottom: 0.5rem;">Módulo en Construcción</h2>
+                <p style="color: #9ca3af; margin: 0;">El formulario para generar la Ficha Técnica estará disponible próximamente.</p>
+                
+                <!-- Campos visuales de adorno deshabilitados -->
+                <div style="max-width: 500px; margin: 2rem auto 0 auto; text-align: left;">
+                  <label style="display: block; margin-bottom: 0.5rem; color: #9ca3af; font-weight: bold;">Diagnóstico Preliminar</label>
+                  <textarea disabled rows="3" style="width: 100%; padding: 0.8rem; border: 1px solid #e5e7eb; border-radius: 6px; background-color: #f9fafb;"></textarea>
+                  
+                  <button disabled style="margin-top: 1rem; width: 100%; padding: 0.8rem; background-color: #d1d5db; color: white; border: none; border-radius: 6px; cursor: not-allowed;">Guardar Ficha Técnica</button>
+                </div>
+              </div>
+            </div>
+          }
+
+        </div>
+      }
