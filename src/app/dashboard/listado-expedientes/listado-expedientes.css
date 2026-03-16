@@ -88,6 +88,7 @@
 /* --- GRID DE TARJETAS (ELEGANCIA Y FLUIDEZ) --- */
 .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 1.8rem; }
 .no-results { grid-column: 1 / -1; text-align: center; padding: 4rem 2rem; color: var(--text-tertiary); font-size: 1.1rem; background: var(--bg-white); border-radius: 16px; border: 1px dashed var(--cancel-border); display: flex; flex-direction: column; align-items: center; }
+.no-results-icon { color: #9ca3af; margin-bottom: 1rem; }
 
 /* Tarjeta base */
 .user-card { 

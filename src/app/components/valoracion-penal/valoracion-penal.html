@@ -1,0 +1,1302 @@
+<!--
+  valoracion-penal.component.html  v5.0.0
+  ══════════════════════════════════════════════════════════════════════
+  Cambios v5:
+  - Vista previa PDF totalmente rediseñada con tablas HTML precisas
+    que replican fielmente el documento oficial (sin solapamientos)
+  - Checkboxes usan texto ASCII [X]/[ ] para coincidir con el PDF generado
+  - Opciones de radio usan (*)/( ) para coincidir con el PDF generado
+  - Wizard de formulario inalterado
+  ══════════════════════════════════════════════════════════════════════
+-->
+
+<div class="app-shell">
+
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <div class="nav-brand">
+      <img class="nav-logo"
+           src="https://pbs.twimg.com/profile_images/1553024740645867521/Y01tlpcP_400x400.jpg"
+           alt="Logo Reconecta con la Paz" />
+      <div>
+        <div class="nav-title">Reconecta con la Paz</div>
+        <div class="nav-subtitle">Sistema de Valoracion Clinica Psicologica</div>
+      </div>
+    </div>
+    <div class="nav-right">
+      <span class="nav-user">Psic. Avelina Escarcega</span>
+      <button class="btn-nav" (click)="cerrarSesion()">Cerrar Sesion</button>
+    </div>
+  </nav>
+
+  <!-- TAB BAR -->
+  <div class="tab-bar">
+    <button class="tab-btn" [class.active]="tabActivo()==='formulario'"
+            (click)="tabActivo.set('formulario')">📋 Formulario</button>
+    <button class="tab-btn" [class.active]="tabActivo()==='historial'"
+            (click)="tabActivo.set('historial')">
+      🗂️ Historial
+      @if(contadorHistorial()>0){ <span class="tab-badge">{{contadorHistorial()}}</span> }
+    </button>
+  </div>
+
+  <!-- TOAST -->
+  <div class="toast" [class.visible]="toast().mensaje"
+       [class.success]="toast().tipo==='success'" [class.error]="toast().tipo==='error'">
+    {{toast().mensaje}}
+  </div>
+
+  <!-- OVERLAY PDF PROGRESS -->
+  @if(estadoPdf().activo){
+    <div class="pdf-overlay">
+      <div class="pdf-card" [class.card-success]="estadoPdf().exito" [class.card-error]="estadoPdf().error">
+        <div class="pdf-icon" [class.icon-success]="estadoPdf().exito" [class.icon-error]="estadoPdf().error">
+          @if(estadoPdf().exito){
+            <svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="20" stroke="currentColor" stroke-width="2.5" fill="none"/>
+              <path d="M14 24l8 8 12-14" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="check-path"/></svg>
+          } @else if(estadoPdf().error){
+            <svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="20" stroke="currentColor" stroke-width="2.5" fill="none"/>
+              <path d="M16 16l16 16M32 16l-16 16" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+          } @else {
+            <svg viewBox="0 0 48 48" class="spin-svg">
+              <circle cx="24" cy="24" r="18" stroke="currentColor" stroke-width="3" fill="none"
+                      stroke-dasharray="70 40" stroke-linecap="round"/></svg>
+          }
+        </div>
+        <div class="pdf-title">
+          @if(estadoPdf().exito){Completado!} @else if(estadoPdf().error){Error} @else {Procesando...}
+        </div>
+        <div class="pdf-fase" [class.fase-success]="estadoPdf().exito" [class.fase-error]="estadoPdf().error">
+          {{estadoPdf().fase}}
+        </div>
+        <div class="pdf-prog-track">
+          <div class="pdf-prog-fill" [class.fill-success]="estadoPdf().exito" [class.fill-error]="estadoPdf().error"
+               [style.width.%]="estadoPdf().pct"></div>
+        </div>
+        <div class="pdf-pct">{{estadoPdf().pct}}%</div>
+      </div>
+    </div>
+  }
+
+  <!-- ══════════════════════════════════════════════════════════
+       VISTA PREVIA PDF — Replica fiel del documento oficial
+       Mejora v5: tablas HTML precisas con todo el contenido visible
+  ═══════════════════════════════════════════════════════════════ -->
+  @if(mostrarVistaPrevia()){
+    <div class="preview-overlay">
+      <div class="preview-toolbar">
+        <div class="preview-title">👁️ Vista Previa — Valoracion Clinica Psicologica</div>
+        <div class="preview-actions">
+          <button class="btn-pa btn-edit" (click)="mostrarVistaPrevia.set(false)">✏️ Seguir Editando</button>
+          <button class="btn-pa btn-pdf" (click)="descargarPdf()" [disabled]="generandoPdf()||guardando()">
+            @if(generandoPdf()){<span class="mini-spin"></span> Generando...} @else {⬇️ Descargar PDF}
+          </button>
+          <button class="btn-pa btn-save" (click)="guardarEnHistorial()" [disabled]="guardando()||generandoPdf()">
+            @if(guardando()){<span class="mini-spin"></span> Guardando...} @else {💾 Guardar en Expediente}
+          </button>
+        </div>
+      </div>
+
+      <div class="preview-scroll">
+        <!-- Documento oficial renderizado en HTML -->
+        <div class="doc-page">
+
+          <!-- ENCABEZADO — 3 zonas sin superposición:
+               Col A (izq): logo SEGURIDAD CIUDADANA   ~35%
+               Col B (centro): títulos institucionales  ~30%
+               Col C (der): tabla de expediente         ~35%  -->
+          <!-- ENCABEZADO — 3 zonas fijas: logo(145px) | centro(flex) | expediente(240px) -->
+          <!-- table-layout:fixed + colgroup garantizan que ninguna zona invada a otra -->
+          <table class="doc-hdr-table">
+            <colgroup>
+              <col style="width:145px"/>
+              <col/><!-- ocupa el espacio restante -->
+              <col style="width:240px"/>
+            </colgroup>
+            <tr>
+              <!-- Zona A: Logo - overflow:hidden evita que texto largo pise el centro -->
+              <td class="doc-logo-cell">
+                <strong class="doc-sc">SEGURIDAD CIUDADANA</strong>
+                <small>SECRETARIA DE SEGURIDAD<br/>Y PROTECCION</small>
+              </td>
+              <!-- Zona B: Títulos centrados - padding lateral separa de A y C -->
+              <td class="doc-title-cell">
+                <p>SUBSECRETARIA DE PREVENCION Y REINSERCION SOCIAL</p>
+                <p>DIRECCION GENERAL DE PREVENCION DEL DELITO</p>
+                <p>Y PARTICIPACION CIUDADANA</p>
+                <p class="doc-main-title">VALORACION CLINICA PSICOLOGICA</p>
+              </td>
+              <!-- Zona C: Tabla de expediente - width fijo, cada fila separada -->
+              <td class="doc-exp-cell">
+                <table class="doc-exp-table">
+                  <tr><td class="doc-exp-bold">No. Exp: DGPDyPC-RCP-{{v('numeroExpediente')}}</td></tr>
+                  <tr><td>Exp. Penal: {{v('expPenal')}}</td></tr>
+                  <tr><td>Delito: {{v('delito')}}</td></tr>
+                  <tr><td>Institucion: {{v('institucion')}}</td></tr>
+                  <tr><td>Fecha de Estudio: {{v('fechaEstudio')}}</td></tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+          <div class="doc-red-line"></div>
+          <table class="doc-full-table" style="margin-bottom:5px">
+            <tr>
+              <td class="doc-motivo-lbl">MOTIVO DE VALORACION:</td>
+              <td class="doc-motivo-val">Inclusion al programa <strong>"RECONECTA CON LA PAZ."</strong></td>
+            </tr>
+          </table>
+
+          <!-- I. METODOLOGIA -->
+          <div class="doc-sec">I.- METODOLOGIA</div>
+          <table class="doc-full-table">
+            <tr><td>v CONSENTIMIENTO INFORMADO</td><td>v ENTREVISTA CLINICA PSICOLOGICA</td></tr>
+            <tr><td>v OBSERVACION DIRECTA</td><td>v EXAMEN COGNOSCITIVO MINI-MENTAL (MOCA)</td></tr>
+            <tr><td>v TEST PERSONA BAJO LA LLUVIA</td><td>v TEST ASSIT (ADICCIONES)</td></tr>
+            <tr><td>v TEST INVENTARIO DE DEPRESION Y ANSIEDAD DE BECK</td><td>v TEST. CUESTIONARIO DE AGRESIVIDAD AQ</td></tr>
+            <tr><td>v TEST CUESTIONARIO IPDE</td><td></td></tr>
+          </table>
+
+          <!-- II. DATOS GENERALES -->
+          <div class="doc-sec">II.- DATOS GENERALES</div>
+          <table class="doc-full-table">
+            <tr><td><b>NOMBRE:</b> {{v('nombre')}}</td><td><b>EDAD:</b> {{v('edad')}}</td></tr>
+            <tr><td><b>SOBRE NOMBRE:</b> {{v('sobreNombre')}}</td><td><b>FECHA DE NACIMIENTO:</b> {{v('fechaNacimiento')}}</td></tr>
+            <tr><td><b>LUGAR DE NACIMIENTO:</b> {{v('lugarNacimiento')}}</td><td><b>ESTADO CIVIL:</b> {{v('estadoCivil')}}</td></tr>
+            <tr><td><b>DOMICILIO:</b> {{v('domicilio')}}</td><td><b>RELIGION:</b> {{v('religion')}}</td></tr>
+            <tr><td><b>ORIENTACION SEXUAL:</b> {{v('orientacionSexual')}}</td><td><b>NIVEL DE ESCOLARIDAD:</b> {{v('nivelEscolaridad')}}</td></tr>
+            <tr><td><b>OCUPACION ACTUAL:</b> {{v('ocupacionActual')}}</td><td><b>LENGUA MATERNA:</b> {{v('lenguaMaterna')}}</td></tr>
+            <tr><td colspan="2"><b>SITUACION JURIDICA:</b> {{v('situacionJuridica')}}</td></tr>
+            <tr><td colspan="2"><b>CONTACTO DE EMERGENCIA:</b> {{v('contactoEmergencia')}}</td></tr>
+          </table>
+
+          <!-- III. APARIENCIA -->
+          <div class="doc-sec">III. APARIENCIA</div>
+          <table class="doc-full-table doc-apariencia">
+            <tr>
+              <td rowspan="3" class="doc-ap-lbl"><em>EDAD APARENTE</em></td>
+              <td>MENOR A LA CRONOLOGICA {{v('edadAparente')==='MENOR'?'[X]':'[ ]'}}</td>
+              <td rowspan="9" class="doc-sp-cell"><span class="doc-sp-txt">SENAS PARTICULARES</span></td>
+              <td rowspan="5" class="doc-tat-cell"><b>TATUAJES / CICATRICES ETC:</b><br/>{{v('tatuajes')}}</td>
+            </tr>
+            <tr><td>IGUAL A LA CRONOLOGICA {{v('edadAparente')==='IGUAL'?'[X]':'[ ]'}}</td></tr>
+            <tr><td>MAYOR A LA CRONOLOGICA {{v('edadAparente')==='MAYOR'?'[X]':'[ ]'}}</td></tr>
+            <tr>
+              <td rowspan="3" class="doc-ap-lbl"><em>HIGIENE</em></td>
+              <td>LIMPIO {{v('higiene')==='LIMPIO'?'[X]':'[ ]'}}</td>
+              <td rowspan="4" style="border:1px solid #bbb; vertical-align:top"></td>
+            </tr>
+            <tr><td>REGULAR {{v('higiene')==='REGULAR'?'[X]':'[ ]'}}</td></tr>
+            <tr><td>SUCIO {{v('higiene')==='SUCIO'?'[X]':'[ ]'}}</td></tr>
+            <tr>
+              <td rowspan="3" class="doc-ap-lbl"><em>ARREGLO</em></td>
+              <td>ALINADO {{v('arreglo')==='ALINADO'?'[X]':'[ ]'}}</td>
+            </tr>
+            <tr><td>REGULAR {{v('arreglo')==='REGULAR'?'[X]':'[ ]'}}</td></tr>
+            <tr><td>DESALINADO {{v('arreglo')==='DESALINADO'?'[X]':'[ ]'}}</td></tr>
+            <tr>
+              <td colspan="4"><b>LESIONES RECIENTES:</b> {{v('lesionesRecientes')||'NO'}} &nbsp;&nbsp; <b>CUAL O CUALES?:</b> {{v('cualesLesiones')}} &nbsp;&nbsp; <b>MOTIVO:</b> {{v('motivoLesiones')}}</td>
+            </tr>
+            <tr><td colspan="4"><b>DESCRIPCION FISICA:</b> {{v('descripcionFisica')}}</td></tr>
+          </table>
+
+          <!-- IV. ACTITUD -->
+          <div class="doc-sec">IV. ACTITUD DURANTE LA ENTREVISTA</div>
+          <table class="doc-full-table">
+            <tr>
+              <td>{{v('actitudRespeta')?'[X]':'[ ]'}} RESPETA</td>
+              <td>{{v('actitudSigueInstrucciones')?'[X]':'[ ]'}} SIGUE INSTRUCCIONES</td>
+              <td>{{v('actitudAgresivo')?'[X]':'[ ]'}} AGRESIVO</td>
+              <td>{{v('actitudSeductor')?'[X]':'[ ]'}} SEDUCTOR</td>
+            </tr>
+            <tr>
+              <td>{{v('actitudColabora')?'[X]':'[ ]'}} COLABORA</td>
+              <td>{{v('actitudConcreto')?'[X]':'[ ]'}} CONCRETO</td>
+              <td>{{v('actitudIndiferente')?'[X]':'[ ]'}} INDIFERENTE</td>
+              <td>{{v('actitudManipulador')?'[X]':'[ ]'}} MANIPULADOR</td>
+            </tr>
+            <tr>
+              <td colspan="2"><b>ESTADO DE ANIMO:</b> {{v('estadoAnimo')}}</td>
+              <td colspan="2"><b>OTRA:</b> {{v('otraActitud')}}</td>
+            </tr>
+          </table>
+
+          <!-- V. EXAMEN MENTAL -->
+          <div class="doc-sec">V. EXAMEN MENTAL</div>
+          <table class="doc-full-table doc-examen">
+            <tr>
+              <td class="doc-em-lbl"><b>1) CONCIENCIA</b></td>
+              <td>LUCIDA: {{v('conciencia')==='LUCIDA'?'[X]':'[ ]'}}</td>
+              <td>OBNUBILADA: {{v('conciencia')==='OBNUBILADA'?'[X]':'[ ]'}}</td>
+              <td>CONFUSA: {{v('conciencia')==='CONFUSA'?'[X]':'[ ]'}}</td>
+              <td></td>
+            </tr>
+            <tr>
+              <td class="doc-em-lbl"><b>2) ORIENTACION</b></td>
+              <td>TIEMPO: {{v('orientacionTiempo')?'[X]':'[ ]'}}</td>
+              <td>PERSONA: {{v('orientacionPersona')?'[X]':'[ ]'}}</td>
+              <td>ESPACIO: {{v('orientacionEspacio')?'[X]':'[ ]'}}</td>
+              <td><b>OBS:</b> {{v('orientacionObservaciones')}}</td>
+            </tr>
+            <tr>
+              <td class="doc-em-lbl"><b>3) MEMORIA</b></td>
+              <td colspan="2">CONSERVADA: {{v('memoriaConservada')?'[X]':'[ ]'}}</td>
+              <td>DISMINUIDA: {{v('memoriaDisminuida')?'[X]':'[ ]'}}</td>
+              <td><b>OBS:</b> {{v('memoriaObservaciones')}}</td>
+            </tr>
+            <tr>
+              <td class="doc-em-lbl"><b>4) ATENCION</b></td>
+              <td colspan="2">DISPERSA: {{v('atencionDispersa')?'[X]':'[ ]'}}</td>
+              <td>CONCENTRADA: {{v('atencionConcentrada')?'[X]':'[ ]'}}</td>
+              <td><b>OBS:</b> {{v('atencionObservaciones')}}</td>
+            </tr>
+            <tr>
+              <td class="doc-em-lbl"><b>5) SENSOPERCEPCION</b></td>
+              <td colspan="2">ADECUADA: {{v('sensopercepcionAdecuada')?'[X]':'[ ]'}}</td>
+              <td>ALTERADA: {{v('sensopercepcionAlterada')?'[X]':'[ ]'}}</td>
+              <td><b>OBS:</b> {{v('sensopercepcionObservaciones')}}</td>
+            </tr>
+            <tr>
+              <td class="doc-em-lbl"><b>6) TIPO CONTENIDO</b></td>
+              <td>LOGICO: {{v('contenidoLogico')?'[X]':'[ ]'}} COHERENTE: {{v('contenidoCoherente')?'[X]':'[ ]'}}</td>
+              <td>CONGRUENTE: {{v('contenidoCongruente')?'[X]':'[ ]'}}</td>
+              <td>INDUCTIVO: {{v('contenidoInductivo')?'[X]':'[ ]'}} DEDUCTIVO: {{v('contenidoDeductivo')?'[X]':'[ ]'}}</td>
+              <td>INCONGRUENTE: {{v('contenidoIncongruente')?'[X]':'[ ]'}}</td>
+            </tr>
+            <tr>
+              <td class="doc-em-lbl"><b>7) NIVEL PENSAMIENTO</b></td>
+              <td>CONCRETO: {{v('nivelPensamientoConcreto')?'[X]':'[ ]'}}</td>
+              <td>FUNCIONAL: {{v('nivelPensamientoFuncional')?'[X]':'[ ]'}}</td>
+              <td>ABSTRACTO: {{v('nivelPensamientoAbstracto')?'[X]':'[ ]'}}</td>
+              <td><b>OBS:</b> {{v('nivelPensamientoObservaciones')}}</td>
+            </tr>
+            <tr>
+              <td class="doc-em-lbl"><b>8) CURSO LENGUAJE</b></td>
+              <td>NORMAL: {{v('lenguajeNormal')?'[X]':'[ ]'}} RAPIDO: {{v('lenguajeRapido')?'[X]':'[ ]'}}</td>
+              <td>LENTO: {{v('lenguajeLento')?'[X]':'[ ]'}}</td>
+              <td>CLARO: {{v('lenguajeClaro')?'[X]':'[ ]'}}</td>
+              <td>TECNICO: {{v('lenguajeTecnico')?'[X]':'[ ]'}}</td>
+            </tr>
+          </table>
+
+          <!-- VI. RENDIMIENTO -->
+          <div class="doc-sec">VI. RENDIMIENTO INTELECTUAL</div>
+          <table class="doc-full-table">
+            <tr>
+              <td style="width:36%"><b>CAPACIDAD DE JUICIO</b></td>
+              <td>AUMENTADO: {{v('capacidadJuicio')==='AUMENTADO'?'(*)':'( )'}}</td>
+              <td>CONSERVADO: {{v('capacidadJuicio')==='CONSERVADO'?'(*)':'( )'}}</td>
+              <td>DISMINUIDO: {{v('capacidadJuicio')==='DISMINUIDO'?'(*)':'( )'}}</td>
+            </tr>
+            <tr>
+              <td><b>CAPACIDAD DE ANALISIS</b></td>
+              <td>ALTA: {{v('capacidadAnalisis')==='ALTA'?'(*)':'( )'}}</td>
+              <td>MEDIA: {{v('capacidadAnalisis')==='MEDIA'?'(*)':'( )'}}</td>
+              <td>BAJA: {{v('capacidadAnalisis')==='BAJA'?'(*)':'( )'}}</td>
+            </tr>
+            <tr>
+              <td><b>CAPACIDAD DE SINTESIS</b></td>
+              <td>ALTA: {{v('capacidadSintesis')==='ALTA'?'(*)':'( )'}}</td>
+              <td>MEDIA: {{v('capacidadSintesis')==='MEDIA'?'(*)':'( )'}}</td>
+              <td>BAJA: {{v('capacidadSintesis')==='BAJA'?'(*)':'( )'}}</td>
+            </tr>
+            <tr>
+              <td><b>CAPACIDAD DE PLANEACION</b></td>
+              <td>LOGICA: {{v('capacidadPlaneacion')==='LOGICA'?'(*)':'( )'}}</td>
+              <td>RIGIDA: {{v('capacidadPlaneacion')==='RIGIDA'?'(*)':'( )'}}</td>
+              <td>CAOTICA: {{v('capacidadPlaneacion')==='CAOTICA'?'(*)':'( )'}}</td>
+            </tr>
+            <tr>
+              <td><b>CAPACIDAD DE ORGANIZACION</b></td>
+              <td>LOGICA: {{v('capacidadOrganizacion')==='LOGICA'?'(*)':'( )'}}</td>
+              <td>RIGIDA: {{v('capacidadOrganizacion')==='RIGIDA'?'(*)':'( )'}}</td>
+              <td>CAOTICA: {{v('capacidadOrganizacion')==='CAOTICA'?'(*)':'( )'}}</td>
+            </tr>
+          </table>
+
+          <!-- VII. RASGOS DE CARACTER -->
+          <div class="doc-sec">VII. RASGOS DE CARACTER</div>
+          <table class="doc-full-table">
+            <thead>
+              <tr><th></th><th>ALTA</th><th>MEDIA</th><th>BAJA</th><th>MANEJO DE LA AGRESIVIDAD:</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>TOLERANCIA A LA FRUSTRACION</td>
+                <td class="doc-tc">{{v('toleranciaFrustracion')==='ALTA'?'(*)':'( )'}}</td>
+                <td class="doc-tc">{{v('toleranciaFrustracion')==='MEDIA'?'(*)':'( )'}}</td>
+                <td class="doc-tc">{{v('toleranciaFrustracion')==='BAJA'?'(*)':'( )'}}</td>
+                <td rowspan="3" style="vertical-align:top; padding:4px; white-space:pre-wrap">{{v('manejoAgresividad')}}</td>
+              </tr>
+              <tr>
+                <td>CAPACIDAD DE DEMORA</td>
+                <td class="doc-tc">{{v('capacidadDemora')==='ALTA'?'(*)':'( )'}}</td>
+                <td class="doc-tc">{{v('capacidadDemora')==='MEDIA'?'(*)':'( )'}}</td>
+                <td class="doc-tc">{{v('capacidadDemora')==='BAJA'?'(*)':'( )'}}</td>
+              </tr>
+              <tr>
+                <td>CONTROL DE IMPULSOS</td>
+                <td class="doc-tc">{{v('controlImpulsos')==='ALTA'?'(*)':'( )'}}</td>
+                <td class="doc-tc">{{v('controlImpulsos')==='MEDIA'?'(*)':'( )'}}</td>
+                <td class="doc-tc">{{v('controlImpulsos')==='BAJA'?'(*)':'( )'}}</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <!-- VIII. SINTOMATOLOGIA -->
+          <div class="doc-sec">VIII. SINTOMATOLOGIA EMOCIONAL</div>
+          <table class="doc-full-table">
+            <tr>
+              <td style="width:38%; vertical-align:top">
+                {{v('sintomasBajaAutoestima')?'[X]':'[ ]'}} BAJA AUTOESTIMA<br/>
+                {{v('sintomasAnsiedad')?'[X]':'[ ]'}} ANSIEDAD<br/>
+                {{v('sintomasMiedo')?'[X]':'[ ]'}} MIEDO<br/>
+                {{v('sintomasEstres')?'[X]':'[ ]'}} ESTRES<br/>
+                {{v('sintomasDepresion')?'[X]':'[ ]'}} DEPRESION<br/>
+                {{v('sintomasTrastornoAlimentacion')?'[X]':'[ ]'}} TRASTORNO DE ALIMENTACION<br/>
+                {{v('sintomasTrastornoSueno')?'[X]':'[ ]'}} TRASTORNO DEL SUENO<br/>
+                {{v('sintomasDependenciaEmocional')?'[X]':'[ ]'}} DEPENDENCIA EMOCIONAL
+              </td>
+              <td style="vertical-align:top">
+                <b>DESTREZAS Y HABILIDADES QUE TENGAS PARA REALIZAR UNA ACTIVIDAD, TRABAJO U OFICIO:</b><br/>
+                {{v('destrezasHabilidades')}}<br/><br/>
+                <b>QUE ES LO QUE MAS DISFRUTAS HACER?</b><br/>
+                {{v('queDisfrutas')}}<br/><br/>
+                <b>CUALES SON TUS FORTALEZAS?</b><br/>
+                {{v('fortalezas')}}<br/>
+                <b>DEPORTE QUE PRACTICAS:</b> {{v('deportePractica')}}
+              </td>
+            </tr>
+          </table>
+
+          <!-- IX. ACTITUD SOCIAL -->
+          <div class="doc-sec">IX.- ACTITUD SOCIAL</div>
+          <table class="doc-full-table">
+            <tr>
+              <td style="width:24%; vertical-align:top">
+                <b>METAS:</b><br/>
+                {{v('metasIncongruentes')?'[X]':'[ ]'}} INCONGRUENTES<br/>
+                {{v('metasSinProyectos')?'[X]':'[ ]'}} SIN PROYECTOS DEFINIDOS<br/>
+                {{v('metasImprovisadas')?'[X]':'[ ]'}} IMPROVISADAS<br/>
+                {{v('metasPracticas')?'[X]':'[ ]'}} PRACTICAS Y CONCRETAS<br/>
+                {{v('metasAlcanzables')?'[X]':'[ ]'}} ALCANZABLES<br/>
+                {{v('metasRealistas')?'[X]':'[ ]'}} REALISTAS
+              </td>
+              <td style="width:21%; vertical-align:top">
+                <b>CONFLICTO CON LA AUTORIDAD</b><br/>
+                {{v('conflictoExistentes')?'[X]':'[ ]'}} EXISTENTES<br/>
+                {{v('conflictoSituacionales')?'[X]':'[ ]'}} SITUACIONALES<br/>
+                {{v('conflictoNoExistente')?'[X]':'[ ]'}} NO EXISTENTE
+              </td>
+              <td style="width:25%; vertical-align:top">
+                <b>INTERACCION SOCIAL</b><br/>
+                {{v('relacionesDependencia')?'[X]':'[ ]'}} DE DEPENDENCIA<br/>
+                {{v('relacionesUtilitarias')?'[X]':'[ ]'}} UTILITARIAS<br/>
+                {{v('relacionesExplotacion')?'[X]':'[ ]'}} DE EXPLOTACION<br/>
+                {{v('relacionesControl')?'[X]':'[ ]'}} DE CONTROL<br/>
+                {{v('sinInteresRelacionarse')?'[X]':'[ ]'}} SIN INTERES<br/>
+                {{v('relacionesProfundas')?'[X]':'[ ]'}} PROFUNDAS<br/>
+                {{v('relacionesEstables')?'[X]':'[ ]'}} ESTABLES
+              </td>
+              <td style="vertical-align:top">
+                <b>CONDUCTAS ANTISOCIALES (GRUPOS DELICTIVOS, BANDAS, ETC.)</b><br/>
+                {{v('conductasAntisociales')}}
+              </td>
+            </tr>
+          </table>
+
+          <!-- X. FACTORES PSICOSOCIALES -->
+          <div class="doc-sec">X. FACTORES PSICOSOCIALES</div>
+          <div class="doc-box">
+            <b>HIJOS:</b> {{v('hijos')||'___'}} &nbsp;&nbsp;
+            {{v('familiaNoApoya')?'[X]':'[ ]'}} SU PROPIA FAMILIA NO LO APOYA &nbsp;
+            {{v('noTrabaja')?'[X]':'[ ]'}} NO TRABAJA &nbsp;
+            {{v('noTieneVivienda')?'[X]':'[ ]'}} NO TIENE VIVIENDA<br/>
+            {{v('revictimizacion')?'[X]':'[ ]'}} RE VICTIMIZACION &nbsp;
+            {{v('intentosSuicidio')?'[X]':'[ ]'}} INTENTOS DE SUICIDIO &nbsp;
+            {{v('tratamientoPsiquiatrico')?'[X]':'[ ]'}} TRATAMIENTO PSIQUIATRICO<br/>
+            <b>ADICCIONES:</b> {{v('adicciones')}} &nbsp;&nbsp; <b>GRUPO DE PARES:</b> {{v('grupoPares')||'_______'}}<br/>
+            <b>OTROS. ESPECIFIQUE:</b> {{v('otrosFactores')}}
+          </div>
+
+          <!-- XI. ADICCIONES -->
+          <div class="doc-sec">XI. ADICCIONES</div>
+          <div class="doc-box" style="margin-bottom:0">
+            <b>USO DE SUSTANCIAS PSICOACTIVAS:</b>
+            SI: {{v('usaSustancias')==='SI'?'[X]':'[ ]'}} &nbsp; NO: {{v('usaSustancias')==='NO'?'[X]':'[ ]'}} &nbsp;&nbsp;&nbsp;
+            <b>DESEA REHABILITARSE</b>
+            SI: {{v('deseaRehabilitarse')==='SI'?'[X]':'[ ]'}} &nbsp; NO: {{v('deseaRehabilitarse')==='NO'?'[X]':'[ ]'}}
+          </div>
+          <table class="doc-full-table">
+            <thead>
+              <tr><th>SUSTANCIAS</th><th>EDAD DE INICIO</th><th>CANTIDAD / FRECUENCIA</th><th>ULTIMO CONSUMO</th></tr>
+            </thead>
+            <tbody>
+              @for(s of sustancias; track s.etiqueta){
+                <tr>
+                  <td><b>{{s.etiqueta}}</b></td>
+                  <td>{{v(s.claveEdad)}}</td>
+                  <td>{{v(s.claveCant)}}</td>
+                  <td>{{v(s.claveUlt)}}</td>
+                </tr>
+              }
+              <tr>
+                <td><b>OTRA(S):</b> {{v('otraSustancia')}}</td>
+                <td>{{v('otraSustanciaEdad')}}</td>
+                <td>{{v('otraSustanciaCantidad')}}</td>
+                <td>{{v('otraSustanciaUltimo')}}</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="doc-box" style="margin-top:0">
+            <b>INTERNAMIENTOS:</b>
+            SI: {{v('internamientos')==='SI'?'[X]':'[ ]'}} NO: {{v('internamientos')==='NO'?'[X]':'[ ]'}}
+            &nbsp;&nbsp; <b>TIEMPO SIN CONSUMO:</b> {{v('tiempoSinConsumo')}}<br/>
+            <b>DELITO RELACIONADO A SUSTANCIAS:</b>
+            SI: {{v('delitoPorSustancias')==='SI'?'[X]':'[ ]'}} NO: {{v('delitoPorSustancias')==='NO'?'[X]':'[ ]'}}
+            &nbsp;&nbsp; <b>A CUAL?:</b> {{v('cualSustanciaDelito')}}
+          </div>
+
+          <!-- XII. DINAMICA FAMILIAR -->
+          <div class="doc-sec">XII. DINAMICA FAMILIAR</div>
+          <div class="doc-text-area">{{v('dinamicaFamiliar')}}</div>
+
+          <!-- XIII. VERSION SUBJETIVA -->
+          <div class="doc-sec">XIII. VERSION SUBJETIVA DE LOS HECHOS (BREVE RELATO DE LA VINCULACION A PROCESO Y APREHENSION):</div>
+          <div class="doc-text-area">{{v('versionSubjetiva')}}</div>
+
+          <!-- XIV. OBSERVACIONES -->
+          <div class="doc-sec">XIV. OBSERVACIONES GENERALES. Y RESULTADOS DE LAS PRUEBAS PSICOLOGICAS:</div>
+          <div class="doc-text-area">{{v('observacionesGenerales')}}</div>
+          <div class="doc-box doc-resultados">
+            <b>RESULTADOS CUANTITATIVOS:</b><br/>
+            TEST ASSIT (ADICCIONES): {{v('resultadoAssit')}}<br/>
+            TEST. CUESTIONARIO DE AGRESIVIDAD AQ: {{v('resultadoAQ')}}<br/>
+            TEST CUESTIONARIO IPDE: {{v('resultadoIPDE')}}<br/>
+            TEST INVENTARIO DE DEPRESION RASGO - ESTADO (IDERE): {{v('resultadoIDERE')}}
+          </div>
+
+          <!-- XV. ACCION DERIVADA -->
+          <div class="doc-sec">XV. ACCION DERIVADA DE LA ATENCION BRINDADA:</div>
+          <div class="doc-box">
+            <b>SEGUIMIENTO PSICOLOGICO:</b>
+            VOLUNTARIO: {{v('seguimiento')==='VOLUNTARIO'?'[X]':'[ ]'}} &nbsp;
+            NECESARIO: {{v('seguimiento')==='NECESARIO'?'[X]':'[ ]'}}<br/>
+            <b>REFERENCIA PSIQUIATRICA:</b>
+            SI {{v('referenciaPsiquiatricaValor')==='SI'?'[X]':'[ ]'}} &nbsp;
+            NO: {{v('referenciaPsiquiatricaValor')==='NO'?'[X]':'[ ]'}} &nbsp;&nbsp;
+            <b>MOTIVO:</b> {{v('referenciaPsiquiatricaMotivo')}}<br/>
+            <b>REFERENCIA NEUROLOGICA:</b>
+            SI {{v('referenciaNeurologicaValor')==='SI'?'[X]':'[ ]'}} &nbsp;
+            NO: {{v('referenciaNeurologicaValor')==='NO'?'[X]':'[ ]'}} &nbsp;&nbsp;
+            <b>MOTIVO:</b> {{v('referenciaNeurologicaMotivo')}}<br/>
+            <b>REFERENCIA A OTRO ESPECIALISTA:</b> {{v('referenciaOtroEspecialista')}} &nbsp;&nbsp;
+            <b>MOTIVO:</b> {{v('referenciaOtroMotivo')}}<br/>
+            <b>ACOMPANAMIENTO:</b> {{v('acompanamiento')}} &nbsp;&nbsp;
+            <b>CANALIZACION:</b> {{v('canalizacion')}}
+          </div>
+
+          <!-- NOTAS -->
+          <div class="doc-sec">XV. NOTAS</div>
+          <div class="doc-notas">
+            <p><b>NOTA 1.</b> La informacion obtenida es unicamente para valoracion psicologica para el programa <b>RECONECTA CON LA PAZ</b>, por ello se realizara para complementacion un estudio integral, aclarando que el dato obtenido podria no ser enteramente coincidente con la version que obra en su expediente de ejecucion pues esta no es recabada con fines de investigacion criminal o de consideracion para una declaracion oficial.</p>
+            <p style="margin-top:6px"><b>NOTA GENERAL:</b> "El presente documento es el resultado de una valoracion psicologica referida solo a las circunstancias concretas del contexto en que fue solicitado; por tanto, no debe utilizarse en casos ni momentos diferentes a este. Si se produjese una modificacion sustancial en alguna de las circunstancias consideradas procederia una nueva evaluacion". Munoz (2013, p.68)</p>
+          </div>
+
+          <!-- FIRMA — centrada exactamente igual que en el PDF -->
+          <div class="doc-firma-centrada">
+            <div class="doc-firma-wrap">
+              <div class="doc-firma-line-c"></div>
+              <p class="doc-firma-nombre"><b>{{v('nombreFirmante')||'LIC. PSIC. AVELINA ESCARCEGA PEREZ'}}</b></p>
+              <p class="doc-firma-ced">CED. PROF. {{v('cedFirmante')||'6487612'}}</p>
+            </div>
+          </div>
+
+        </div><!-- /.doc-page -->
+      </div><!-- /.preview-scroll -->
+    </div><!-- /.preview-overlay -->
+  }
+
+  <!-- BARRA DE PROGRESO ESTATICA -->
+  @if(tabActivo()==='formulario'){
+    <div class="progress-strip">
+      <div class="progress-strip-inner">
+        <div class="ps-left">
+          <span class="ps-label">Progreso del formulario</span>
+          <span class="ps-pct">{{porcentajeCompletitud()}}%</span>
+        </div>
+        <div class="ps-track">
+          <div class="ps-fill" [style.width.%]="porcentajeCompletitud()">
+            <span class="ps-glow"></span>
+          </div>
+        </div>
+        <div class="ps-right">
+          <span class="ps-step">Paso {{pasoActual()+1}} / {{totalPasos()}}</span>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- CONTENIDO PRINCIPAL -->
+  <div class="main-content">
+
+    <!-- FORMULARIO (WIZARD) -->
+    @if(tabActivo()==='formulario'){
+      <div class="wizard-layout">
+
+        <!-- SIDEBAR DE PASOS -->
+        <aside class="wizard-sidebar">
+          <div class="sidebar-title">Secciones</div>
+          @for(paso of pasos; track paso.titulo; let i=$index){
+            <button class="step-btn" [class.step-active]="pasoActual()===i"
+                    [class.step-done]="pasoCompleto(i)" (click)="irAlPaso(i)">
+              <span class="step-icon">{{paso.icono}}</span>
+              <span class="step-txt">
+                <span class="step-num">{{i+1}}</span>
+                <span class="step-name">{{paso.titulo}}</span>
+              </span>
+              @if(pasoCompleto(i)){ <span class="step-check">✓</span> }
+            </button>
+          }
+        </aside>
+
+        <!-- CUERPO DEL WIZARD -->
+        <div class="wizard-body" [formGroup]="formGroup">
+
+          <!-- Encabezado del paso -->
+          <div class="paso-header">
+            <div class="paso-icono">{{pasos[pasoActual()].icono}}</div>
+            <div>
+              <h2 class="paso-titulo">{{pasos[pasoActual()].titulo}}</h2>
+              <p class="paso-desc">{{pasos[pasoActual()].descripcion}}</p>
+            </div>
+            <div class="paso-badge">Paso {{pasoActual()+1}} de {{totalPasos()}}</div>
+          </div>
+
+          <!-- PASO 0: Encabezado -->
+          @if(pasoActual()===0){
+            <div class="section-block">
+              <div class="inst-header-form">
+                <div class="inst-logo-wrap">
+                  <strong class="inst-name">SEGURIDAD CIUDADANA</strong>
+                  <small>SECRETARIA DE SEGURIDAD Y PROTECCION</small>
+                </div>
+                <div class="inst-center-wrap">
+                  <p>SUBSECRETARIA DE PREVENCION Y REINSERCION SOCIAL</p>
+                  <p>DIRECCION GENERAL DE PREVENCION DEL DELITO Y PARTICIPACION CIUDADANA</p>
+                  <p class="inst-main-title">VALORACION CLINICA PSICOLOGICA</p>
+                </div>
+              </div>
+              <div class="section-body">
+                <div class="motivo-banner"><b>MOTIVO DE VALORACION:</b> Inclusion al programa <b>"RECONECTA CON LA PAZ."</b></div>
+                <div class="field-grid g2" style="margin-top:14px">
+                  <div class="field-col">
+                    <label class="lbl">No. Expediente <span class="req">✦</span></label>
+                    <input class="inp req-field" formControlName="numeroExpediente" placeholder="DGPDyPC-RCP-XXXX"/>
+                    @if(!v('numeroExpediente')){ <span class="field-hint">Campo obligatorio</span> }
+                  </div>
+                  <div class="field-col">
+                    <label class="lbl">Expediente Penal</label>
+                    <input class="inp" formControlName="expPenal"/>
+                  </div>
+                  <div class="field-col">
+                    <label class="lbl">Delito</label>
+                    <input class="inp" formControlName="delito"/>
+                  </div>
+                  <div class="field-col">
+                    <label class="lbl">Institucion o persona que canaliza</label>
+                    <input class="inp" formControlName="institucion"/>
+                  </div>
+                  <div class="field-col">
+                    <label class="lbl">Fecha de Estudio</label>
+                    <input class="inp" type="date" formControlName="fechaEstudio"/>
+                  </div>
+                </div>
+              </div>
+            </div>
+          }
+
+          <!-- PASO 1: Metodologia -->
+          @if(pasoActual()===1){
+            <div class="section-block">
+              <div class="section-body">
+                <p class="section-note">Los siguientes instrumentos se aplican en la valoracion clinica psicologica:</p>
+                <div class="metod-grid">
+                  @for(m of metodologias; track m){
+                    <div class="metod-item"><span class="metod-check">✓</span>{{m}}</div>
+                  }
+                </div>
+              </div>
+            </div>
+          }
+
+          <!-- PASO 2: Datos Generales -->
+          @if(pasoActual()===2){
+            <div class="section-block">
+              <div class="section-body">
+                <div class="field-grid g2">
+                  <div class="field-col">
+                    <label class="lbl">Nombre completo <span class="req">✦</span></label>
+                    <input class="inp req-field" formControlName="nombre" placeholder="Nombre completo"/>
+                    @if(!v('nombre')){ <span class="field-hint">Obligatorio</span> }
+                  </div>
+                  <div class="field-col">
+                    <label class="lbl">Edad <span class="req">✦</span></label>
+                    <input class="inp req-field" formControlName="edad" placeholder="Ej: 34"/>
+                    @if(!v('edad')){ <span class="field-hint">Obligatorio</span> }
+                  </div>
+                  <div class="field-col">
+                    <label class="lbl">Sobre Nombre / Alias</label>
+                    <input class="inp" formControlName="sobreNombre"/>
+                  </div>
+                  <div class="field-col">
+                    <label class="lbl">Fecha de Nacimiento <span class="req">✦</span></label>
+                    <input class="inp req-field" type="date" formControlName="fechaNacimiento"/>
+                    @if(!v('fechaNacimiento')){ <span class="field-hint">Obligatorio</span> }
+                  </div>
+                  <div class="field-col">
+                    <label class="lbl">Lugar de Nacimiento <span class="req">✦</span></label>
+                    <input class="inp req-field" formControlName="lugarNacimiento" placeholder="Ciudad, Estado"/>
+                    @if(!v('lugarNacimiento')){ <span class="field-hint">Obligatorio</span> }
+                  </div>
+                  <div class="field-col">
+                    <label class="lbl">Estado Civil <span class="req">✦</span></label>
+                    <select class="inp req-field" formControlName="estadoCivil">
+                      <option value="">— Seleccionar —</option>
+                      @for(op of estadosCiviles; track op){ <option [value]="op">{{op}}</option> }
+                    </select>
+                    @if(!v('estadoCivil')){ <span class="field-hint">Obligatorio</span> }
+                  </div>
+                  <div class="field-col">
+                    <label class="lbl">Domicilio</label>
+                    <input class="inp" formControlName="domicilio"/>
+                  </div>
+                  <div class="field-col">
+                    <label class="lbl">Religion</label>
+                    <input class="inp" formControlName="religion"/>
+                  </div>
+                  <div class="field-col">
+                    <label class="lbl">Orientacion Sexual</label>
+                    <input class="inp" formControlName="orientacionSexual"/>
+                  </div>
+                  <div class="field-col">
+                    <label class="lbl">Nivel de Escolaridad</label>
+                    <input class="inp" formControlName="nivelEscolaridad"/>
+                  </div>
+                  <div class="field-col">
+                    <label class="lbl">Ocupacion Actual <span class="req">✦</span></label>
+                    <input class="inp req-field" formControlName="ocupacionActual"/>
+                    @if(!v('ocupacionActual')){ <span class="field-hint">Obligatorio</span> }
+                  </div>
+                  <div class="field-col">
+                    <label class="lbl">Lengua Materna / Dialecto / Idioma</label>
+                    <input class="inp" formControlName="lenguaMaterna"/>
+                  </div>
+                </div>
+                <div class="field-col" style="margin-top:12px">
+                  <label class="lbl">Situacion Juridica <span class="req">✦</span></label>
+                  <input class="inp req-field" formControlName="situacionJuridica" placeholder="Ej: Vinculado a proceso, sentenciado..."/>
+                  @if(!v('situacionJuridica')){ <span class="field-hint">Obligatorio</span> }
+                </div>
+                <div class="field-col" style="margin-top:10px">
+                  <label class="lbl">Contacto de Emergencia</label>
+                  <input class="inp" formControlName="contactoEmergencia" placeholder="Nombre, parentesco, telefono"/>
+                </div>
+              </div>
+            </div>
+          }
+
+          <!-- PASO 3: Apariencia -->
+          @if(pasoActual()===3){
+            <div class="section-block">
+              <div class="section-body">
+                <div class="field-grid g3" style="margin-bottom:14px">
+                  <div class="field-col">
+                    <label class="lbl">Edad Aparente</label>
+                    <div class="radio-group">
+                      @for(op of opcionesEdadAp; track op){
+                        <label class="radio-item" [class.sel]="v('edadAparente')===op">
+                          <input type="radio" formControlName="edadAparente" [value]="op"/>{{op}}
+                        </label>
+                      }
+                    </div>
+                  </div>
+                  <div class="field-col">
+                    <label class="lbl">Higiene</label>
+                    <div class="radio-group">
+                      @for(op of opcionesHigiene; track op){
+                        <label class="radio-item" [class.sel]="v('higiene')===op">
+                          <input type="radio" formControlName="higiene" [value]="op"/>{{op}}
+                        </label>
+                      }
+                    </div>
+                  </div>
+                  <div class="field-col">
+                    <label class="lbl">Arreglo</label>
+                    <div class="radio-group">
+                      @for(op of opcionesArreglo; track op){
+                        <label class="radio-item" [class.sel]="v('arreglo')===op">
+                          <input type="radio" formControlName="arreglo" [value]="op"/>{{op}}
+                        </label>
+                      }
+                    </div>
+                  </div>
+                </div>
+                <div class="field-col" style="margin-bottom:12px">
+                  <label class="lbl">Tatuajes / Cicatrices / Senas Particulares</label>
+                  <textarea class="inp" formControlName="tatuajes" rows="2"></textarea>
+                </div>
+                <div class="field-grid g3">
+                  <div class="field-col">
+                    <label class="lbl">Lesiones Recientes</label>
+                    <div class="radio-group">
+                      @for(op of opcionesSiNo; track op){
+                        <label class="radio-item" [class.sel]="v('lesionesRecientes')===op">
+                          <input type="radio" formControlName="lesionesRecientes" [value]="op"/>{{op}}
+                        </label>
+                      }
+                    </div>
+                  </div>
+                  <div class="field-col">
+                    <label class="lbl">Cual o Cuales?</label>
+                    <input class="inp" formControlName="cualesLesiones"/>
+                  </div>
+                  <div class="field-col">
+                    <label class="lbl">Motivo</label>
+                    <input class="inp" formControlName="motivoLesiones"/>
+                  </div>
+                </div>
+                <div class="field-col" style="margin-top:12px">
+                  <label class="lbl">Descripcion Fisica</label>
+                  <textarea class="inp" formControlName="descripcionFisica" rows="3" placeholder="Estatura, complexion, color de piel, ojos, cabello..."></textarea>
+                </div>
+              </div>
+            </div>
+          }
+
+          <!-- PASO 4: Actitud -->
+          @if(pasoActual()===4){
+            <div class="section-block">
+              <div class="section-body">
+                <label class="lbl" style="display:block;margin-bottom:10px">Actitudes observadas (puede marcar varias)</label>
+                <div class="check-wrap">
+                  @for(item of [
+                    ['actitudRespeta','RESPETA'],['actitudSigueInstrucciones','SIGUE INSTRUCCIONES'],
+                    ['actitudAgresivo','AGRESIVO'],['actitudSeductor','SEDUCTOR'],
+                    ['actitudColabora','COLABORA'],['actitudConcreto','CONCRETO'],
+                    ['actitudIndiferente','INDIFERENTE'],['actitudManipulador','MANIPULADOR']
+                  ]; track item[0]){
+                    <label class="check-item" [class.ck]="v(item[0])">
+                      <input type="checkbox" [formControlName]="item[0]"/>{{item[1]}}
+                    </label>
+                  }
+                </div>
+                <div class="field-grid g2" style="margin-top:14px">
+                  <div class="field-col">
+                    <label class="lbl">Estado de Animo</label>
+                    <input class="inp" formControlName="estadoAnimo" placeholder="Ej: eutimico, ansioso..."/>
+                  </div>
+                  <div class="field-col">
+                    <label class="lbl">Otra actitud</label>
+                    <input class="inp" formControlName="otraActitud"/>
+                  </div>
+                </div>
+              </div>
+            </div>
+          }
+
+          <!-- PASO 5: Examen Mental -->
+          @if(pasoActual()===5){
+            <div class="section-block">
+              <div class="section-body">
+                <div class="mental-grid">
+                  <div class="mental-row">
+                    <div class="mental-lbl">1) Conciencia <span class="req">✦</span></div>
+                    <div class="mental-opts">
+                      <div class="radio-group">
+                        @for(op of opcionesConciencia; track op){
+                          <label class="radio-item" [class.sel]="v('conciencia')===op">
+                            <input type="radio" formControlName="conciencia" [value]="op"/>{{op}}
+                          </label>
+                        }
+                      </div>
+                      @if(!v('conciencia')){ <span class="field-hint">Obligatorio</span> }
+                    </div>
+                  </div>
+                  @for(item of [
+                    {lbl:'2) Orientacion',checks:[['orientacionTiempo','TIEMPO'],['orientacionPersona','PERSONA'],['orientacionEspacio','ESPACIO']],obs:'orientacionObservaciones'},
+                    {lbl:'3) Memoria',checks:[['memoriaConservada','CONSERVADA'],['memoriaDisminuida','DISMINUIDA']],obs:'memoriaObservaciones'},
+                    {lbl:'4) Atencion',checks:[['atencionDispersa','DISPERSA'],['atencionConcentrada','CONCENTRADA']],obs:'atencionObservaciones'},
+                    {lbl:'5) Sensopercepcion',checks:[['sensopercepcionAdecuada','ADECUADA'],['sensopercepcionAlterada','ALTERADA']],obs:'sensopercepcionObservaciones'}
+                  ]; track item.lbl){
+                    <div class="mental-row">
+                      <div class="mental-lbl">{{item.lbl}}</div>
+                      <div class="mental-opts">
+                        <div class="check-wrap">
+                          @for(c of item.checks; track c[0]){
+                            <label class="check-item" [class.ck]="v(c[0])">
+                              <input type="checkbox" [formControlName]="c[0]"/>{{c[1]}}
+                            </label>
+                          }
+                        </div>
+                        <input class="inp" [formControlName]="item.obs" placeholder="Observaciones..." style="margin-top:6px"/>
+                      </div>
+                    </div>
+                  }
+                  <div class="mental-row">
+                    <div class="mental-lbl">6) Tipo de Contenido</div>
+                    <div class="mental-opts">
+                      <div class="check-wrap">
+                        @for(item of [['contenidoLogico','LOGICO'],['contenidoCoherente','COHERENTE'],['contenidoCongruente','CONGRUENTE'],['contenidoInductivo','INDUCTIVO'],['contenidoDeductivo','DEDUCTIVO'],['contenidoIncongruente','INCONGRUENTE']]; track item[0]){
+                          <label class="check-item" [class.ck]="v(item[0])"><input type="checkbox" [formControlName]="item[0]"/>{{item[1]}}</label>
+                        }
+                      </div>
+                    </div>
+                  </div>
+                  <div class="mental-row">
+                    <div class="mental-lbl">7) Nivel de Pensamiento</div>
+                    <div class="mental-opts">
+                      <div class="check-wrap">
+                        <label class="check-item" [class.ck]="v('nivelPensamientoConcreto')"><input type="checkbox" formControlName="nivelPensamientoConcreto"/>CONCRETO</label>
+                        <label class="check-item" [class.ck]="v('nivelPensamientoFuncional')"><input type="checkbox" formControlName="nivelPensamientoFuncional"/>FUNCIONAL</label>
+                        <label class="check-item" [class.ck]="v('nivelPensamientoAbstracto')"><input type="checkbox" formControlName="nivelPensamientoAbstracto"/>ABSTRACTO</label>
+                      </div>
+                      <input class="inp" formControlName="nivelPensamientoObservaciones" placeholder="Observaciones..." style="margin-top:6px"/>
+                    </div>
+                  </div>
+                  <div class="mental-row">
+                    <div class="mental-lbl">8) Curso del Lenguaje</div>
+                    <div class="mental-opts">
+                      <div class="check-wrap">
+                        @for(item of [['lenguajeNormal','NORMAL'],['lenguajeRapido','RAPIDO'],['lenguajeLento','LENTO'],['lenguajeClaro','CLARO'],['lenguajeTecnico','TECNICO']]; track item[0]){
+                          <label class="check-item" [class.ck]="v(item[0])"><input type="checkbox" [formControlName]="item[0]"/>{{item[1]}}</label>
+                        }
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          }
+
+          <!-- PASO 6: Rendimiento Intelectual -->
+          @if(pasoActual()===6){
+            <div class="section-block">
+              <div class="section-body">
+                <div class="field-grid g2" style="gap:16px">
+                  <div class="field-col">
+                    <label class="lbl">Capacidad de Juicio</label>
+                    <div class="radio-group">
+                      @for(op of opcionesJuicio; track op){
+                        <label class="radio-item" [class.sel]="v('capacidadJuicio')===op">
+                          <input type="radio" formControlName="capacidadJuicio" [value]="op"/>{{op}}
+                        </label>
+                      }
+                    </div>
+                  </div>
+                  @for(campo of [['capacidadAnalisis','Capacidad de Analisis'],['capacidadSintesis','Capacidad de Sintesis']]; track campo[0]){
+                    <div class="field-col">
+                      <label class="lbl">{{campo[1]}}</label>
+                      <div class="radio-group">
+                        @for(op of opcionesAmb; track op){
+                          <label class="radio-item" [class.sel]="v(campo[0])===op">
+                            <input type="radio" [formControlName]="campo[0]" [value]="op"/>{{op}}
+                          </label>
+                        }
+                      </div>
+                    </div>
+                  }
+                  @for(campo of [['capacidadPlaneacion','Capacidad de Planeacion'],['capacidadOrganizacion','Capacidad de Organizacion']]; track campo[0]){
+                    <div class="field-col">
+                      <label class="lbl">{{campo[1]}}</label>
+                      <div class="radio-group">
+                        @for(op of opcionesPlaneacion; track op){
+                          <label class="radio-item" [class.sel]="v(campo[0])===op">
+                            <input type="radio" [formControlName]="campo[0]" [value]="op"/>{{op}}
+                          </label>
+                        }
+                      </div>
+                    </div>
+                  }
+                </div>
+              </div>
+            </div>
+          }
+
+          <!-- PASO 7: Rasgos de Caracter -->
+          @if(pasoActual()===7){
+            <div class="section-block">
+              <div class="section-body">
+                <div class="field-grid g2" style="gap:16px;margin-bottom:14px">
+                  @for(campo of [['toleranciaFrustracion','Tolerancia a la Frustracion'],['capacidadDemora','Capacidad de Demora'],['controlImpulsos','Control de Impulsos']]; track campo[0]){
+                    <div class="field-col">
+                      <label class="lbl">{{campo[1]}}</label>
+                      <div class="radio-group">
+                        @for(op of opcionesAmb; track op){
+                          <label class="radio-item" [class.sel]="v(campo[0])===op">
+                            <input type="radio" [formControlName]="campo[0]" [value]="op"/>{{op}}
+                          </label>
+                        }
+                      </div>
+                    </div>
+                  }
+                </div>
+                <div class="field-col">
+                  <label class="lbl">Manejo de la Agresividad</label>
+                  <textarea class="inp" formControlName="manejoAgresividad" rows="4" placeholder="Describe como maneja la agresividad..."></textarea>
+                </div>
+              </div>
+            </div>
+          }
+
+          <!-- PASO 8: Sintomatologia Emocional -->
+          @if(pasoActual()===8){
+            <div class="section-block">
+              <div class="section-body">
+                <div class="field-grid g2">
+                  <div>
+                    <label class="lbl" style="display:block;margin-bottom:10px">Sintomas presentes</label>
+                    <div class="check-wrap col-wrap">
+                      @for(item of [['sintomasBajaAutoestima','BAJA AUTOESTIMA'],['sintomasAnsiedad','ANSIEDAD'],['sintomasMiedo','MIEDO'],['sintomasEstres','ESTRES'],['sintomasDepresion','DEPRESION'],['sintomasTrastornoAlimentacion','TRASTORNO DE ALIMENTACION'],['sintomasTrastornoSueno','TRASTORNO DEL SUENO'],['sintomasDependenciaEmocional','DEPENDENCIA EMOCIONAL']]; track item[0]){
+                        <label class="check-item" [class.ck]="v(item[0])"><input type="checkbox" [formControlName]="item[0]"/>{{item[1]}}</label>
+                      }
+                    </div>
+                  </div>
+                  <div style="display:flex;flex-direction:column;gap:10px">
+                    <div class="field-col"><label class="lbl">Destrezas y Habilidades</label><textarea class="inp" formControlName="destrezasHabilidades" rows="2" placeholder="Habilidades para trabajo u oficio..."></textarea></div>
+                    <div class="field-col"><label class="lbl">Que es lo que mas disfrutas hacer?</label><textarea class="inp" formControlName="queDisfrutas" rows="2"></textarea></div>
+                    <div class="field-col"><label class="lbl">Cuales son tus fortalezas?</label><textarea class="inp" formControlName="fortalezas" rows="2"></textarea></div>
+                    <div class="field-col"><label class="lbl">Deporte que practicas</label><input class="inp" formControlName="deportePractica"/></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          }
+
+          <!-- PASO 9: Actitud Social -->
+          @if(pasoActual()===9){
+            <div class="section-block">
+              <div class="section-body">
+                <div class="field-grid g3" style="gap:16px">
+                  <div>
+                    <label class="lbl" style="display:block;margin-bottom:8px">Metas</label>
+                    <div class="check-wrap col-wrap">
+                      @for(item of [['metasIncongruentes','INCONGRUENTES'],['metasSinProyectos','SIN PROYECTOS DEFINIDOS'],['metasImprovisadas','IMPROVISADAS'],['metasPracticas','PRACTICAS Y CONCRETAS'],['metasAlcanzables','ALCANZABLES'],['metasRealistas','REALISTAS']]; track item[0]){
+                        <label class="check-item" [class.ck]="v(item[0])"><input type="checkbox" [formControlName]="item[0]"/>{{item[1]}}</label>
+                      }
+                    </div>
+                  </div>
+                  <div>
+                    <label class="lbl" style="display:block;margin-bottom:8px">Conflicto con la Autoridad</label>
+                    <div class="check-wrap col-wrap">
+                      @for(item of [['conflictoExistentes','EXISTENTES'],['conflictoSituacionales','SITUACIONALES'],['conflictoNoExistente','NO EXISTENTE']]; track item[0]){
+                        <label class="check-item" [class.ck]="v(item[0])"><input type="checkbox" [formControlName]="item[0]"/>{{item[1]}}</label>
+                      }
+                    </div>
+                    <label class="lbl" style="display:block;margin:12px 0 8px">Interaccion Social</label>
+                    <div class="check-wrap col-wrap">
+                      @for(item of [['relacionesDependencia','DEPENDENCIA'],['relacionesUtilitarias','UTILITARIAS'],['relacionesExplotacion','EXPLOTACION'],['relacionesControl','CONTROL'],['sinInteresRelacionarse','SIN INTERES'],['relacionesProfundas','PROFUNDAS'],['relacionesEstables','ESTABLES']]; track item[0]){
+                        <label class="check-item" [class.ck]="v(item[0])"><input type="checkbox" [formControlName]="item[0]"/>{{item[1]}}</label>
+                      }
+                    </div>
+                  </div>
+                  <div class="field-col">
+                    <label class="lbl">Conductas Antisociales</label>
+                    <textarea class="inp" formControlName="conductasAntisociales" rows="10" placeholder="Grupos delictivos, bandas, etc."></textarea>
+                  </div>
+                </div>
+              </div>
+            </div>
+          }
+
+          <!-- PASO 10: Factores Psicosociales -->
+          @if(pasoActual()===10){
+            <div class="section-block">
+              <div class="section-body">
+                <div class="check-wrap" style="margin-bottom:14px">
+                  @for(item of [['familiaNoApoya','SU FAMILIA NO LO APOYA'],['noTrabaja','NO TRABAJA'],['noTieneVivienda','SIN VIVIENDA'],['revictimizacion','REVICTIMIZACION'],['intentosSuicidio','INTENTOS DE SUICIDIO'],['tratamientoPsiquiatrico','TRATAMIENTO PSIQUIATRICO']]; track item[0]){
+                    <label class="check-item" [class.ck]="v(item[0])"><input type="checkbox" [formControlName]="item[0]"/>{{item[1]}}</label>
+                  }
+                </div>
+                <div class="field-grid g3">
+                  <div class="field-col"><label class="lbl">Hijos</label><input class="inp" formControlName="hijos" placeholder="No. de hijos"/></div>
+                  <div class="field-col"><label class="lbl">Adicciones</label><input class="inp" formControlName="adicciones"/></div>
+                  <div class="field-col"><label class="lbl">Grupo de Pares</label><input class="inp" formControlName="grupoPares"/></div>
+                </div>
+                <div class="field-col" style="margin-top:10px"><label class="lbl">Otros. Especifique</label><input class="inp" formControlName="otrosFactores"/></div>
+              </div>
+            </div>
+          }
+
+          <!-- PASO 11: Adicciones -->
+          @if(pasoActual()===11){
+            <div class="section-block">
+              <div class="section-body">
+                <div class="field-grid g2" style="margin-bottom:14px">
+                  <div class="field-col">
+                    <label class="lbl">Uso de Sustancias Psicoactivas</label>
+                    <div class="radio-group">
+                      @for(op of opcionesSiNo; track op){
+                        <label class="radio-item" [class.sel]="v('usaSustancias')===op"><input type="radio" formControlName="usaSustancias" [value]="op"/>{{op}}</label>
+                      }
+                    </div>
+                  </div>
+                  <div class="field-col">
+                    <label class="lbl">Desea Rehabilitarse</label>
+                    <div class="radio-group">
+                      @for(op of opcionesSiNo; track op){
+                        <label class="radio-item" [class.sel]="v('deseaRehabilitarse')===op"><input type="radio" formControlName="deseaRehabilitarse" [value]="op"/>{{op}}</label>
+                      }
+                    </div>
+                  </div>
+                </div>
+                <table class="data-table">
+                  <thead><tr><th>SUSTANCIAS</th><th>EDAD INICIO</th><th>CANTIDAD / FRECUENCIA</th><th>ULTIMO CONSUMO</th></tr></thead>
+                  <tbody>
+                    @for(s of sustancias; track s.etiqueta){
+                      <tr>
+                        <td><b>{{s.etiqueta}}</b></td>
+                        <td><input class="inp" [formControlName]="s.claveEdad"/></td>
+                        <td><input class="inp" [formControlName]="s.claveCant"/></td>
+                        <td><input class="inp" [formControlName]="s.claveUlt"/></td>
+                      </tr>
+                    }
+                    <tr>
+                      <td><input class="inp" formControlName="otraSustancia" placeholder="OTRA(S)"/></td>
+                      <td><input class="inp" formControlName="otraSustanciaEdad"/></td>
+                      <td><input class="inp" formControlName="otraSustanciaCantidad"/></td>
+                      <td><input class="inp" formControlName="otraSustanciaUltimo"/></td>
+                    </tr>
+                  </tbody>
+                </table>
+                <div class="field-grid g3" style="margin-top:14px">
+                  <div class="field-col">
+                    <label class="lbl">Internamientos en centros de rehabilitacion?</label>
+                    <div class="radio-group">
+                      @for(op of opcionesSiNo; track op){
+                        <label class="radio-item" [class.sel]="v('internamientos')===op"><input type="radio" formControlName="internamientos" [value]="op"/>{{op}}</label>
+                      }
+                    </div>
+                  </div>
+                  <div class="field-col"><label class="lbl">Tiempo sin consumo</label><input class="inp" formControlName="tiempoSinConsumo"/></div>
+                  <div class="field-col">
+                    <label class="lbl">Delito relacionado a sustancias?</label>
+                    <div class="radio-group">
+                      @for(op of opcionesSiNo; track op){
+                        <label class="radio-item" [class.sel]="v('delitoPorSustancias')===op"><input type="radio" formControlName="delitoPorSustancias" [value]="op"/>{{op}}</label>
+                      }
+                    </div>
+                  </div>
+                </div>
+                <div class="field-col" style="margin-top:10px"><label class="lbl">A cual sustancia?</label><input class="inp" formControlName="cualSustanciaDelito"/></div>
+              </div>
+            </div>
+          }
+
+          <!-- PASO 12: Dinamica Familiar -->
+          @if(pasoActual()===12){
+            <div class="section-block">
+              <div class="section-body">
+                <textarea class="inp" formControlName="dinamicaFamiliar" rows="12" placeholder="Describe la dinamica familiar: composicion del nucleo familiar, relaciones, conflictos, red de apoyo..."></textarea>
+              </div>
+            </div>
+          }
+
+          <!-- PASO 13: Version Subjetiva -->
+          @if(pasoActual()===13){
+            <div class="section-block">
+              <div class="section-body">
+                <textarea class="inp" formControlName="versionSubjetiva" rows="12" placeholder="Breve relato de la vinculacion a proceso y aprehension, desde la perspectiva del evaluado..."></textarea>
+              </div>
+            </div>
+          }
+
+          <!-- PASO 14: Observaciones -->
+          @if(pasoActual()===14){
+            <div class="section-block">
+              <div class="section-body">
+                <label class="lbl" style="display:block;margin-bottom:6px">Observaciones Generales</label>
+                <textarea class="inp" formControlName="observacionesGenerales" rows="6" placeholder="Observaciones clinicas generales..."></textarea>
+                <div class="resultados-box">
+                  <div class="resultados-title">RESULTADOS CUANTITATIVOS DE PRUEBAS PSICOLOGICAS</div>
+                  <div class="field-grid g2" style="gap:10px;margin-top:10px">
+                    <div class="field-col"><label class="lbl">TEST ASSIT (Adicciones)</label><input class="inp" formControlName="resultadoAssit" placeholder="Ej: Intervencion Breve en Tabaco y alcohol"/></div>
+                    <div class="field-col"><label class="lbl">TEST Cuestionario de Agresividad AQ</label><input class="inp" formControlName="resultadoAQ" placeholder="Ej: agresividad fisica"/></div>
+                    <div class="field-col"><label class="lbl">TEST Cuestionario IPDE</label><input class="inp" formControlName="resultadoIPDE" placeholder="Ej: Rasgo esquizotipico"/></div>
+                    <div class="field-col"><label class="lbl">TEST Inventario de Depresion IDERE</label><input class="inp" formControlName="resultadoIDERE" placeholder="Ej: depresion como estado: medio"/></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          }
+
+          <!-- PASO 15: Accion Derivada -->
+          @if(pasoActual()===15){
+            <div class="section-block">
+              <div class="section-body">
+                <div class="field-grid g2" style="gap:16px">
+                  <div class="field-col">
+                    <label class="lbl">Seguimiento Psicologico</label>
+                    <div class="radio-group">
+                      @for(op of opcionesSeguim; track op){
+                        <label class="radio-item" [class.sel]="v('seguimiento')===op"><input type="radio" formControlName="seguimiento" [value]="op"/>{{op}}</label>
+                      }
+                    </div>
+                  </div>
+                  <div class="field-grid g2">
+                    <div class="field-col">
+                      <label class="lbl">Referencia Psiquiatrica</label>
+                      <div class="radio-group">
+                        @for(op of opcionesSiNo; track op){
+                          <label class="radio-item" [class.sel]="v('referenciaPsiquiatricaValor')===op"><input type="radio" formControlName="referenciaPsiquiatricaValor" [value]="op"/>{{op}}</label>
+                        }
+                      </div>
+                    </div>
+                    <div class="field-col"><label class="lbl">Motivo</label><input class="inp" formControlName="referenciaPsiquiatricaMotivo"/></div>
+                  </div>
+                  <div class="field-grid g2">
+                    <div class="field-col">
+                      <label class="lbl">Referencia Neurologica</label>
+                      <div class="radio-group">
+                        @for(op of opcionesSiNo; track op){
+                          <label class="radio-item" [class.sel]="v('referenciaNeurologicaValor')===op"><input type="radio" formControlName="referenciaNeurologicaValor" [value]="op"/>{{op}}</label>
+                        }
+                      </div>
+                    </div>
+                    <div class="field-col"><label class="lbl">Motivo</label><input class="inp" formControlName="referenciaNeurologicaMotivo"/></div>
+                  </div>
+                  <div class="field-grid g2">
+                    <div class="field-col"><label class="lbl">Referencia a Otro Especialista</label><input class="inp" formControlName="referenciaOtroEspecialista"/></div>
+                    <div class="field-col"><label class="lbl">Motivo</label><input class="inp" formControlName="referenciaOtroMotivo"/></div>
+                  </div>
+                  <div class="field-col"><label class="lbl">Acompanamiento</label><input class="inp" formControlName="acompanamiento"/></div>
+                  <div class="field-col"><label class="lbl">Canalizacion</label><input class="inp" formControlName="canalizacion"/></div>
+                </div>
+              </div>
+            </div>
+          }
+
+          <!-- PASO 16: Firma y Adjuntos -->
+          @if(pasoActual()===16){
+            <div class="section-block section-gold">
+              <div class="section-title-gold">✍️ Datos del Perito Firmante</div>
+              <div class="section-body">
+                <div class="field-grid g2">
+                  <div class="field-col"><label class="lbl">Nombre del Firmante</label><input class="inp" formControlName="nombreFirmante" placeholder="Lic. Psic. Nombre Apellido"/></div>
+                  <div class="field-col"><label class="lbl">Cedula Profesional</label><input class="inp" formControlName="cedFirmante" placeholder="Numero de cedula"/></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="section-block" style="margin-top:1rem">
+              <div class="section-title-std">📎 Documentos Adjuntos</div>
+              <div class="section-body">
+                <div class="upload-zone" [class.dragging]="arrastrandoArchivo()"
+                     (dragover)="$event.preventDefault();arrastrandoArchivo.set(true)"
+                     (dragleave)="arrastrandoArchivo.set(false)"
+                     (drop)="$event.preventDefault();arrastrandoArchivo.set(false);procesarArchivos($any($event.dataTransfer?.files))"
+                     (click)="fInput.click()">
+                  <div class="upload-ico">📎</div>
+                  <div class="upload-main">Arrastra documentos aqui</div>
+                  <div class="upload-sub">PDF, JPG, PNG, DOCX</div>
+                  <input #fInput type="file" multiple accept=".pdf,.jpg,.jpeg,.png,.docx" style="display:none"
+                         (change)="procesarArchivos($any($event.target.files))"/>
+                </div>
+                @for(a of archivosAdjuntos(); track a.id){
+                  <div class="uploaded-file">
+                    <span class="file-ico">{{iconoArchivo(a.tipo)}}</span>
+                    <div><div class="file-name">{{a.nombre}}</div><div class="file-size">{{(a.tamano/1024).toFixed(1)}} KB</div></div>
+                    <button class="file-rm" (click)="eliminarArchivo(a.id)">✕</button>
+                  </div>
+                }
+              </div>
+            </div>
+
+            <!-- CTA -->
+            <div class="cta-zone">
+              @if(formularioCompleto()){
+                <button class="btn-main" (click)="mostrarVistaPrevia.set(true)">
+                  <span>👁️</span> Vista Previa y Descargar PDF
+                </button>
+              } @else {
+                <div class="cta-pending">
+                  <p>Completa los campos obligatorios <span class="req">✦</span> para continuar</p>
+                  <p class="cta-count">{{camposPendientes().length}} campo(s) pendiente(s):</p>
+                  <div class="pending-chips">
+                    @for(c of camposPendientes(); track c){ <span class="pending-chip">{{c}}</span> }
+                  </div>
+                </div>
+              }
+            </div>
+          }
+
+          <!-- NAVEGACION DEL WIZARD -->
+          <div class="wizard-nav">
+            <button class="wn-btn wn-back" [disabled]="pasoActual()===0" (click)="anteriorPaso()">← Anterior</button>
+            <div class="wn-dots">
+              @for(p of pasos; track p.titulo; let i=$index){
+                <button class="wn-dot" [class.dot-active]="pasoActual()===i" [class.dot-done]="pasoCompleto(i)"
+                        (click)="irAlPaso(i)" [title]="p.titulo"></button>
+              }
+            </div>
+            @if(pasoActual()<totalPasos()-1){
+              <button class="wn-btn wn-next" (click)="siguientePaso()">Siguiente →</button>
+            } @else {
+              @if(formularioCompleto()){
+                <button class="wn-btn wn-preview" (click)="mostrarVistaPrevia.set(true)">👁️ Vista Previa</button>
+              } @else {
+                <button class="wn-btn wn-next" disabled>Campos pendientes ({{camposPendientes().length}})</button>
+              }
+            }
+          </div>
+
+        </div><!-- /.wizard-body -->
+      </div><!-- /.wizard-layout -->
+    }
+
+    <!-- HISTORIAL -->
+    @if(tabActivo()==='historial'){
+      <div class="historial-wrap">
+        <div class="historial-head">
+          <div>
+            <h2 class="hist-titulo">Historial de Expedientes</h2>
+            <p class="hist-sub">{{contadorHistorial()}} expediente(s) guardado(s) en esta sesion</p>
+          </div>
+        </div>
+        @if(historial().length===0){
+          <div class="empty-state">
+            <div class="empty-ico">🗂️</div>
+            <div class="empty-txt">No hay expedientes aun</div>
+            <div class="empty-sub">Completa el formulario y guardalo para verlo aqui</div>
+          </div>
+        } @else {
+          <div class="hist-grid">
+            @for(e of historial(); track e.id){
+              <div class="hcard">
+                <div class="hcard-hdr">
+                  <div class="hcard-exp">📁 EXP: {{e.expediente}}</div>
+                  <div class="hcard-name">{{e.nombre||'Sin nombre'}}</div>
+                </div>
+                <div class="hcard-body">
+                  <div class="hcard-meta">📅 {{e.fecha}}</div>
+                  @if(e.delito){ <div class="hcard-meta">⚖️ {{e.delito}}</div> }
+                  <div class="hcard-files">
+                    <div class="hfile" (click)="descargarPdfHistorial(e)">📄 {{truncar(e.pdf.nombre)}}</div>
+                    @for(a of e.archivos; track a.id){
+                      <div class="hfile" (click)="descargarArchivo(a)">{{iconoArchivo(a.tipo)}} {{truncar(a.nombre)}}</div>
+                    }
+                  </div>
+                  <div class="hcard-actions">
+                    <button class="hbtn" (click)="descargarPdfHistorial(e)">⬇️ Solo PDF</button>
+                    <button class="hbtn hbtn-folder" (click)="descargarExpedienteCompleto(e)" title="Descargar carpeta ZIP con PDF + adjuntos organizados">📁 Carpeta ZIP</button>
+                    <button class="hbtn hbtn-del" (click)="eliminarExpediente(e.id)">🗑️ Eliminar</button>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
+
+  </div><!-- /.main-content -->
+</div><!-- /.app-shell -->

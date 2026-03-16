@@ -65,8 +65,7 @@ export class ListadoExpedientesComponent {
 
   // Navegación
   nuevoIngreso() {
-    console.log('Navegando a nuevo ingreso...');
-    // this.router.navigate(['/registro']);
+     this.router.navigate(['/seleccion']);
   }
 
   continuarSeguimiento(id: number) {
