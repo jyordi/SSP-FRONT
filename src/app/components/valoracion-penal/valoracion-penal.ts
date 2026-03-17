@@ -21,6 +21,7 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
@@ -76,6 +77,7 @@ export const CAMPOS_REQUERIDOS = PASOS.flatMap(p => p.campos);
 export class ValoracionPenalComponent implements OnInit, OnDestroy {
 
   private readonly fb = inject(FormBuilder);
+  private readonly router = inject(Router);
 
   readonly tabActivo          = signal<'formulario'|'historial'>('formulario');
   readonly pasoActual         = signal(0);
@@ -1046,8 +1048,10 @@ export class ValoracionPenalComponent implements OnInit, OnDestroy {
   /** Descarga todos los archivos del expediente como carpeta ZIP. */
   descargarExpedienteCompleto(e:EntradaHistorial):void{this.descargarComoCareta(e);}
 
-  descargarArchivo(a:ArchivoAdjunto):void{this._dl(a.dataUrl,a.nombre);}
+descargarArchivo(a:ArchivoAdjunto):void{this._dl(a.dataUrl,a.nombre);}
   private _dl(url:string,name:string):void{Object.assign(document.createElement('a'),{href:url,download:name}).click();}
+  regresarPantallaAnterior(){this.router.navigate(['/seleccion']);}
+  irATrabajoSocial(){this.router.navigate(['/trabajo-social']);}
   cerrarSesion():void{alert('Sesion cerrada.\n(TODO: integrar con AuthService + Router)');}
 
   // ── Helpers para el template ─────────────────────────────────

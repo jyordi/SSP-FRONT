@@ -25,6 +25,10 @@
     </div>
     <div class="nav-right">
       <span class="nav-user">Psic. Avelina Escarcega</span>
+      <button class="btn-nav" (click)="regresarPantallaAnterior()">⬅️ Regresar</button>
+      @if(contadorHistorial() > 0){
+        <button class="btn-nav" (click)="irATrabajoSocial()">📋 Trabajo Social</button>
+      }
       <button class="btn-nav" (click)="cerrarSesion()">Cerrar Sesion</button>
     </div>
   </nav>
