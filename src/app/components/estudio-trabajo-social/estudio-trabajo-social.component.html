@@ -117,9 +117,9 @@
           <!-- ── ENCABEZADO INSTITUCIONAL ──────────────────── -->
           <table class="doc-hdr-table">
             <colgroup>
-              <col style="width:145px"/>
+              <col class="w-145"/>
               <col/>
-              <col style="width:0px"/><!-- sin columna de expediente en este doc -->
+              <col class="w-0"/><!-- sin columna de expediente en este doc -->
             </colgroup>
             <tr>
               <td class="doc-logo-cell">
@@ -141,11 +141,11 @@
           <div class="doc-sec">DATOS PERSONALES DEL IMPUTADO</div>
 
           <div class="doc-campo-fila">
-            <div class="doc-campo-bloque" style="flex:2">
+            <div class="doc-campo-bloque flex-2">
               <span class="dc-lbl">1.- NOMBRE DEL IMPUTADO:</span>
               <span class="dc-val">{{v('nombre')}}</span>
             </div>
-            <div class="doc-campo-bloque" style="flex:0.8">
+            <div class="doc-campo-bloque flex-08">
               <span class="dc-lbl">2.- EDAD:</span>
               <span class="dc-val">{{v('edad')}}</span>
             </div>
@@ -163,7 +163,7 @@
           </div>
 
           <div class="doc-campo-fila">
-            <div class="doc-campo-bloque" style="flex:2">
+            <div class="doc-campo-bloque flex-2">
               <span class="dc-lbl">5.- ORIGINARIO:</span>
               <span class="dc-val">{{v('originario')}}</span>
             </div>
@@ -659,13 +659,13 @@
                     @if(!v('expedientePenal')){ <span class="field-hint">Obligatorio</span> }
                   </div>
 
-                  <div class="field-col" style="grid-column:span 2">
+                  <div class="field-col gs-span-2">
                     <label class="lbl">Delito(s) <span class="req">✦</span></label>
                     <input class="inp req-field" formControlName="delito" placeholder="Delito(s) imputado(s)"/>
                     @if(!v('delito')){ <span class="field-hint">Obligatorio</span> }
                   </div>
 
-                  <div class="field-col" style="grid-column:span 2">
+                  <div class="field-col gs-span-2">
                     <label class="lbl">Juzgado</label>
                     <input class="inp" formControlName="juzgado"/>
                   </div>
@@ -681,7 +681,7 @@
               <div class="section-body">
 
                 <!-- Tabla de miembros -->
-                <label class="lbl" style="display:block;margin-bottom:8px">14.- Composicion del Nucleo Familiar Primario</label>
+                <label class="lbl dsp-block mb-8">14.- Composicion del Nucleo Familiar Primario</label>
                 <div class="tabla-familiar-wrap">
                   <table class="tabla-familiar" formArrayName="familiarPrimario">
                     <thead>
@@ -695,7 +695,7 @@
                         <tr [formGroupName]="$index">
                           <td><input class="inp-tabla" formControlName="nombre"/></td>
                           <td><input class="inp-tabla" formControlName="parentesco"/></td>
-                          <td><input class="inp-tabla" formControlName="edad" style="width:50px"/></td>
+                          <td><input class="inp-tabla w-50" formControlName="edad"/></td>
                           <td><input class="inp-tabla" formControlName="edoCivil"/></td>
                           <td><input class="inp-tabla" formControlName="escolaridad"/></td>
                           <td><input class="inp-tabla" formControlName="ocupacion"/></td>
@@ -706,9 +706,9 @@
                 </div>
 
                 <!-- 15. Situación económica -->
-                <div class="subsection-title" style="margin-top:16px">15.- Situacion Economica de la Familia Primaria</div>
+                <div class="subsection-title mt-16">15.- Situacion Economica de la Familia Primaria</div>
 
-                <div class="field-col" style="margin-bottom:12px">
+                <div class="field-col mb-12">
                   <label class="lbl">* Zona</label>
                   <div class="radio-group">
                     @for(op of opcionesZona; track op){
@@ -740,7 +740,7 @@
                 </div>
 
                 <!-- Características del núcleo -->
-                <div class="subsection-title" style="margin-top:14px">Caracteristicas del Nucleo Familiar Primario</div>
+                <div class="subsection-title mt-14">Caracteristicas del Nucleo Familiar Primario</div>
 
                 <div class="field-grid g2">
                   <div class="field-col">
@@ -825,7 +825,7 @@
                   </table>
                 </div>
 
-                <div class="field-grid g2" style="margin-top:14px">
+                <div class="field-grid g2 mt-14">
                   <div class="field-col">
                     <label class="lbl">Hijos de uniones anteriores</label>
                     <input class="inp" formControlName="hijosUnionesAnteriores"/>

@@ -661,7 +661,23 @@ textarea.inp { resize:vertical; min-height:70px; line-height:1.5; }
 @keyframes draw-check    { from{stroke-dashoffset:60;opacity:0;} to{stroke-dashoffset:0;opacity:1;} }
 
 /* ─────────────────────────────────────────────────────────────────
-   26. RESPONSIVE ≤ 900px y ≤ 600px
+   26. CLASES UTILITARIAS (Reemplazo de inline styles)
+───────────────────────────────────────────────────────────────── */
+.flex-2         { flex: 2; }
+.flex-08        { flex: 0.8; }
+.gs-span-2      { grid-column: span 2; }
+.w-50           { width: 50px; }
+.w-145          { width: 145px; }
+.dsp-block      { display: block; }
+.mb-8           { margin-bottom: 8px; }
+.mb-12          { margin-bottom: 12px; }
+.mt-10          { margin-top: 10px; }
+.mt-12          { margin-top: 12px; }
+.mt-14          { margin-top: 14px; }
+.mt-16          { margin-top: 16px; }
+
+/* ─────────────────────────────────────────────────────────────────
+   27. RESPONSIVE ≤ 900px y ≤ 600px
 ───────────────────────────────────────────────────────────────── */
 @media (max-width: 900px) {
   .wizard-layout    { flex-direction:column; }

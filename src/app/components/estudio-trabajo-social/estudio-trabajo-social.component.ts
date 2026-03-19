@@ -256,7 +256,7 @@ export class EstudioTrabajoSocialComponent implements OnInit, OnDestroy {
         Array.from({ length: this.FILAS_FAMILIA }, () => this._crearFilaFamiliar())
       ),
       // Características económicas de la familia primaria
-      zonaFamiliaPrimaria:       ['SUB-URBANA'], // default del documento
+      zonaFamiliaPrimaria:       [''], // default del documento
       responsableManutension:    [''],
       ingresosMensuales:         [''],
       egresosMensuales:          [''],
@@ -278,7 +278,7 @@ export class EstudioTrabajoSocialComponent implements OnInit, OnDestroy {
       caracteristicasVivienda: [''],
       transporteCercaVivienda: [''],
       mobiliarioEnseres:       [''],
-      zonaFamiliaSecundaria:   ['SUB-URBANA'],
+      zonaFamiliaSecundaria:   [''],
       relacionMedioExterno:    [''],
       problemasCondutaFamiliar:[''],
       numeroParejas:           [''],
@@ -315,15 +315,15 @@ export class EstudioTrabajoSocialComponent implements OnInit, OnDestroy {
       // ── 7. Opinión y Diagnóstico (Campo 10) ─────────────────
       opinionPrograma:         [''],
       observaciones:           [''],
-      diagnosticoSocial:       ['FAVORABLE'],
+      diagnosticoSocial:       [''],
 
       // ── 8. Firmas ────────────────────────────────────────────
-      ciudadFecha:             ['OAXACA DE JUAREZ'],
+      ciudadFecha:             [''],
       diaFecha:                [''],
-      mesFecha:                ['ENERO'],
-      anioFecha:               ['2026'],
-      nombreResponsable:       ['C. ESVEL LAGUNAS RODRIGUEZ'],
-      nombreDirectora:         ['MTRA. LII YIO PEREZ ZARATE'],
+      mesFecha:                [''],
+      anioFecha:               [''],
+      nombreResponsable:       [''],
+      nombreDirectora:         [''],
     });
   }
 
