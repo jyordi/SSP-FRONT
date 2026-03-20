@@ -35,7 +35,7 @@ export const routes: Routes = [
     title: 'Plan de Trabajo Individualizado — Reconecta con la Paz',
   },
 
-  // 🔽 NUEVA RUTA
+  
   {
     path: 'caratura-expediente',
     loadComponent: () =>
@@ -43,5 +43,12 @@ export const routes: Routes = [
         .then(m => m.CaraturaExpediente),
     title: 'Carátula del Expediente — Reconecta con la Paz',
   },
+  {
+  path: 'proyecto-vida',
+  loadComponent: () =>
+    import('./proyecto-vida/proyecto-vida').then(m => m.ProyectoVida),
+  title: 'Plan de Trabajo Individual',
+},
+
 
 ];
