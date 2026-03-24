@@ -638,7 +638,7 @@ export class CaraturaExpediente implements OnInit, OnDestroy {
    * TODO: si hay un flujo definido por expediente, pasar el ID como queryParam.
    */
   irSiguienteModulo(): void {
-    this.router.navigate(['/']);
+    this.router.navigate(['/proyecto-vida']); // TODO: actualizar con la ruta real del siguiente módulo
   }
 
   /** TODO: conectar con AuthService real */

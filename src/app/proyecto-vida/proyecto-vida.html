@@ -1,1 +1,447 @@
-<p>proyecto-vida works!</p>
+<!--
+  proyecto-vida.html  v1.0.0
+  Plan de Trabajo Individual — Reconecta con la Paz
+  ════════════════════════════════════════════════════════════════════
+  [1] Navbar
+  [2] Tabs
+  [3] Toast
+  [4] Overlay progreso
+  [5] Vista previa — réplica exacta del PDF
+  [6] Barra de progreso
+  [7] Formulario
+  [8] Historial
+  ════════════════════════════════════════════════════════════════════
+-->
+<div class="shell">
+
+  <!-- ═══ [1] NAVBAR ══════════════════════════════════════════ -->
+  <nav class="navbar">
+    <div class="nav-brand">
+      <button class="btn-regresar" (click)="regresar()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M19 12H5M12 5l-7 7 7 7"/>
+        </svg>
+        Regresar
+      </button>
+      <div class="nav-logo-ring"><span>📋</span></div>
+      <div>
+        <div class="nav-title">Reconecta con la Paz</div>
+        <div class="nav-sub">Plan de Trabajo Individual</div>
+      </div>
+    </div>
+    <div class="nav-end">
+      @if(totalHistorial() > 0){
+        <span class="nav-hist-badge">
+          {{totalHistorial()}} guardado(s)
+        </span>
+      }
+    </div>
+  </nav>
+
+  <!-- ═══ [2] TABS ═════════════════════════════════════════════ -->
+  <div class="tabs">
+    <button class="tab" [class.on]="tabActivo()==='form'"
+            (click)="tabActivo.set('form')">📝 Formulario</button>
+    <button class="tab" [class.on]="tabActivo()==='hist'"
+            (click)="tabActivo.set('hist')">
+      🗂️ Historial
+      @if(totalHistorial()>0){
+        <span class="tab-badge">{{totalHistorial()}}</span>
+      }
+    </button>
+  </div>
+
+  <!-- ═══ [3] TOAST ════════════════════════════════════════════ -->
+  <div class="toast" [class.show]="!!toast().msg"
+       [class.ok]="toast().tipo==='ok'" [class.er]="toast().tipo==='err'">
+    <span class="toast-ico">{{toast().tipo==='ok'?'✓':'✕'}}</span>
+    {{toast().msg}}
+  </div>
+
+  <!-- ═══ [4] OVERLAY PROGRESO ════════════════════════════════ -->
+  @if(estado().activo){
+    <div class="ov-bg">
+      <div class="ov-card" [class.ov-ok]="estado().exito" [class.ov-err]="!!estado().error">
+        <div class="ov-ico" [class.ico-ok]="estado().exito" [class.ico-err]="!!estado().error">
+          @if(estado().exito){
+            <svg viewBox="0 0 48 48">
+              <circle cx="24" cy="24" r="20" stroke="currentColor" stroke-width="2.5" fill="none"/>
+              <path d="M14 24l8 8 12-14" stroke="currentColor" stroke-width="2.5"
+                    stroke-linecap="round" fill="none" class="check-anim"/>
+            </svg>
+          } @else if(estado().error){
+            <svg viewBox="0 0 48 48">
+              <circle cx="24" cy="24" r="20" stroke="currentColor" stroke-width="2.5" fill="none"/>
+              <path d="M16 16l16 16M32 16L16 32" stroke="currentColor" stroke-width="2.5"
+                    stroke-linecap="round" fill="none"/>
+            </svg>
+          } @else {
+            <svg viewBox="0 0 48 48" class="spin-ico">
+              <circle cx="24" cy="24" r="18" stroke="currentColor" stroke-width="3" fill="none"
+                      stroke-dasharray="80 40" stroke-linecap="round"/>
+            </svg>
+          }
+        </div>
+        <div class="ov-titulo">
+          @if(estado().exito){¡Listo!} @else if(estado().error){Error} @else {Procesando…}
+        </div>
+        <div class="ov-fase" [class.fase-ok]="estado().exito" [class.fase-er]="!!estado().error">
+          {{estado().fase}}
+        </div>
+        <div class="ov-bar">
+          <div class="ov-fill" [class.fill-ok]="estado().exito" [class.fill-er]="!!estado().error"
+               [style.width.%]="estado().pct"><span class="ov-shine"></span></div>
+        </div>
+        <div class="ov-pct">{{estado().pct}}%</div>
+      </div>
+    </div>
+  }
+
+  <!-- ═══════════════════════════════════════════════════════════
+       [5] VISTA PREVIA — RÉPLICA EXACTA DEL PDF ORIGINAL
+  ════════════════════════════════════════════════════════════ -->
+  @if(verPrevia()){
+    <div class="pv-ov">
+      <div class="pv-bar">
+        <div class="pv-title">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+            <circle cx="12" cy="12" r="3"/>
+          </svg>
+          Vista Previa — Plan de Trabajo Individual
+        </div>
+        <div class="pv-btns">
+          <button class="pvb pvb-edit" (click)="verPrevia.set(false)">
+            ✏️ Seguir Editando
+          </button>
+          <button class="pvb pvb-dl" (click)="descargarPdf()"
+                  [disabled]="generando()||guardando()">
+            @if(generando()){<span class="spin-sm"></span> Generando…}
+            @else {⬇️ Descargar PDF}
+          </button>
+          <button class="pvb pvb-save" (click)="guardar()"
+                  [disabled]="guardando()||generando()">
+            @if(guardando()){<span class="spin-sm"></span> Guardando…}
+            @else {💾 Guardar (ZIP)}
+          </button>
+        </div>
+      </div>
+
+      <div class="pv-scroll">
+        <!-- Hoja Letter: 215.9 × 279.4 mm → escala 2.7 px/mm ≈ 583 × 754 px -->
+        <div class="doc-letter">
+
+          <!-- Marca de agua detrás del contenido -->
+          @if(marcaUrl()){
+            <img class="doc-marca" [src]="marcaUrl()" alt="Marca de agua"/>
+          }
+
+          <!-- ── Encabezado con línea vino + logos + títulos ──── -->
+          <div class="doc-banda-top"></div>
+
+          <div class="doc-logos-row">
+            <div class="doc-logo-left">
+              <div class="logo-titulo-vino">SEGURIDAD</div>
+              <div class="logo-sub">SECRETARÍA DE SEGURIDAD Y<br/>PROTECCIÓN CIUDADANA</div>
+            </div>
+            <div class="doc-logo-sep"></div>
+            <div class="doc-logo-right">
+              <div class="logo-titulo-vino">PREVENCIÓN</div>
+              <div class="logo-sub">DIRECCIÓN GENERAL DE PREVENCIÓN DEL<br/>DELITO Y PARTICIPACIÓN CIUDADANA</div>
+            </div>
+          </div>
+
+          <div class="doc-banda-sep"></div>
+
+          <div class="doc-inst">
+            <p class="doc-inst-1">SUBSECRETARIA DE PREVENCIÓN Y REINSERCIÓN SOCIAL</p>
+            <p class="doc-inst-2">DIRECCIÓN GENERAL DE PREVENCIÓN DEL DELITO Y PARTICIPACIÓN CIUDADANA</p>
+            <p class="doc-inst-3">VALORACIÓN CLÍNICA PSICOLÓGICA.</p>
+          </div>
+
+          <!-- ── Título del plan ──────────────────────────────── -->
+          <p class="doc-plan-titulo">PLAN DE TRABAJO INDIVIDUAL</p>
+
+          <!-- ═══════════════════════════════════════════════════
+               TABLA PRINCIPAL — réplica exacta del PDF
+          ════════════════════════════════════════════════════ -->
+          <table class="doc-tabla">
+
+            <!-- Fila 1: Título del proceso (full width, bold+italic) -->
+            <tr>
+              <td colspan="4" class="td-proceso">
+                Proceso de seguimiento de actividades del programa
+                <em>"RECONECTA CON LA PAZ."</em>
+              </td>
+            </tr>
+
+            <!-- Fila 2: Cabeceras de columnas -->
+            <tr>
+              <th class="th-act">ACTIVIDAD</th>
+              <th class="th-col">ESTATUS</th>
+              <th class="th-col">OBJETIVO</th>
+              <th class="th-col">CUMPLIMIENTO</th>
+            </tr>
+
+            <!-- Filas de actividades -->
+            @for(act of ACTS; track act){
+              <tr class="tr-act">
+                <td class="td-act-lbl">{{LABELS[act]}}</td>
+                <td class="td-val">{{gv(act + 'Estatus')}}</td>
+                <td class="td-val">{{gv(act + 'Objetivo')}}</td>
+                <td class="td-val">{{gv(act + 'Cumplimiento')}}</td>
+              </tr>
+            }
+
+            <!-- Fila final: OBSERVACIONES -->
+            <tr class="tr-obs">
+              <td class="td-act-lbl td-obs-lbl">OBSERVACIONES</td>
+              <td colspan="3" class="td-val td-obs-val">{{gv('observaciones')}}</td>
+            </tr>
+
+          </table><!-- /.doc-tabla -->
+
+        </div><!-- /.doc-letter -->
+      </div><!-- /.pv-scroll -->
+    </div><!-- /.pv-ov -->
+  }
+
+  <!-- ═══ CONTENIDO PRINCIPAL ══════════════════════════════════ -->
+  <div class="main">
+
+    <!-- ══════════════════════════════════════════════════════════
+         [7] FORMULARIO
+    ═════════════════════════════════════════════════════════════ -->
+    @if(tabActivo()==='form'){
+      <div class="form-wrap" [formGroup]="fg">
+
+        <!-- Hero -->
+        <div class="form-hero">
+          <div class="hero-ico">📋</div>
+          <div>
+            <h1 class="hero-tit">Plan de Trabajo Individual</h1>
+            <p class="hero-sub">
+              Proceso de seguimiento de actividades · Programa Reconecta con la Paz
+            </p>
+          </div>
+        </div>
+
+        <!-- ── SECCIÓN 1: TABLA DE ACTIVIDADES ─────────────────── -->
+        <div class="sec-card">
+          <div class="sec-head">
+            <span class="sec-ico">📊</span>
+            <div>
+              <h3 class="sec-tit">Actividades del Programa</h3>
+              <p class="sec-desc">Registra el estatus, objetivo y cumplimiento de cada actividad</p>
+            </div>
+          </div>
+          <div class="sec-body">
+
+            <!-- Cabeceras de columnas -->
+            <div class="act-header">
+              <div class="act-col-lbl">Actividad</div>
+              <div class="act-col">Estatus</div>
+              <div class="act-col">Objetivo</div>
+              <div class="act-col">Cumplimiento</div>
+            </div>
+
+            <!-- Filas por actividad -->
+            @for(act of ACTS; track act){
+              <div class="act-row">
+                <div class="act-row-lbl">
+                  <span class="act-dot"></span>
+                  {{LABELS[act]}}
+                </div>
+                <div class="act-col">
+                  <input class="inp inp-sm" [formControlName]="act + 'Estatus'"
+                         placeholder="Estatus…"/>
+                </div>
+                <div class="act-col">
+                  <input class="inp inp-sm" [formControlName]="act + 'Objetivo'"
+                         placeholder="Objetivo…"/>
+                </div>
+                <div class="act-col">
+                  <input class="inp inp-sm" [formControlName]="act + 'Cumplimiento'"
+                         placeholder="Cumplimiento…"/>
+                </div>
+              </div>
+            }
+
+          </div>
+        </div>
+
+        <!-- ── SECCIÓN 2: OBSERVACIONES ────────────────────────── -->
+        <div class="sec-card">
+          <div class="sec-head">
+            <span class="sec-ico">📝</span>
+            <div>
+              <h3 class="sec-tit">Observaciones</h3>
+              <p class="sec-desc">Notas generales sobre el plan de trabajo</p>
+            </div>
+          </div>
+          <div class="sec-body">
+            <textarea class="inp" formControlName="observaciones" rows="4"
+                      placeholder="Escribe las observaciones generales del plan de trabajo…">
+            </textarea>
+          </div>
+        </div>
+
+        <!-- ── SECCIÓN 3: MARCA DE AGUA ─────────────────────────── -->
+        <div class="sec-card sec-marca">
+          <div class="sec-head">
+            <span class="sec-ico">🖼️</span>
+            <div>
+              <h3 class="sec-tit">Marca de Agua</h3>
+              <p class="sec-desc">
+                Imagen personalizada que aparece semitransparente detrás del contenido
+                (12% de opacidad, centrada en la página)
+              </p>
+            </div>
+          </div>
+          <div class="sec-body">
+            <div class="marca-layout">
+
+              <!-- Zona de carga -->
+              <div class="marca-col">
+                <div class="marca-zone" [class.marca-loaded]="!!marcaUrl()"
+                     (click)="marcaInput.click()"
+                     (dragover)="$event.preventDefault()"
+                     (drop)="$event.preventDefault(); cargarMarca($any($event.dataTransfer?.files?.[0]))">
+                  @if(marcaUrl()){
+                    <img [src]="marcaUrl()" class="marca-preview" alt="Marca de agua"/>
+                    <div class="marca-overlay">
+                      <button class="foto-btn foto-cambiar"
+                              (click)="$event.stopPropagation(); marcaInput.click()">🔄 Cambiar</button>
+                      <button class="foto-btn foto-quitar"
+                              (click)="$event.stopPropagation(); quitarMarca()">✕ Quitar</button>
+                    </div>
+                  } @else {
+                    <div class="marca-ph">
+                      <span class="marca-ph-ico">🖼️</span>
+                      <span class="marca-ph-txt">Subir imagen</span>
+                      <span class="marca-ph-sub">PNG con fondo transparente recomendado</span>
+                    </div>
+                  }
+                </div>
+                <input #marcaInput type="file" accept="image/png,image/jpeg,image/webp"
+                       style="display:none"
+                       (change)="cargarMarca($any($event.target.files?.[0]))"/>
+              </div>
+
+              <!-- Tip -->
+              <div class="marca-info">
+                <div class="marca-tip">
+                  <span class="tip-ico">💡</span>
+                  <div>
+                    <p class="tip-tit">¿Cómo funciona?</p>
+                    <ul class="tip-list">
+                      <li>Se dibuja <strong>detrás</strong> del contenido del PDF.</li>
+                      <li>Opacidad <strong>12%</strong> — visible pero no intrusiva.</li>
+                      <li>Centrada en la página, 140 × 140 mm.</li>
+                      <li>Se muestra en tiempo real en la Vista Previa.</li>
+                      <li>Sin imagen → el PDF no incluye marca de agua.</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+        <!-- ── SECCIÓN 4: ADJUNTOS ──────────────────────────────── -->
+        <div class="sec-card">
+          <div class="sec-head">
+            <span class="sec-ico">📎</span>
+            <div>
+              <h3 class="sec-tit">Documentos Adjuntos</h3>
+              <p class="sec-desc">Se incluyen en la carpeta ZIP al guardar</p>
+            </div>
+          </div>
+          <div class="sec-body">
+            <div class="drop-zone" [class.drop-drag]="dragging()"
+                 (dragover)="$event.preventDefault(); dragging.set(true)"
+                 (dragleave)="dragging.set(false)"
+                 (drop)="$event.preventDefault(); dragging.set(false); onFiles($any($event.dataTransfer?.files))"
+                 (click)="fi.click()">
+              <div class="dz-ico">📎</div>
+              <div class="dz-main">Arrastra documentos aquí</div>
+              <div class="dz-sub">PDF · JPG · PNG · DOCX — o clic para seleccionar</div>
+              <input #fi type="file" multiple accept=".pdf,.jpg,.jpeg,.png,.docx"
+                     style="display:none" (change)="onFiles($any($event.target.files))"/>
+            </div>
+            @for(a of adjuntos(); track a.id){
+              <div class="adj-item">
+                <span>{{icoAdj(a.tipo)}}</span>
+                <div class="adj-info">
+                  <div class="adj-nom">{{a.nombre}}</div>
+                  <div class="adj-sz">{{(a.tamano/1024).toFixed(1)}} KB</div>
+                </div>
+                <button class="adj-del" (click)="quitarAdj(a.id)">✕</button>
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- ── CTA — VISTA PREVIA ────────────────────────────────── -->
+        <div class="cta-zone">
+          <button class="btn-cta" (click)="verPrevia.set(true)">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="2" stroke-linecap="round">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+              <circle cx="12" cy="12" r="3"/>
+            </svg>
+            Ver Vista Previa y Generar PDF
+          </button>
+        </div>
+
+      </div><!-- /.form-wrap -->
+    }
+
+    <!-- ══════════════════════════════════════════════════════════
+         [8] HISTORIAL
+    ═════════════════════════════════════════════════════════════ -->
+    @if(tabActivo()==='hist'){
+      <div class="hist">
+        <div class="hist-hdr">
+          <h2>Historial de Planes</h2>
+          <p>{{totalHistorial()}} plan(es) guardado(s) en esta sesión</p>
+        </div>
+        @if(!historial().length){
+          <div class="empty">
+            <div class="empty-ico">📋</div>
+            <p>No hay planes guardados aún</p>
+            <small>Completa el formulario y guárdalo para verlo aquí</small>
+          </div>
+        } @else {
+          <div class="hist-grid">
+            @for(e of historial(); track e.id){
+              <div class="hcard">
+                <div class="hcard-top">
+                  <div class="hc-ico">📋</div>
+                  <div class="hc-nom">{{e.nombre}}</div>
+                </div>
+                <div class="hcard-body">
+                  <div class="hc-fecha">📅 {{e.fecha}}</div>
+                  <div class="hc-files">
+                    <span class="hf" (click)="dlExp(e)">📄 {{trunc(e.pdf.nombre)}}</span>
+                    @for(a of e.archivos; track a.id){
+                      <span class="hf" (click)="dlAdj(a)">{{icoAdj(a.tipo)}} {{trunc(a.nombre)}}</span>
+                    }
+                  </div>
+                  <div class="hc-btns">
+                    <button class="hb" (click)="dlExp(e)">⬇️ PDF</button>
+                    <button class="hb hb-zip" (click)="dlZip(e)">📁 ZIP</button>
+                    <button class="hb hb-del" (click)="borrar(e.id)">🗑️</button>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
+
+  </div><!-- /.main -->
+</div><!-- /.shell -->
