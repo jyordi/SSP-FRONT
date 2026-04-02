@@ -6,7 +6,7 @@
       <span>Reconecta con la Paz</span>
     </div>
     <div class="nav-actions">
-      <span class="user-name">{{user.name}}</span>
+      <span class="user-name">{{user.name}} ({{role}})</span>
       <button class="btn-logout" (click)="cerrarSesion()">Cerrar Sesión</button>
     </div>
   </header>
@@ -32,13 +32,22 @@
         <input type="text" placeholder="Buscar por nombre, folio, delito..." [(ngModel)]="searchTerm">
       </div>
 
-      <div class="filter-chips">
-        <button class="chip" [class.active]="filtroActual === 'Todos'" (click)="seleccionarFiltro('Todos')">Todos</button>
-        <button class="chip" [class.active]="filtroActual === 'Penal'" (click)="seleccionarFiltro('Penal')">Penal</button>
-        <button class="chip" [class.active]="filtroActual === 'Cívico'" (click)="seleccionarFiltro('Cívico')">Cívico</button>
-        <button class="chip" [class.active]="filtroActual === 'Voluntario'" (click)="seleccionarFiltro('Voluntario')">Voluntariado</button>
-        <div class="chip-divider"></div>
-        <button class="chip chip-warning" [class.active]="filtroActual === 'Incompletos'" (click)="seleccionarFiltro('Incompletos')">⚠️ Incompletos</button>
+     
+
+      <div style="margin-bottom: 20px; display:flex; gap:10px;">
+        
+        <button class="btn-primary" (click)="cargarPenal()">
+          Penal
+        </button>
+
+        <button class="btn-primary" (click)="cargarCivico()">
+          Cívico
+        </button>
+
+        <button class="btn-primary" (click)="cargarVoluntario()">
+          Voluntario
+        </button>
+
       </div>
     </div>
 
