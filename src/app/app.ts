@@ -5,6 +5,7 @@ import { NavbarComponent, NavbarConfig } from './voluntarios/shared/navbar/navba
 @Component({
   selector: 'app-root',
   standalone: true,
+<<<<<<< HEAD
   imports: [RouterOutlet, NavbarComponent],
   template: `
     <app-navbar [config]="navbarConfig" />
@@ -19,6 +20,11 @@ import { NavbarComponent, NavbarConfig } from './voluntarios/shared/navbar/navba
       padding: 2rem 1.5rem;
     }
   `]
+=======
+  imports: [RouterOutlet],
+  templateUrl: './app.html',
+  styleUrls: ['./app.css']
+>>>>>>> jyordi
 })
 export class AppComponent {
   navbarConfig: NavbarConfig = {

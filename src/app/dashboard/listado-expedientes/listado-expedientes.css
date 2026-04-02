@@ -1,0 +1,214 @@
+/* --- PALETA OFICIAL (Basada en el documento DOCX proporcionado) --- */
+:root {
+  --brand-primary: #7B1D3A;   /* Vino principal */
+  --brand-hover: #9E2A4A;     /* Hover del principal */
+  --brand-dark: #5A1229;      /* Versión oscura */
+  --gold-accent: #C8952A;     /* Dorado oficial */
+  
+  --bg-white: #ffffff; 
+  --neutral-bg: #f4f6f8;      /* Fondo general ligeramente más frío y moderno */
+  
+  --text-primary: #111827; 
+  --text-secondary: #374151; 
+  --text-tertiary: #6b7280;
+  
+  --success-bg: #dcfce7; --success-text: #166534;
+  --error-bg: #fee2e2; --error-text: #991b1b;
+  --edit-bg: #fef3c7; --edit-hover: #fde68a; --edit-text: #78350f; /* Amarillo de edición */
+  --cancel-border: #d1d5db;
+}
+
+/* Tipografía base y reset */
+.dashboard-wrapper { 
+  min-height: 100vh; 
+  width: 100vw; 
+  background-color: var(--neutral-bg); 
+  font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, sans-serif; /* Fuentes modernas limpias */
+  overflow-x: hidden; 
+  margin: 0; padding: 0; 
+}
+
+/* --- NAVBAR INSTITUCIONAL --- */
+.top-nav { 
+  background: var(--brand-primary); 
+  padding: 0.8rem 2.5rem; 
+  display: flex; justify-content: space-between; align-items: center; 
+  border-bottom: 4px solid var(--gold-accent); 
+  box-shadow: 0 4px 20px rgba(123, 29, 58, 0.2); 
+  box-sizing: border-box; width: 100%;
+}
+.nav-brand { display: flex; align-items: center; gap: 12px; color: var(--bg-white); font-weight: 700; font-size: 1.25rem; }
+.mini-logo { width: 45px; height: 45px; border-radius: 50%; border: 2px solid var(--bg-white); background: var(--bg-white); object-fit: cover; }
+.nav-actions { display: flex; align-items: center; gap: 1.5rem; }
+.user-name { color: var(--bg-white); font-size: 0.95rem; font-weight: 500; letter-spacing: 0.3px;}
+.btn-logout { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); color: var(--bg-white); padding: 0.5rem 1rem; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; }
+.btn-logout:hover { background: var(--bg-white); color: var(--brand-primary); transform: scale(1.05); }
+
+/* --- CONTENIDO PRINCIPAL --- */
+.content-area { max-width: 1280px; margin: 0 auto; padding: 3rem 2rem; box-sizing: border-box; }
+
+.page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2.5rem; flex-wrap: wrap; gap: 1rem; }
+.title-primary { color: var(--brand-primary); font-size: 2.4rem; margin: 0 0 0.4rem 0; font-weight: 800; letter-spacing: -0.8px; }
+.subtitle { color: var(--text-tertiary); margin: 0; font-size: 1.05rem; font-weight: 400; }
+
+.btn-primary { 
+  background: var(--brand-primary); color: var(--bg-white); border: none; 
+  padding: 0.85rem 1.8rem; border-radius: 10px; font-weight: 700; cursor: pointer; 
+  box-shadow: 0 4px 12px rgba(123, 29, 58, 0.25); transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); 
+  display: flex; align-items: center; font-size: 0.95rem; 
+}
+.btn-primary:hover { background: var(--brand-hover); transform: translateY(-3px); box-shadow: 0 8px 20px rgba(123, 29, 58, 0.35); }
+.icon-margin { margin-right: 8px; }
+
+/* --- CONTROLES: BUSCADOR Y FILTROS --- */
+.controls-section { display: flex; flex-direction: column; gap: 1.5rem; margin-bottom: 3rem; }
+
+.search-bar { position: relative; max-width: 600px; width: 100%; }
+.search-icon { position: absolute; left: 18px; top: 50%; transform: translateY(-50%); color: var(--text-tertiary); width: 22px; }
+.search-bar input { 
+  width: 100%; box-sizing: border-box; padding: 1.1rem 1.1rem 1.1rem 3.5rem; 
+  border: 1.5px solid var(--cancel-border); border-radius: 12px; font-size: 1rem; 
+  color: var(--text-primary); transition: all 0.3s; outline: none; background: var(--bg-white); 
+  box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+}
+.search-bar input:focus { border-color: var(--brand-primary); box-shadow: 0 0 0 4px rgba(123, 29, 58, 0.1); }
+
+.filter-chips { display: flex; gap: 0.8rem; flex-wrap: wrap; align-items: center; }
+.chip { 
+  background: var(--bg-white); border: 1.5px solid var(--cancel-border); color: var(--text-secondary); 
+  padding: 0.6rem 1.2rem; border-radius: 30px; font-weight: 600; font-size: 0.9rem; 
+  cursor: pointer; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); box-shadow: 0 2px 4px rgba(0,0,0,0.02); 
+}
+.chip:hover { border-color: var(--brand-primary); color: var(--brand-primary); transform: translateY(-2px); }
+.chip.active { background: var(--brand-primary); color: var(--bg-white); border-color: var(--brand-primary); box-shadow: 0 4px 10px rgba(123, 29, 58, 0.2); }
+.chip-divider { width: 2px; height: 24px; background: #e5e7eb; margin: 0 0.5rem; }
+.chip-warning.active { background: #f59e0b; border-color: #f59e0b; color: white; box-shadow: 0 4px 10px rgba(245, 158, 11, 0.2); }
+.chip-warning:hover { border-color: #f59e0b; color: #b45309; }
+
+/* --- GRID DE TARJETAS (ELEGANCIA Y FLUIDEZ) --- */
+.cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 1.8rem; }
+.no-results { grid-column: 1 / -1; text-align: center; padding: 4rem 2rem; color: var(--text-tertiary); font-size: 1.1rem; background: var(--bg-white); border-radius: 16px; border: 1px dashed var(--cancel-border); display: flex; flex-direction: column; align-items: center; }
+.no-results-icon { color: #9ca3af; margin-bottom: 1rem; }
+
+/* Tarjeta base */
+.user-card { 
+  background: var(--bg-white); border-radius: 16px; 
+  box-shadow: 0 4px 20px rgba(0,0,0,0.04); border: 1px solid #f3f4f6; 
+  overflow: hidden; display: flex; flex-direction: column; 
+  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); 
+  position: relative;
+}
+.user-card:hover { transform: translateY(-8px); box-shadow: 0 20px 35px rgba(0,0,0,0.08); }
+
+/* BORDES LATERALES DIFERENCIADORES (Más gruesos y elegantes) */
+.borde-penal { border-left: 6px solid var(--brand-primary); }
+.borde-civico { border-left: 6px solid var(--gold-accent); }
+.borde-voluntario { border-left: 6px solid #10b981; }
+.alerta-incompleto { outline: 2px dashed #f59e0b; outline-offset: -2px; border-left: 6px solid #f59e0b; }
+
+/* Header de la tarjeta */
+.card-header { padding: 1.5rem 1.5rem 0.5rem; display: flex; justify-content: space-between; align-items: center; }
+.badge-tipo { padding: 0.3rem 0.8rem; border-radius: 6px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px; }
+.tipo-penal { background: #fdf2f4; color: var(--brand-primary); border: 1px solid #fbcfe8; }
+.tipo-cívico { background: #fffbeb; color: #92400e; border: 1px solid #fde68a; }
+.tipo-voluntario { background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
+.folio-text { font-size: 0.8rem; color: var(--text-tertiary); font-weight: 600; font-family: monospace; letter-spacing: 0.5px; }
+
+/* Cuerpo de la tarjeta */
+.card-body { padding: 1rem 1.5rem 1.5rem; flex-grow: 1; }
+.user-name-card { color: var(--text-primary); margin: 0 0 0.3rem 0; font-size: 1.3rem; font-weight: 800; letter-spacing: -0.3px; }
+.user-crime { color: var(--text-tertiary); font-size: 0.9rem; margin: 0 0 1.5rem 0; font-weight: 500;}
+
+/* Progreso rediseñado (Minimalista y limpio) */
+.progress-section { margin-bottom: 1.5rem; }
+.progress-labels { display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: 700; margin-bottom: 0.6rem; }
+.status-text { color: var(--text-secondary); }
+.text-success { color: #16a34a; }
+.text-warning { color: #d97706; }
+.percentage { color: var(--brand-primary); font-weight: 800; }
+.progress-bar-bg { width: 100%; height: 6px; background: #f3f4f6; border-radius: 10px; overflow: hidden; }
+.progress-bar-fill { height: 100%; background: var(--gold-accent); border-radius: 10px; transition: width 1.2s cubic-bezier(0.25, 0.8, 0.25, 1); }
+.fill-success { background: #10b981; }
+
+.incomplete-alert { display: flex; align-items: flex-start; gap: 12px; background: #fffbeb; color: #92400e; padding: 1.2rem; border-radius: 10px; border: 1px solid #fcd34d; font-size: 0.85rem; line-height: 1.4; }
+
+/* Pie y Botón de Acción */
+.card-footer { padding: 1.2rem 1.5rem; background: #fdfdfd; border-top: 1px solid #f3f4f6; }
+.btn-action { 
+  width: 100%; background: var(--edit-bg); color: var(--edit-text); 
+  border: none; padding: 0.85rem; border-radius: 8px; font-weight: 700; font-size: 0.95rem;
+  cursor: pointer; transition: all 0.3s; display: flex; justify-content: center; align-items: center; 
+}
+.btn-action:hover { background: var(--edit-hover); transform: scale(1.02); box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+
+/* --- ANIMACIONES FLUIDAS (Manejo de entradas) --- */
+.fade-in-down { opacity: 0; animation: fadeInDown 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
+.fade-in-up { opacity: 0; animation: fadeInUp 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
+
+@keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes fadeInDown { from { opacity: 0; transform: translateY(-30px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Responsividad */
+@media (max-width: 768px) {
+  .top-nav { flex-direction: column; gap: 1rem; padding: 1.5rem; text-align: center; }
+  .page-header { flex-direction: column; align-items: stretch; text-align: center; }
+  .btn-primary { justify-content: center; }
+  .filter-chips { justify-content: center; }
+}
+
+/* --- CORRECCIÓN NAVBAR VINO SÓLIDO (ESTILO OAXACA) --- */
+header.top-nav { 
+  background-color: #7B1D3A !important; /* Vino Institucional */
+  background: #7B1D3A !important;      /* Refuerzo visual */
+  padding: 0.8rem 2.5rem; 
+  display: flex !important; 
+  justify-content: space-between; 
+  align-items: center; 
+  border-bottom: 4px solid #C8952A !important; /* Oro Oaxaca */
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3); 
+  position: sticky;
+  top: 0;
+  z-index: 9999; 
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Forzar que el logo y el texto de la marca sean blancos */
+header.top-nav .nav-brand, 
+header.top-nav .nav-brand span { 
+  color: #ffffff !important; 
+  font-weight: 700; 
+  display: flex; 
+  align-items: center; 
+  gap: 12px;
+}
+
+/* Imagen de mini-logo con borde blanco */
+header.top-nav .mini-logo {
+  border: 2px solid #ffffff !important;
+  background-color: #ffffff !important;
+}
+
+/* Nombre de usuario en blanco */
+header.top-nav .user-name { 
+  color: #ffffff !important; 
+  font-weight: 500;
+  opacity: 1 !important;
+}
+
+/* Botón de Salir (Contraste blanco/transparente) */
+header.top-nav .btn-logout { 
+  background: rgba(255, 255, 255, 0.15) !important; 
+  border: 1px solid rgba(255, 255, 255, 0.4) !important; 
+  color: #ffffff !important; 
+  padding: 0.5rem 1.2rem; 
+  border-radius: 8px; 
+  font-weight: 600; 
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+header.top-nav .btn-logout:hover { 
+  background: #ffffff !important; 
+  color: #7B1D3A !important; 
+}

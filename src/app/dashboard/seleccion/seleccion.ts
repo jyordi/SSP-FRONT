@@ -1,0 +1,36 @@
+import { Component } from '@angular/core';
+import { CommonModule, Location } from '@angular/common';
+import { Router } from '@angular/router';
+
+@Component({
+  selector: 'app-seleccion',
+  standalone: true,
+  imports: [CommonModule],
+  templateUrl: './seleccion.html',
+  styleUrl: './seleccion.css'
+})
+export class SeleccionComponent {
+  constructor(private router: Router, private location: Location) {}
+
+  user= { name: 'Psic. Avelina Escárcega' };
+
+  irAModulo(modulo: string) {
+    // Navegación según módulo seleccionado
+    if (modulo === 'penal') {
+      this.router.navigate(['/vp']);
+    } else if (modulo === 'civico') {
+      // ejemplo destino cívico
+      console.log('Ir a módulo cívico');
+    } else if (modulo === 'voluntario') {
+      console.log('Ir a voluntariado');
+    }
+  }
+
+  regresar() {
+    this.location.back();
+  }
+
+  cerrarSesion() {
+    this.router.navigate(['/login']);
+  }
+}
