@@ -12,17 +12,21 @@ export class ExpedientesService {
 
   constructor(private http: HttpClient) {}
 
-  // 🔴 PENAL
+  // PENAL
   getPenal(): Observable<any> {
     return this.http.get(`${this.API_URL}/penal/expedientes`);
   }
 
-  // 🟡 CIVICO (ajusta si cambia endpoint)
+  // CIVICO (ajusta si cambia endpoint)
   getCivico(): Observable<any> {
     return this.http.get(`${this.API_URL}/civico/expedientes`);
   }
 
-  // 🟢 VOLUNTARIO (ajusta si cambia endpoint)
+  crearCivico(data: any): Observable<any> {
+    return this.http.post(`${this.API_URL}/civico/expedientes`, data);
+  }
+
+  // VOLUNTARIO (ajusta si cambia endpoint)
   getVoluntario(): Observable<any> {
     return this.http.get(`${this.API_URL}/voluntario/expedientes`);
   }

@@ -19,8 +19,8 @@ export class SeleccionComponent {
     if (modulo === 'penal') {
       this.router.navigate(['/vp']);
     } else if (modulo === 'civico') {
-      // ejemplo destino cívico
-      console.log('Ir a módulo cívico');
+      
+      this.router.navigate(['/nuevo-expediente-civico']);
     } else if (modulo === 'voluntario') {
       console.log('Ir a voluntariado');
     }
