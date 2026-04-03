@@ -113,3 +113,146 @@
   }
   @page { margin: 2.5cm; }
 }
+
+.back-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background-color: #f3f4f6;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  color: #374151;
+  transition: all 0.2s ease;
+}
+
+/* icono */
+.back-btn .icon {
+  font-size: 16px;
+}
+
+/* texto */
+.back-btn .text {
+  font-size: 14px;
+}
+
+/* hover elegante */
+.back-btn:hover {
+  background-color: #ede9fe; /* morado suave 💜 */
+  color: #7c3aed;
+  transform: translateX(-2px);
+}
+
+/* efecto click */
+.back-btn:active {
+  transform: scale(0.95);
+}
+
+/* Fondo oscuro */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Caja del modal */
+.modal {
+  background: white;
+  padding: 20px;
+  border-radius: 15px;
+  width: 300px;
+  text-align: center;
+  animation: fadeIn 0.3s ease;
+}
+
+
+.btn-cancel {
+  background: #e5e7eb;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.btn-confirm {
+  background: #dc2626;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.btn-confirm:hover {
+  background: #b91c1c;
+}
+
+/* Animación */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+  
+}
+.logout-btn {
+  border: none;        
+  outline: none;       
+  background: none;    }
+
+  .btn-volver-pro {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  padding: 6px 14px;
+
+  border-radius: 999px;
+  border: 1px solid rgba(123, 29, 58, 0.15);
+
+  background: #ffffff;
+  color: #7B1D3A;
+
+  font-size: 0.85rem;
+  font-weight: 600;
+
+  cursor: pointer;
+  transition: all 0.25s ease;
+
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+/* ICONO */
+.btn-volver-pro .icon {
+  font-size: 0.9rem;
+  transition: transform 0.25s ease;
+}
+
+/* HOVER */
+.btn-volver-pro:hover {
+  background: #7B1D3A;
+  color: white;
+  box-shadow: 0 6px 16px rgba(123, 29, 58, 0.25);
+}
+
+/* ANIMACIÓN */
+.btn-volver-pro:hover .icon {
+  transform: translateX(-4px);
+}
+
+/* CLICK */
+.btn-volver-pro:active {
+  transform: scale(0.95);
+}

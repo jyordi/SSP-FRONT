@@ -1,54 +1,53 @@
 <div class="dashboard-layout">
 
-  <!-- ================= BARRA LATERAL ================= -->
-  <aside class="sidebar" style="background-color: #0369a1;">
-    <div class="sidebar-header">
-      <div class="logo-icon">🧠</div>
-      <h2>Área de Psicología</h2>
-    </div>
-
-    <nav class="sidebar-nav">
-      <button [class.active]="vistaActual === 'inicio'" (click)="cambiarVista('inicio')">
-        <span class="icon">🏠</span> Inicio
-      </button>
-      <button [class.active]="vistaActual === 'nueva-entrevista'" (click)="cambiarVista('nueva-entrevista')">
-        <span class="icon">📝</span> Nueva Entrevista
-      </button>
-      
-      <button [class.active]="vistaActual === 'historial'" (click)="cambiarVista('historial')">
-        <span class="icon">📂</span> Historial y Expedientes
-      </button>
-    </nav>
-
-    <div class="sidebar-footer">
-      <button class="btn-logout" (click)="cerrarSesion()">
-        <span class="icon">🚪</span> Cerrar Sesión
-      </button>
-    </div>
-  </aside>
-
-  <!-- ================= CONTENIDO PRINCIPAL ================= -->
   <main class="main-content">
     
+    <!-- HEADER -->
     <header class="topbar">
-      <div class="topbar-title">
-        <h3>Portal Institucional</h3>
+
+      <div class="topbar-left">
+        <h3 class="topbar-title">Portal Institucional</h3>
       </div>
-      <div class="user-profile">
-        <div class="avatar" style="border-color: #0369a1;">👩‍⚕️</div>
-        <div class="user-info">
-          <strong>Psicóloga En Turno</strong>
-          <span>En línea</span>
+
+      <div class="topbar-center">
+        @if (vistaActual === 'historial') {
+          <app-busqueda></app-busqueda>
+        }
+      </div>
+
+      <div class="topbar-right">
+        <button class="user-profile logout-btn" (click)="openLogoutModal()">
+          <div class="avatar" style="border-color: #0369a1;">👩‍⚕️</div>
+          <div class="user-info">
+            <strong>Psicólog@ En Turno</strong>
+            <span>En línea</span>
+          </div>
+        </button>
+      </div>
+
+    </header>
+
+    <!-- MODAL -->
+    @if (showLogoutModal) {
+      <div class="modal-overlay">
+        <div class="modal">
+          <h3>¿Cerrar sesión?</h3>
+          <p>Tu sesión actual se cerrará.</p>
+
+          <div class="modal-actions">
+            <button class="btn-cancel" (click)="closeLogoutModal()">Cancelar</button>
+            <button class="btn-confirm" (click)="logout()">Sí, cerrar sesión</button>
+          </div>
         </div>
       </div>
-    </header>
+    }
 
     <div class="content-area">
 
-      <!-- VISTA: INICIO -->
+      <!-- INICIO -->
       @if (vistaActual === 'inicio') {
         <div class="fade-in">
-          <h1 class="page-title">Bienvenida al sistema</h1>
+          <h1 class="page-title">Bienvenid@ al sistema</h1>
           <p class="page-subtitle">¿Qué acción desea realizar hoy?</p>
 
           <div class="quick-actions-grid">
@@ -57,8 +56,6 @@
               <h3>Crear Entrevista</h3>
               <p>Iniciar una Evaluación Clínica y Social nueva.</p>
             </div>
-            
-            
 
             <div class="action-card" (click)="cambiarVista('historial')">
               <div class="action-icon">📂</div>
@@ -69,24 +66,35 @@
         </div>
       }
 
-      <!-- VISTA: FORMULARIO ENTREVISTA (ANIDADO) -->
+      <!-- NUEVA ENTREVISTA -->
       @if (vistaActual === 'nueva-entrevista') {
         <div class="fade-in">
           <app-formu-psico></app-formu-psico>
         </div>
       }
 
-      <!-- VISTA: FORMULARIO NOTAS (ANIDADO) -->
+      <!-- NUEVA NOTA -->
       @if (vistaActual === 'nueva-nota') {
         <div class="fade-in">
           <app-seguimiento-psi></app-seguimiento-psi>
         </div>
       }
 
-      <!-- VISTA: HISTORIAL -->
+      <!-- HISTORIAL -->
       @if (vistaActual === 'historial') {
         <div class="fade-in">
-          <h1 class="page-title">Historial de Expedientes</h1>
+
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Historial de Expedientes</h1>
+              <p class="page-subtitle">Consulta los expedientes registrados</p>
+            </div>
+
+            <button class="btn-volver-pro" (click)="cambiarVista('inicio')">
+              <span class="icon">🏠</span>
+              <span>Volver a inicio</span>
+            </button>
+          </div>
           
           <div class="table-card">
             <table class="data-table">
@@ -118,31 +126,47 @@
               </tbody>
             </table>
           </div>
+
         </div>
       }
 
-      <!-- ==================================================== -->
-      <!-- VISTA: DETALLE DEL PACIENTE (Expediente)             -->
-      <!-- ==================================================== -->
+      <!-- DETALLE -->
       @if (vistaActual === 'detalle' && pacienteSeleccionado) {
         <div class="fade-in">
-          <button class="btn-back" (click)="volverHistorial()">← Volver al Historial</button>
-          
+
+          <!-- BOTÓN VOLVER -->
+          <div class="breadcrumb-buttons">
+            <button class="btn-volver-pro" (click)="volverHistorial()">
+              <span class="icon">←</span>
+              <span>Volver a historial</span>
+            </button>
+          </div>
+
           <div class="detalle-header" style="background: white; padding: 2rem; border-radius: 10px; border: 1px solid #e5e7eb; margin-bottom: 2rem;">
-            <h1 style="margin: 0; color: #111827; font-size: 2.2rem;">{{ pacienteSeleccionado.nombre }}</h1>
-            <p style="margin: 5px 0 0 0; color: #6b7280; font-size: 1.1rem;">EXP: <strong>{{ pacienteSeleccionado.expediente }}</strong></p>
+            <h1 style="margin: 0; color: #111827; font-size: 2.2rem;">
+              {{ pacienteSeleccionado.nombre }}
+            </h1>
+            <p style="margin: 5px 0 0 0; color: #6b7280; font-size: 1.1rem;">
+              EXP: <strong>{{ pacienteSeleccionado.expediente }}</strong>
+            </p>
           </div>
 
-          <!-- LAS 3 PESTAÑAS QUE PEDISTE -->
+          <!-- TABS -->
           <div class="tabs-container">
-            <button class="tab" [class.active]="tabDetalle === 'ver-entrevista'" (click)="tabDetalle = 'ver-entrevista'">👁️ Ver Entrevista</button>
-            <button class="tab" [class.active]="tabDetalle === 'crear-nota'" (click)="tabDetalle = 'crear-nota'">📝 Crear Nota de Evolución</button>
-            <button class="tab" [class.active]="tabDetalle === 'ficha-tecnica'" (click)="tabDetalle = 'ficha-tecnica'">📄 Crear Ficha Técnica</button>
+            <button class="tab" [class.active]="tabDetalle === 'ver-entrevista'" (click)="tabDetalle = 'ver-entrevista'">
+              👁️ Ver Entrevista
+            </button>
+            <button class="tab" [class.active]="tabDetalle === 'crear-nota'" (click)="tabDetalle = 'crear-nota'">
+              📝 Crear Nota de Evolución
+            </button>
+            <button class="tab" [class.active]="tabDetalle === 'ficha-tecnica'" (click)="tabDetalle = 'ficha-tecnica'">
+              📄 Crear Ficha Técnica
+            </button>
           </div>
 
-          <!-- PESTAÑA 1: SOLO LECTURA DE LA ENTREVISTA YA HECHA -->
+          <!-- CONTENIDO -->
           @if (tabDetalle === 'ver-entrevista') {
-            <div class="tab-content fade-in">
+           <div class="tab-content fade-in">
               <div style="background-color: #f0f9ff; border-left: 4px solid #0369a1; padding: 1rem; margin-bottom: 1.5rem; border-radius: 4px;">
                 <p style="margin: 0; color: #0369a1; font-weight: 600;">Modo Lectura: Esta entrevista ya fue llenada anteriormente.</p>
               </div>
@@ -168,14 +192,12 @@
             </div>
           }
 
-          <!-- PESTAÑA 2: LLAMAR AL FORMULARIO DE NOTAS DE EVOLUCIÓN -->
           @if (tabDetalle === 'crear-nota') {
             <div class="tab-content fade-in">
               <app-seguimiento-psi></app-seguimiento-psi>
             </div>
           }
 
-          <!-- PESTAÑA 3: FICHA TÉCNICA (DE ADORNO) -->
           @if (tabDetalle === 'ficha-tecnica') {
             <div class="tab-content fade-in">
               <div class="form-card" style="background: white; padding: 4rem 2rem; border-radius: 8px; border: 1px dashed #d1d5db; text-align: center; opacity: 0.8;">
@@ -196,3 +218,7 @@
 
         </div>
       }
+
+    </div>
+  </main>
+</div>

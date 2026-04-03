@@ -1,9 +1,11 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
+import { Busqueda } from '../busqueda/busqueda';
 @Component({
   selector: 'app-perfil-admin',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule,Busqueda],
   templateUrl: './perfil-admin.html',
   styleUrl: './perfil-admin.css',
 })
@@ -19,6 +21,7 @@ export class PerfilAdmin {
   // ==========================================
   mostrarModalPlantilla: boolean = false;
 
+  constructor(private router: Router) {}
   // Datos fijos que rara vez cambian (Se editan en el modal)
   plantillaOficial = {
     lemaAnual: '"2025, BICENTENARIO DE LA PRIMERA CONSTITUCIÓN POLÍTICA DEL ESTADO LIBRE Y SOBERANO DE OAXACA"',
@@ -112,4 +115,22 @@ export class PerfilAdmin {
   // Funciones Modal
   abrirModalPlantilla() { this.mostrarModalPlantilla = true; }
   cerrarModalPlantilla() { this.mostrarModalPlantilla = false; }
+
+
+  showLogoutModal: boolean = false;
+
+openLogoutModal() {
+  this.showLogoutModal = true;
+}
+
+closeLogoutModal() {
+  this.showLogoutModal = false;
+}
+
+logout() {
+  localStorage.clear();
+  this.closeLogoutModal();
+  this.router.navigate(['/login']);
+}
+
 }

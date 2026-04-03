@@ -1,0 +1,50 @@
+/* Contenedor del buscador (Estilo Píldora) */
+.search-container {
+  display: flex;
+  align-items: center;
+  background-color: #f9fafb; /* Fondo gris muy claro */
+  border: 1px solid #e5e7eb; /* Borde sutil */
+  border-radius: 50px;       /* Bordes totalmente redondeados */
+  padding: 0.5rem 1.2rem;
+  width: 100%;
+  max-width: 400px;          /* Ancho máximo del buscador */
+  transition: all 0.3s ease; /* Transición suave para los efectos */
+}
+
+/* Efecto al hacer clic dentro del buscador (Focus) */
+.search-container:focus-within {
+  background-color: #ffffff;
+  border-color: #7B1D3A; /* Tu color institucional principal */
+  box-shadow: 0 0 0 4px rgba(123, 29, 58, 0.15); /* Sombra suave guinda */
+}
+
+/* Efecto al pasar el mouse por encima (Hover) */
+.search-container:hover:not(:focus-within) {
+  border-color: #9ca3af;
+}
+
+/* Ícono de lupa */
+.search-icon {
+  color: #6b7280;
+  font-size: 1rem;
+  margin-right: 0.8rem;
+  user-select: none;
+}
+
+/* Campo de texto (Input) */
+.search-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 0.95rem;
+  color: #111827;
+  font-family: inherit;
+  width: 100%;
+}
+
+/* Estilo del texto de ayuda (Placeholder) */
+.search-input::placeholder {
+  color: #9ca3af;
+  font-weight: 400;
+}

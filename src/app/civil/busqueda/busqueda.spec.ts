@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { SelePerfil } from './sele-perfil';
+import { Busqueda } from './busqueda';
 
-describe('SelePerfil', () => {
-  let component: SelePerfil;
-  let fixture: ComponentFixture<SelePerfil>;
+describe('Busqueda', () => {
+  let component: Busqueda;
+  let fixture: ComponentFixture<Busqueda>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [SelePerfil]
+      imports: [Busqueda]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(SelePerfil);
+    fixture = TestBed.createComponent(Busqueda);
     component = fixture.componentInstance;
     await fixture.whenStable();
   });

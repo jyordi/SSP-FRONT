@@ -1,48 +1,63 @@
 <div class="dashboard-layout">
 
-  <aside class="sidebar">
-    <div class="sidebar-header">
-      <div class="logo-icon">🧭</div>
-      <h2>Área de Guías</h2>
-    </div>
-
-    <nav class="sidebar-nav">
-      <button [class.active]="vistaLateral === 'mis-asignados'" (click)="cambiarVistaLateral('mis-asignados')">
-        <span class="icon">👥</span> Mis Asignados
-      </button>
-      <button [class.active]="vistaLateral === 'reportes'" (click)="cambiarVistaLateral('reportes')">
-        <span class="icon">📊</span> Reportes Generales
-      </button>
-    </nav>
-
-    <div class="sidebar-footer">
-      <button class="btn-logout" (click)="cerrarSesion()">
-        <span class="icon">🚪</span> Cerrar Sesión
-      </button>
-    </div>
-  </aside>
-
   <main class="main-content">
     
+    <!-- HEADER -->
     <header class="topbar">
-      <div class="topbar-title">
-        <h3>Portal Institucional - Guías</h3>
+
+      <!-- IZQUIERDA -->
+      <div class="topbar-left">
+        <h3 class="topbar-title">Portal Institucional - Guías</h3>
       </div>
-      <div class="user-profile">
-        <div class="avatar">🧭</div>
-        <div class="user-info">
-          <strong>Guía Asignado</strong>
-          <span>En línea</span>
+
+      <!-- CENTRO (BUSCADOR) -->
+      <div class="topbar-center">
+        @if (vistaPrincipal === 'lista') {
+          <app-busqueda></app-busqueda>
+        }
+      </div>
+
+      <!-- DERECHA -->
+      <div class="topbar-right">
+        <button class="user-profile logout-btn" (click)="openLogoutModal()">
+          <div class="avatar">🧭</div>
+          <div class="user-info">
+            <strong>Guía Asignado</strong>
+            <span>En línea</span>
+          </div>
+        </button>
+      </div>
+
+    </header>
+
+    <!-- MODAL -->
+    @if (showLogoutModal) {
+      <div class="modal-overlay">
+        <div class="modal">
+          <h3>¿Cerrar sesión?</h3>
+          <p>Tu sesión actual se cerrará.</p>
+
+          <div class="modal-actions">
+            <button class="btn-cancel" (click)="closeLogoutModal()">Cancelar</button>
+            <button class="btn-confirm" (click)="logout()">Sí, cerrar sesión</button>
+          </div>
         </div>
       </div>
-    </header>
+    }
 
     <div class="content-area">
 
+      <!-- LISTA -->
       @if (vistaPrincipal === 'lista') {
         <div class="fade-in">
-          <h1 class="page-title">Jóvenes Asignados</h1>
-          <p class="page-subtitle">Seleccione a un joven para ver su expediente y control de horas.</p>
+
+          <!-- HEADER CON BOTÓN -->
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Jóvenes Asignados</h1>
+              <p class="page-subtitle">Seleccione a un joven para ver su expediente y control de horas.</p>
+            </div>
+          </div>
 
           <div class="cards-grid">
             @for (joven of jovenesAsignados; track joven.id) {
@@ -54,30 +69,44 @@
                     <span>{{ joven.expediente }}</span>
                   </div>
                 </div>
+
                 <div class="profile-card-body">
                   <p><strong>Actividad:</strong> {{ joven.actividadActual }}</p>
+
                   <div class="progress-container">
                     <div class="progress-labels">
                       <span>Progreso de horas</span>
                       <span>{{ joven.horasCubiertas }} / {{ joven.horasTotales }} hrs</span>
                     </div>
+
                     <div class="progress-bar">
-                      <div class="progress-fill" [style.width.%]="(joven.horasCubiertas / joven.horasTotales) * 100"></div>
+                      <div class="progress-fill"
+                           [style.width.%]="(joven.horasCubiertas / joven.horasTotales) * 100">
+                      </div>
                     </div>
                   </div>
                 </div>
+
                 <button class="btn-ver-perfil">Ver Perfil Completo →</button>
               </div>
             }
           </div>
+
         </div>
       }
 
+      <!-- DETALLE -->
       @if (vistaPrincipal === 'detalle' && jovenSeleccionado) {
         <div class="fade-in">
-          
-          <button class="btn-back" (click)="volverALista()">← Volver a la lista</button>
-          
+
+          <!-- BOTÓN VOLVER -->
+          <div class="breadcrumb-buttons">
+            <button class="btn-volver-pro" (click)="volverALista()">
+              <span class="icon">←</span>
+              <span>Volver a lista</span>
+            </button>
+          </div>
+
           <div class="detalle-header">
             <div class="detalle-info">
               <h1>{{ jovenSeleccionado.nombre }}</h1>
@@ -85,6 +114,7 @@
             </div>
           </div>
 
+         
           <div class="tabs-container">
             <button class="tab" [class.active]="tabActual === 'horas'" (click)="cambiarTab('horas')">
               ⏱️ Control de Horas

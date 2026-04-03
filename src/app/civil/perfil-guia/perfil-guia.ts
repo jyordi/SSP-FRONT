@@ -1,14 +1,18 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormGroup, ReactiveFormsModule, FormsModule, Validators, FormBuilder } from '@angular/forms';
+import { Router } from '@angular/router';
+import { Busqueda } from '../busqueda/busqueda';
 
 @Component({
   selector: 'app-perfil-guia',
-  imports: [CommonModule, ReactiveFormsModule, FormsModule],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule,Busqueda],
   templateUrl: './perfil-guia.html',
   styleUrl: './perfil-guia.css',
 })
 export class PerfilGuia {
+
+  
   // LÓGICA DEL MODAL DE INASISTENCIAS
   // ==========================================
   mostrarModalInasistencia: boolean = false;
@@ -25,6 +29,9 @@ export class PerfilGuia {
   // ==========================================
   horasTotalesAsignadas: number = 25; // Editable globalmente
   
+
+
+ 
   // Arreglo dinámico para los registros de horas
   registrosHoras = [
     { id: 1, actividad: '19/07/2025 Asistencia inicial', horas: 5 }
@@ -114,7 +121,7 @@ export class PerfilGuia {
   ];
 
   // 3. INYECTAR FORMBUILDER
-  constructor(private fb: FormBuilder) {
+  constructor(private fb: FormBuilder, private router: Router) {
     this.inasistenciasForm = this.fb.group({
       tipo: ['', Validators.required],
       descripcion: ['', Validators.required]
@@ -187,12 +194,28 @@ export class PerfilGuia {
     this.jovenSeleccionado = null;
   }
 
+  
+
   // Cambiar entre las pestañas del perfil del joven
   cambiarTab(tab: 'horas' | 'inasistencias' | 'asistencia') {
     this.tabActual = tab;
   }
 
-  cerrarSesion() {
-    console.log('Cerrando sesión de Guía...');
-  }
+    showLogoutModal: boolean = false;
+
+openLogoutModal() {
+  this.showLogoutModal = true;
+}
+
+closeLogoutModal() {
+  this.showLogoutModal = false;
+}
+
+logout() {
+  localStorage.clear();
+  this.closeLogoutModal();
+  this.router.navigate(['/login']);
+}
+
+
 }

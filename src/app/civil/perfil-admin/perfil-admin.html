@@ -1,35 +1,59 @@
 <div class="dashboard-layout">
 
-  <aside class="sidebar" style="background-color: #111827;">
-    <div class="sidebar-header">
-      <div class="logo-icon">⚙️</div>
-      <h2>Administración</h2>
-    </div>
-    <nav class="sidebar-nav">
-      <button [class.active]="vistaLateral === 'expedientes'" (click)="cambiarVistaLateral('expedientes')">
-        <span class="icon">🗂️</span> Expediente Único
-      </button>
-      <button [class.active]="vistaLateral === 'estadisticas'" (click)="cambiarVistaLateral('estadisticas')">
-        <span class="icon">📈</span> Estadísticas Globales
-      </button>
-    </nav>
-    <div class="sidebar-footer">
-      <button class="btn-logout" (click)="cerrarSesion()"><span class="icon">🚪</span> Cerrar Sesión</button>
-    </div>
-  </aside>
+  
 
   <main class="main-content">
     
-    <header class="topbar">
-      <div class="topbar-title"><h3>Portal Institucional - Dirección General</h3></div>
-      <div class="user-profile">
-        <button class="btn-secondary" style="margin-right: 1.5rem; border: 1px solid var(--border-input); padding: 0.4rem 1rem; border-radius: 6px; cursor: pointer;" (click)="abrirModalPlantilla()">
-          ⚙️ Configurar Plantilla Oficial
-        </button>
-        <div class="avatar" style="border-color: #111827;">👑</div>
-        <div class="user-info"><strong>Administrador del Sistema</strong><span>Acceso Total</span></div>
+   <header class="topbar">
+
+  <!-- IZQUIERDA -->
+  <div class="topbar-left">
+    <h3 class="topbar-title">Portal Institucional - Admin</h3>
+  </div>
+
+  <!-- CENTRO (BUSCADOR) -->
+  <div class="topbar-center">
+    @if (vistaPrincipal === 'lista') {
+      <app-busqueda></app-busqueda>
+    }
+  </div>
+
+  <!-- DERECHA -->
+  <div class="topbar-right">
+
+    <button class="btn-secondary"
+      style="margin-right: 1rem; border: 1px solid var(--border-input); padding: 0.4rem 1rem; border-radius: 6px;"
+      (click)="abrirModalPlantilla()">
+      ⚙️ Configurar Plantilla
+    </button>
+
+    <button class="user-profile logout-btn" (click)="openLogoutModal()">
+      <div class="avatar">🧑‍💻</div>
+      <div class="user-info">
+        <strong>Administrador</strong>
+        <span>En línea</span>
       </div>
-    </header>
+    </button>
+
+  </div>
+
+</header>
+
+<!-- MODAL -->
+@if (showLogoutModal) {
+  <div class="modal-overlay">
+    <div class="modal">
+      <h3>¿Cerrar sesión?</h3>
+      <p>Tu sesión actual se cerrará.</p>
+
+      <div class="modal-actions">
+        <button  class="btn-cancel" (click)="closeLogoutModal()">Cancelar</button>
+        <button class="btn-confirm" (click)="logout()">Sí, cerrar sesión</button>
+      </div>
+    </div>
+  </div>
+}
+
 
     <div class="content-area">
 
@@ -37,6 +61,7 @@
         <div class="fade-in">
           <h1 class="page-title">Expediente Único de Usuarios</h1>
           <p class="page-subtitle">Monitoreo global de avances por departamento.</p>
+          
 
           <div class="table-card">
             <table class="data-table">
@@ -74,11 +99,15 @@
         </div>
       }
 
-
   
       @if (vistaPrincipal === 'detalle' && personaSeleccionada) {
         <div class="fade-in">
-          <button class="btn-back" (click)="volverALista()">← Volver al padrón</button>
+         <div class="breadcrumb-buttons">
+  <button class="btn-volver-pro" (click)="volverALista()">
+    <span class="icon">←</span>
+    <span>Volver a lista</span>
+  </button>
+</div>
           
           <div class="detalle-header" style="background: white; padding: 2rem; border-radius: 10px; border: 1px solid var(--border-primary); margin-bottom: 2rem;">
             <div style="display: flex; justify-content: space-between; align-items: flex-start;">
@@ -96,10 +125,10 @@
 
           <div class="tabs-container">
             
-            <button class="tab" [class.active]="tabActual === 'psicologia'" (click)="cambiarTab('psicologia')">🧠 Área Psicología</button>
-            <button class="tab" [class.active]="tabActual === 'guias'" (click)="cambiarTab('guias')">🧭 Área Guías</button>
-            <button class="tab" [class.active]="tabActual === 'tsocial'" (click)="cambiarTab('tsocial')">🤝 Área Trabajo Social</button>
-            <button class="tab" [class.active]="tabActual === 'oficio'" (click)="cambiarTab('oficio')" style="color: var(--brand-primary); font-weight: bold;">📜 Resolución / Oficio</button>
+            <button class="tab" [class.active]="tabActual === 'psicologia'" (click)="cambiarTab('psicologia')"> Área Psicología</button>
+            <button class="tab" [class.active]="tabActual === 'guias'" (click)="cambiarTab('guias')"> Área Guías</button>
+            <button class="tab" [class.active]="tabActual === 'tsocial'" (click)="cambiarTab('tsocial')"> Área Trabajo Social</button>
+            <button class="tab" [class.active]="tabActual === 'oficio'" (click)="cambiarTab('oficio')" style="color: var(--brand-primary); font-weight: bold;"> Resolución / Oficio</button>
           </div>
 
 
@@ -418,4 +447,4 @@
       </div>
     </div>
   </div>
-}
+} 

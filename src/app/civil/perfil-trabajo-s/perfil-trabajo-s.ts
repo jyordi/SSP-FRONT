@@ -1,18 +1,22 @@
-import { Component } from '@angular/core';
+  import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Busqueda } from "../busqueda/busqueda";
+import { Router } from '@angular/router';
 @Component({
   selector: 'app-perfil-trabajo-s',
-  imports: [CommonModule,FormsModule],
+  imports: [CommonModule, FormsModule, Busqueda],
   templateUrl: './perfil-trabajo-s.html',
   styleUrl: './perfil-trabajo-s.css',
 })
 export class PerfilTrabajoS {
 
   vistaLateral: 'pendientes' | 'historial' = 'pendientes';
-  vistaPrincipal: 'lista' | 'detalle' = 'lista';
-  tabActual: 'estudio' | 'plan' = 'estudio';
+ vistaPrincipal: 'inicio' | 'lista' | 'detalle' = 'inicio';
+  tabActual: 'estudio' | 'plan' = 'estudio';  
   personaSeleccionada: any = null;
+
+  constructor(private router: Router) {}
 
   // Plantilla base para las actividades de seguimiento
   generarActividadesBase() {
@@ -73,7 +77,7 @@ export class PerfilTrabajoS {
   }
 
   volverALista() {
-    this.vistaPrincipal = 'lista';
+    this.vistaPrincipal = 'inicio';
     this.personaSeleccionada = null;
   }
 
@@ -93,7 +97,50 @@ export class PerfilTrabajoS {
     window.print();
   }
 
-  cerrarSesion() {
-    console.log('Cerrando sesión de Trabajo Social...');
+ irAPendientes() {
+  this.vistaLateral = 'pendientes';
+  this.vistaPrincipal = 'lista';
+}
+
+irAHistorial() {
+  this.vistaLateral = 'historial';
+  this.vistaPrincipal = 'lista';
+}
+
+showLogoutModal: boolean = false;
+
+openLogoutModal() {
+  this.showLogoutModal = true;
+}
+
+closeLogoutModal() {
+  this.showLogoutModal = false;
+}
+
+logout() {
+  localStorage.clear();
+  this.closeLogoutModal();
+  this.router.navigate(['/login']);
+}
+
+get textoBotonVolver(): string {
+  return this.vistaPrincipal === 'detalle'
+    ? 'Volver a lista'
+    : 'Volver a inicio';
+}
+
+get iconoBotonVolver(): string {
+  return this.vistaPrincipal === 'detalle'
+    ? '←'
+    : '🏠';
+}
+
+volver() {
+  if (this.vistaPrincipal === 'detalle') {
+    this.vistaPrincipal = 'lista';
+    this.personaSeleccionada = null;
+  } else {
+    this.vistaPrincipal = 'inicio';
   }
+}
 }
