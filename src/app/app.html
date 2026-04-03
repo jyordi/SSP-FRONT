@@ -1,4 +1,4 @@
-<app-navbar [config]="navbarConfig" />
+<app-navbar *ngIf="showNavbar" [config]="navbarConfig" />
 <main class="page-content">
   <router-outlet />
 </main>
