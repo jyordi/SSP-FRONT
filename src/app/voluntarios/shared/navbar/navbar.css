@@ -119,3 +119,30 @@
   border-color: #C8952A;
   color: #7B1D3A;
 }
+
+.btn-logout {
+  background: #C8952A;
+  color: white;
+  border: 2px solid #C8952A;
+  border-radius: 6px;
+  padding: 0.4rem 0.65rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.btn-logout:hover {
+  background: #ffffff;
+  color: #7B1D3A;
+  transform: scale(1.05);
+}
+
+.btn-logout svg {
+  width: 18px;
+  height: 18px;
+  stroke: currentColor;
+}

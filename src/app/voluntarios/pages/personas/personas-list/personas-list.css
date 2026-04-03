@@ -8,23 +8,26 @@
 .list-header h2 {
   font-size: 1.4rem;
   font-weight: 700;
-  color: #111827;
+  color: #7B1D3A;
   margin: 0;
+  border-bottom: 3px solid #C8952A;
+  padding-bottom: .5rem;
+  display: inline-block;
 }
 
 .btn-primary {
   background: #7B1D3A;
   color: white;
-  border: none;
+  border: 2px solid #C8952A;
   border-radius: 8px;
   padding: .65rem 1.25rem;
   font-weight: 600;
   font-size: .875rem;
   cursor: pointer;
   text-decoration: none;
-  transition: background .2s;
+  transition: all .2s;
 }
-.btn-primary:hover { background: #9E2A4A; }
+.btn-primary:hover { background: #C8952A; color: #7B1D3A; }
 
 .filters {
   display: flex;
@@ -33,15 +36,15 @@
 }
 
 .search-input, .filter-select {
-  border: 1px solid #d1d5db;
+  border: 2px solid #e5e7eb;
   border-radius: 8px;
   padding: .5rem 1rem;
   font-size: .875rem;
   outline: none;
-  transition: border-color .2s;
+  transition: all .2s;
 }
 .search-input { width: 260px; }
-.search-input:focus, .filter-select:focus { border-color: #7B1D3A; }
+.search-input:focus, .filter-select:focus { border-color: #C8952A; box-shadow: 0 0 0 3px rgba(200, 149, 42, 0.1); }
 
 .tabla {
   width: 100%;
@@ -50,11 +53,13 @@
   border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 1px 4px rgba(0,0,0,.08);
+  border: 3px solid #C8952A;
 }
 
 .tabla thead tr {
   background: #7B1D3A;
   color: white;
+  border-bottom: 4px solid #C8952A;
 }
 
 .tabla th {
@@ -73,15 +78,17 @@
   border-bottom: 1px solid #f3f4f6;
 }
 
-.tabla tbody tr:hover { background: #fdf2f4; }
+.tabla tbody tr:hover { background: #fdf2f4; border-left: 4px solid #C8952A; }
 
 .fila-clickeable {
   cursor: pointer;
-  transition: background-color .15s;
+  transition: all .15s;
+  border-left: 4px solid transparent;
 }
 
 .fila-clickeable:hover {
   background: #fdf2f4 !important;
+  border-left: 4px solid #C8952A !important;
 }
 
 .persona-nombre { font-weight: 600; color: #111827; }
@@ -89,39 +96,54 @@
 
 .badge {
   display: inline-block;
-  padding: .3rem .85rem;
+  padding: .35rem .9rem;
   border-radius: 20px;
   font-size: .78rem;
   font-weight: 600;
   background: #f3f4f6;
-  color: #6b7280;
+  color: #7B1D3A;
+  border: 1px solid #C8952A;
 }
-.badge.activo { background: #dcfce7; color: #166534; }
+.badge.activo { background: #dcfce7; color: #166534; border: 1px solid #22c55e; }
 
 .acciones { display: flex; gap: .5rem; }
 
 .btn-edit {
   background: #fef3c7;
-  border: none;
+  border: 2px solid #C8952A;
   border-radius: 6px;
-  padding: .4rem .6rem;
+  padding: .5rem .65rem;
   cursor: pointer;
   text-decoration: none;
   font-size: 1rem;
-  transition: background .2s;
+  transition: all .2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #7B1D3A;
 }
-.btn-edit:hover { background: #fde68a; }
+.btn-edit:hover { background: #C8952A; color: white; transform: scale(1.1); }
 
 .btn-delete {
   background: #fee2e2;
-  border: none;
+  border: 2px solid #7B1D3A;
   border-radius: 6px;
-  padding: .4rem .6rem;
+  padding: .5rem .65rem;
   cursor: pointer;
   font-size: 1rem;
-  transition: background .2s;
+  transition: all .2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #7B1D3A;
 }
-.btn-delete:hover { background: #fca5a5; }
+.btn-delete:hover { background: #7B1D3A; color: white; transform: scale(1.1); }
+
+.btn-edit svg, .btn-delete svg {
+  width: 18px;
+  height: 18px;
+  stroke: currentColor;
+}
 
 .empty {
   text-align: center;

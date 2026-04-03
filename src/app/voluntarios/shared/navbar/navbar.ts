@@ -1,6 +1,7 @@
 import { Component, Input } from '@angular/core';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { RouterLink, RouterLinkActive, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { AuthService } from '../../../services/auth';
 
 export interface NavbarConfig {
   brandName: string;
@@ -36,4 +37,15 @@ export class NavbarComponent {
     showAvatar: true,
     avatarText: 'U'
   };
+
+  constructor(private authService: AuthService, private router: Router) {}
+
+  logout(): void {
+    // Limpiar localStorage y sessionStorage
+    localStorage.clear();
+    sessionStorage.clear();
+    
+    // Redirigir a login
+    this.router.navigate(['/login']);
+  }
 }
