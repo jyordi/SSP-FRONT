@@ -3,7 +3,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { ExpedientesService } from '../../services/expedientes';
+import { Civico } from '../../services/civico';
 import { SessionService } from '../../services/session';
 
 @Component({
@@ -14,8 +14,9 @@ import { SessionService } from '../../services/session';
   styleUrls: ['./nuevo-expediente-civico.css']
 })
 export class NuevoExpedienteCivicoComponent implements OnInit {
+form!: FormGroup;
+  beneficiarioForm!: FormGroup;
 
-  form!: FormGroup;
   loading = false;
   success = false;
 
@@ -23,21 +24,23 @@ export class NuevoExpedienteCivicoComponent implements OnInit {
   role = '';
   token = '';
 
+  step = 1; // 1 = beneficiario, 2 = expediente
+  beneficiarioIdCreado = '';
+
   constructor(
     private fb: FormBuilder,
-    private service: ExpedientesService,
+    private service: Civico,
     private router: Router,
     private session: SessionService
   ) {}
 
-  ngOnInit(): void {
+  ngOnInit(): void {  
 
-    // 🔥 usuario, rol y token
     this.userName = this.session.getUserName();
     this.role = this.session.getRole();
     this.token = this.session.getToken() || '';
 
-    // 🔥 form
+    //  FORM EXPEDIENTE
     this.form = this.fb.group({
       beneficiarioId: ['', Validators.required],
       folioExpediente: ['', Validators.required],
@@ -48,17 +51,67 @@ export class NuevoExpedienteCivicoComponent implements OnInit {
       madreNombre: ['', Validators.required],
       madreTelefono: ['', Validators.required]
     });
+
+    //  FORM BENEFICIARIO
+    this.beneficiarioForm = this.fb.group({
+      nombre: ['', Validators.required],
+      tiempoAsignado: ['', Validators.required],
+      unidadDeTiempo: ['', Validators.required],
+      urlFoto: ['', Validators.required]
+    });
   }
 
+  //  1. CREAR BENEFICIARIO
+  crearBeneficiario() {
+
+    if (this.beneficiarioForm.invalid) {
+      this.beneficiarioForm.markAllAsTouched();
+      return;
+    }
+
+    this.loading = true;
+
+    const data = {
+      nombre: this.beneficiarioForm.value.nombre,
+      tiempoAsignado: Number(this.beneficiarioForm.value.tiempoAsignado),
+      unidadDeTiempo: this.beneficiarioForm.value.unidadDeTiempo,
+      urlFoto: this.beneficiarioForm.value.urlFoto
+    };
+
+    this.service.crearBeneficiario(data).subscribe({
+
+      next: (res) => {
+        console.log('Beneficiario creado:', res);
+
+        this.loading = false;
+
+        // 🔥 AJUSTA ESTO SI TU BACK DEVUELVE OTRO NOMBRE
+        this.beneficiarioIdCreado = res.id;
+
+        // 🔥 PASAMOS EL ID AL FORM DE EXPEDIENTE
+        this.form.patchValue({
+          beneficiarioId: this.beneficiarioIdCreado
+        });
+
+        // 🔥 CAMBIAMOS A SIGUIENTE PASO
+        this.step = 2;
+      },
+
+      error: (err) => {
+        console.error(err);
+        this.loading = false;
+        alert('Error al crear beneficiario');
+      }
+    });
+  }
+
+  // 🔥 2. CREAR EXPEDIENTE
   submit() {
 
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
     }
-
-    console.log('Rol:', this.role);
-    console.log('Token:', this.token);
 
     this.loading = true;
 
@@ -79,7 +132,8 @@ export class NuevoExpedienteCivicoComponent implements OnInit {
       token: this.token
     };
 
-    this.service.crearCivico(data).subscribe({
+    this.service.crearCivico(data, this.token).subscribe({
+
       next: () => {
         this.loading = false;
         this.success = true;
@@ -88,13 +142,15 @@ export class NuevoExpedienteCivicoComponent implements OnInit {
           this.router.navigate(['/expedientes']);
         }, 2000);
       },
+
       error: (err) => {
         console.error(err);
         this.loading = false;
-
-        alert('Error 403: No tienes permisos (usa admin)');
+        alert('Error al crear expediente');
       }
     });
   }
+
+  
 }
 

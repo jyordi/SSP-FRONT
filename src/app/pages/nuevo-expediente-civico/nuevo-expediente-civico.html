@@ -1,7 +1,6 @@
-
 <div class="page">
 
-  <!-- 🔥 NAV SUPERIOR -->
+  <!-- NAV -->
   <div class="top-bar">
     <div>
       <strong>{{userName}}</strong>
@@ -9,21 +8,39 @@
     </div>
   </div>
 
+  <!-- 🔥 FORM BENEFICIARIO -->
+  <div class="card" *ngIf="step === 1">
+    <h2>Nuevo Beneficiario</h2>
 
+    <form [formGroup]="beneficiarioForm">
 
-  <!-- FORM -->
-  <div class="card">
+      <div class="grid">
+        <input placeholder="Nombre *" formControlName="nombre">
+        <input placeholder="Tiempo Asignado *" formControlName="tiempoAsignado">
+        <input placeholder="unidad de tiempo *" formControlName="unidadDeTiempo">
+        <input placeholder="URL Foto *" formControlName="urlFoto" class="full">
+      </div>
+
+      <button type="button" (click)="crearBeneficiario()" [disabled]="loading">
+        Guardar Beneficiario
+      </button>
+
+    </form>
+  </div>
+
+  <!-- 🔥 FORM EXPEDIENTE -->
+  <div class="card" *ngIf="step === 2">
     <h2>Nuevo Expediente Cívico</h2>
 
     <form [formGroup]="form">
 
       <div class="grid">
 
-        <input placeholder="Beneficiario ID *" formControlName="beneficiarioId">
+        <input placeholder="Beneficiario ID *" formControlName="beneficiarioId" readonly>
         <input placeholder="Folio *" formControlName="folioExpediente">
         <input placeholder="Causa Penal *" formControlName="causaPenal">
         <input placeholder="Juez Cívico *" formControlName="juezCivico">
-        <input type="date" formControlName="fechaInicioSentencia" title="fecha">
+        <input type="date" formControlName="fechaInicioSentencia">
         <input placeholder="Horas *" formControlName="horasSentencia">
 
         <input placeholder="Nombre Madre *" formControlName="madreNombre" class="full">
@@ -31,7 +48,7 @@
 
       </div>
 
-      <button (click)="submit()" [disabled]="loading">
+      <button type="button" (click)="submit()" [disabled]="loading">
         Guardar Expediente
       </button>
 
@@ -50,4 +67,3 @@
   </div>
 
 </div>
-
