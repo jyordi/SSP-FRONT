@@ -8,7 +8,7 @@ import { Busqueda } from '../busqueda/busqueda';
   imports: [CommonModule, FormsModule,Busqueda],
   templateUrl: './perfil-admin.html',
   styleUrl: './perfil-admin.css',
-})
+}) 
 export class PerfilAdmin {
 
   vistaLateral: 'expedientes' | 'estadisticas' = 'expedientes';
