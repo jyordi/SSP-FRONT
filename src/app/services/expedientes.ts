@@ -16,6 +16,24 @@ export class ExpedientesService {
   getPenal(): Observable<any> {
     return this.http.get(`${this.API_URL}/penal/expedientes`);
   }
+  // 🔥 DETALLE PENAL
+getPenalById(id: number): Observable<any> {
+  return this.http.get(`${this.API_URL}/penal/expedientes/${id}`);
+}
+// 🔥 ACTUALIZAR EXPEDIENTE
+updatePenal(id: number, data: any) {
+  return this.http.patch(`${this.API_URL}/penal/expedientes/${id}`, data);
+}
+
+// 🔥 RESUMEN (muy importante para sistema real)
+getResumenPenal(id: number) {
+  return this.http.get(`${this.API_URL}/penal/expedientes/${id}/resumen`);
+}
+
+// 🔥 DETALLE CIVICO
+getCivicoById(id: number): Observable<any> {
+  return this.http.get(`${this.API_URL}/civico/expedientes/${id}`);
+}
 
   // CIVICO (ajusta si cambia endpoint)
   getCivico(): Observable<any> {
@@ -30,5 +48,6 @@ export class ExpedientesService {
   getVoluntario(): Observable<any> {
     return this.http.get(`${this.API_URL}/voluntario/expedientes`);
   }
+
 }
 

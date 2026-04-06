@@ -1,0 +1,11 @@
+<div *ngIf="loading">Cargando...</div>
+
+<div *ngIf="expediente" class="card">
+
+  <h2>Expediente Cívico</h2>
+
+  <p><b>Nombre:</b> {{ expediente.nombre }}</p>
+  <p><b>Folio:</b> {{ expediente.folio }}</p>
+  <p><b>Fecha:</b> {{ expediente.fecha }}</p>
+
+</div>

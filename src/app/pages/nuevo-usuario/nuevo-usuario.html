@@ -1,0 +1,60 @@
+<div class="wrapper">
+
+  <!-- NAVBAR -->
+  <header class="top-nav">
+    <span>Reconecta con la Paz</span>
+    <button class="btn-back" (click)="regresar()">← Regresar</button>
+  </header>
+
+  <div class="container">
+
+    <!-- FORM -->
+    <div class="card fade-in">
+
+      <h2>Crear Nuevo Usuario</h2>
+
+      <form [formGroup]="form" (ngSubmit)="submit()">
+
+        <input type="text" placeholder="Nombre completo" formControlName="nombre">
+        <input type="text" placeholder="Usuario" formControlName="nomUsuario">
+
+        <select formControlName="rol" class="select-rol" title="Selecciona un rol">
+          <option value="admin">Admin</option>
+          <option value="psicologo">Psicólogo</option>
+          <option value="trabajo_social">Trabajo Social</option>
+          <option value="guia">Guía</option>
+        </select>
+
+        <input type="password" placeholder="Contraseña" formControlName="contrasena">
+
+        <button class="btn-primary" [disabled]="loading">
+          {{ loading ? 'Guardando...' : 'Crear Usuario' }}
+        </button>
+
+      </form>
+    </div>
+
+    <!-- LISTADO -->
+    <div class="card fade-in delay">
+
+      <h2>Usuarios del sistema</h2>
+
+      <div *ngFor="let u of usuarios" class="user-item">
+
+        <div class="user-header" (click)="toggleUser(u.id!)">
+          <span>{{ u.nombre }}</span>
+          <span class="badge">{{ u.rol }}</span>
+        </div>
+
+        <div class="user-details" *ngIf="expandedUser === u.id">
+          <p><strong>Usuario:</strong> {{ u.nomUsuario }}</p>
+          <p><strong>Rol:</strong> {{ u.rol }}</p>
+          <p><strong>Estatus:</strong> {{ u.estatus ? 'Activo' : 'Inactivo' }}</p>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+</div>

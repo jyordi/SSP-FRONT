@@ -1,0 +1,90 @@
+<div *ngIf="loading" class="overlay">
+  <div class="loader"></div>
+  <p>Cargando expediente...</p>
+</div>
+
+<div *ngIf="expediente" class="container fade">
+
+  <!-- 🔙 HEADER -->
+  <div class="header">
+    <button class="btn-back" (click)="volver()">
+      ← Regresar
+    </button>
+
+    <h2>Expediente Penal</h2>
+
+    <div></div>
+  </div>
+
+  <!-- 🔥 BOTONES ARRIBA -->
+  <div class="modulos-top">
+
+    <!-- F1 Psicología -->
+    <button class="btn-psico"
+      *ngIf="esAdmin() || esPsicologo()"
+      (click)="irModulo('/vp')">
+      🧠 F1 Psicología
+    </button>
+
+    <!-- F2 Trabajo Social -->
+    <button class="btn-trabajo"
+      *ngIf="esAdmin() || esTrabajoSocial()"
+      (click)="irModulo('/trabajo-social')">
+      👥 F2 Trabajo Social
+    </button>
+
+    <!-- F3 Plan -->
+    <button class="btn-plan"
+      *ngIf="esAdmin()"
+      (click)="irModulo('/plan-individualizado')">
+      📋 F3 Plan
+    </button>
+
+    <!-- F4 Carátula -->
+    <button class="btn-caratula"
+      *ngIf="esAdmin()"
+      (click)="irModulo('/caratura-expediente')">
+      📄 F4 Carátula
+    </button>
+
+    <!-- F5 Proyecto -->
+    <button class="btn-proyecto"
+      *ngIf="esAdmin() || esPsicologo()"
+      (click)="irModulo('/proyecto-vida')">
+      🌱 F5 Proyecto
+    </button>
+
+  </div>
+
+  <!-- 🔥 CARD -->
+  <div class="card">
+
+    <h3>Datos del expediente</h3>
+
+    <label>Beneficiario</label>
+    <input [(ngModel)]="expediente.beneficiario.nombre">
+
+    <label>Delito</label>
+    <input [(ngModel)]="expediente.delito">
+
+    <label>Juzgado</label>
+    <input [(ngModel)]="expediente.juzgado">
+
+    <label>Agraviado</label>
+    <input [(ngModel)]="expediente.agraviado">
+
+    <label>Medida cautelar</label>
+    <input [(ngModel)]="expediente.medidaCautelar">
+
+    <label>Observaciones</label>
+    <textarea [(ngModel)]="expediente.observaciones"></textarea>
+
+    <button class="btn-guardar"
+      (click)="guardarCambios()"
+      [disabled]="guardando">
+      {{ guardando ? 'Guardando...' : 'Actualizar Expediente' }}
+    </button>
+
+  </div>
+
+</div>

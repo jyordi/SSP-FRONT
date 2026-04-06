@@ -1,4 +1,3 @@
-
 import { Injectable } from '@angular/core';
 
 @Injectable({ providedIn: 'root' })
@@ -27,23 +26,28 @@ export class SessionService {
     }
   }
 
-  // 🔥 USUARIO
+  // 🔥 NUEVO: OBTENER ID DEL USUARIO DESDE JWT
+  getUserId(): number {
+    const payload = this.getPayload();
+
+    return (
+      payload?.sub ||
+      payload?.id ||
+      payload?.userId ||
+      0
+    );
+  }
+
   getUserName(): string {
     const payload = this.getPayload();
-    return payload?.nomUsuario || payload?.username || 'Usuario';
+    return payload?.nomUsuario || payload?.nom_usuario || 'Usuario';
   }
 
-  // 🔥 ROLES (simulado si no viene del backend)
   getRole(): string {
     const payload = this.getPayload();
-
-    // si backend no manda rol → asignamos por usuario
-    if (payload?.nomUsuario === 'admin') return 'admin';
-
-    return 'psicologo';
+    return payload?.rol || 'sin-rol';
   }
 
-  // 🔥 EXPIRACIÓN
   isTokenExpired(): boolean {
     const payload = this.getPayload();
     if (!payload?.exp) return true;
@@ -52,4 +56,3 @@ export class SessionService {
     return payload.exp < now;
   }
 }
-

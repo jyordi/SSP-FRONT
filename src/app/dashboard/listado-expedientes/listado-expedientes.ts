@@ -1,4 +1,3 @@
-
 import { CommonModule } from '@angular/common';
 import { Component, HostListener, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -81,15 +80,26 @@ export class ListadoExpedientesComponent implements OnInit {
      this.router.navigate(['/seleccion']);
   }
 
-  continuarSeguimiento(id: number) {
-    console.log('Abriendo expediente:', id);
+  nuevoUsuario() {
+    this.router.navigate(['/nuevo-usuario']);
   }
+
+  
 
   cargarPenal() {
     this.expedientesService.getPenal().subscribe({
       next: (res) => {
-        console.log('Penal:', res);
-        this.expedientes = res;
+        this.expedientes = res.map((e: any) => ({
+          id: e.id,
+          nombre: e.beneficiario?.nombre || 'Sin nombre',
+          tipo: 'Penal',
+          folio: e.folio || 'N/A',
+          delito: e.delito || 'Sin especificar',
+          estatus: e.estatus || 'Pendiente',
+          avance: e.avance || 0,
+          faseActual: e.faseActual || 'N/A',
+          original: e
+        }));
       },
       error: (err) => console.error(err)
     });
@@ -98,8 +108,17 @@ export class ListadoExpedientesComponent implements OnInit {
   cargarCivico() {
     this.expedientesService.getCivico().subscribe({
       next: (res) => {
-        console.log('Civico:', res);
-        this.expedientes = res;
+        this.expedientes = res.map((e: any) => ({
+          id: e.id,
+          nombre: e.nombre || e.beneficiario?.nombre || 'Sin nombre',
+          tipo: 'Civico',
+          folio: e.folio || 'N/A',
+          delito: e.delito || 'Sin especificar',
+          estatus: e.estatus || 'Pendiente',
+          avance: e.avance || 0,
+          faseActual: e.faseActual || 'N/A',
+          original: e
+        }));
       },
       error: (err) => console.error(err)
     });
@@ -113,6 +132,16 @@ export class ListadoExpedientesComponent implements OnInit {
       },
       error: (err) => console.error(err)
     });
+  }
+
+  continuarSeguimiento(expediente: any) {
+    if (expediente.tipo === 'Penal') {
+      this.router.navigate(['/detalle-penal', expediente.id]);
+    }
+
+    if (expediente.tipo === 'Civico') {
+      this.router.navigate(['/detalle-civico', expediente.id]);
+    }
   }
 }
 

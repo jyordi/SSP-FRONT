@@ -1,4 +1,3 @@
-
 import { Routes } from '@angular/router';
 import { FormuPsico } from './civil/formu-psico/formu-psico';
 import { LoginComponent } from './auth/login/login';
@@ -6,6 +5,7 @@ import { SeleccionComponent } from './dashboard/seleccion/seleccion';
 import { ListadoExpedientesComponent } from './dashboard/listado-expedientes/listado-expedientes';
 import { PenalForm } from './components/penal-form/penal-form';
 import { ValoracionPenalComponent } from './components/valoracion-penal/valoracion-penal';
+import { NuevoUsuarioComponent } from './pages/nuevo-usuario/nuevo-usuario';
 import { authGuard } from './guards/auth-guard';
 
 export const routes: Routes = [
@@ -18,6 +18,7 @@ export const routes: Routes = [
   // 🔐 Rutas protegidas
   { path: 'seleccion', component: SeleccionComponent, canActivate: [authGuard] },
   { path: 'expedientes', component: ListadoExpedientesComponent, canActivate: [authGuard] },
+  { path: 'nuevo-usuario', component: NuevoUsuarioComponent, canActivate: [authGuard] },
   { path: 'nuevo-usuario-penal', component: PenalForm, canActivate: [authGuard] },
   { path: 'vp', component: ValoracionPenalComponent, canActivate: [authGuard] },
   { path: 'valoracion-psicologica', component: ValoracionPenalComponent, canActivate: [authGuard] },
@@ -62,6 +63,15 @@ export const routes: Routes = [
         .then(m => m.ProyectoVida),
     title: 'Plan de Trabajo Individual',
   },
+
+  {
+  path: 'nuevo-expediente-penal',
+  canActivate: [authGuard],
+  loadComponent: () =>
+    import('./pages/nuevo-expediente-penal/nuevo-expediente-penal')
+      .then(m => m.NuevoExpedientePenalComponent),
+  title: 'Nuevo Expediente Penal'
+},
 
   // VOLUNTARIOS - Personas
   {
@@ -117,6 +127,24 @@ export const routes: Routes = [
     import('./pages/nuevo-expediente-civico/nuevo-expediente-civico')
       .then(m => m.NuevoExpedienteCivicoComponent),
   title: 'Nuevo Expediente Cívico'
+},
+
+{
+  path: 'detalle-penal/:id',
+  canActivate: [authGuard],
+  loadComponent: () =>
+    import('./pages/detalle-penal/detalle-penal')
+      .then(m => m.DetallePenalComponent),
+  title: 'Detalle Expediente Penal'
+},
+
+{
+  path: 'detalle-civico/:id',
+  canActivate: [authGuard],
+  loadComponent: () =>
+    import('./pages/detalle-civico/detalle-civico')
+      .then(m => m.DetalleCivicoComponent),
+  title: 'Detalle Expediente Cívico'
 },
 
 // FINAL

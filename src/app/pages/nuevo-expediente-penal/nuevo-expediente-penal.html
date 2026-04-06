@@ -1,0 +1,78 @@
+<div class="container">
+
+  <!-- 🔥 LOADING -->
+  <div class="overlay" *ngIf="loading">
+    <div class="loader"></div>
+    <p>Procesando...</p>
+  </div>
+
+  <!-- 🔥 STEP INDICATOR -->
+  <div class="steps">
+    <div [class.active]="paso === 1">1. Beneficiario</div>
+    <div [class.active]="paso === 2">2. Expediente</div>
+  </div>
+
+  <!-- PASO 1 -->
+  <div *ngIf="paso === 1" class="card fade">
+
+    <h2>👤 Nuevo Beneficiario</h2>
+
+    <form [formGroup]="beneficiarioForm">
+
+      <input placeholder="Nombre completo" formControlName="nombre">
+      <input placeholder="CURP" formControlName="curp">
+
+      <select formControlName="sexo" title="Selecciona el sexo">
+  <option value="HOMBRE">Hombre</option>
+  <option value="MUJER">Mujer</option>
+</select>
+
+<select formControlName="unidadTiempo" title="Selecciona la unidad de tiempo">
+  <option value="HORAS">Horas</option>
+  <option value="DIAS">Días</option>
+</select>
+
+      <input type="date" formControlName="fechaNacimiento" title="Fecha de nacimiento">
+      <input type="number" placeholder="Tiempo asignado" formControlName="tiempoAsignado">
+
+
+
+      <button type="button" (click)="crearBeneficiario()">
+        Siguiente →
+      </button>
+
+    </form>
+
+  </div>
+
+  <!-- PASO 2 -->
+  <div *ngIf="paso === 2" class="card fade">
+
+    <h2>⚖️ Expediente Penal</h2>
+
+    <form [formGroup]="penalForm">
+
+      <input placeholder="Causa penal" formControlName="cPenal">
+      <input placeholder="Expediente técnico" formControlName="expedienteTecnico">
+      <input placeholder="Folio expediente" formControlName="folioExpediente">
+      <input placeholder="Juzgado" formControlName="juzgado">
+      <input placeholder="Delito" formControlName="delito">
+      <input placeholder="Agraviado" formControlName="agraviado">
+
+      <input type="date" formControlName="fechaIngresoPrograma" title="Fecha ingreso al programa">
+      <input type="date" formControlName="fechaSuspensionProceso" title="Fecha suspensión de proceso">
+      <input type="date" formControlName="fechaFinSupervision" title="Fecha fin de supervisión">
+
+      <input placeholder="Medida cautelar" formControlName="medidaCautelar">
+
+      <textarea placeholder="Observaciones" formControlName="observaciones"></textarea>
+
+      <button type="button" (click)="crearExpediente()">
+        Guardar Expediente
+      </button>
+
+    </form>
+
+  </div>
+
+</div>
