@@ -1,42 +1,46 @@
 import { Routes } from '@angular/router';
+import { LoginComponent } from './auth/login/login';
+import { authGuard } from './guards/auth-guard';
+
+//  DASHBOARD
+import { SeleccionComponent } from './dashboard/seleccion/seleccion';
+import { ListadoExpedientesComponent } from './dashboard/listado-expedientes/listado-expedientes';
+
+// COMPONENTES
 import { FormuPsico } from './civil/formu-psico/formu-psico';
 import { SeguimientoPsi } from './civil/seguimiento-psi/seguimiento-psi';
 import { PerfilPsicologa } from './civil/perfil-psicologa/perfil-psicologa';
 import { PerfilGuia } from './civil/perfil-guia/perfil-guia';
 import { PerfilTrabajoS } from './civil/perfil-trabajo-s/perfil-trabajo-s';
 import { PerfilAdmin } from './civil/perfil-admin/perfil-admin';
-import { LoginComponent } from './auth/login/login';
-import { SeleccionComponent } from './dashboard/seleccion/seleccion';
-import { ListadoExpedientesComponent } from './dashboard/listado-expedientes/listado-expedientes';
+
 import { PenalForm } from './components/penal-form/penal-form';
 import { ValoracionPenalComponent } from './components/valoracion-penal/valoracion-penal';
-import { authGuard } from './guards/auth-guard';
+import { NuevoUsuarioComponent } from './pages/nuevo-usuario/nuevo-usuario';
 
- 
+
 export const routes: Routes = [
-
-  //  Inicio
+  // Redireccionamiento principal
   { path: '', redirectTo: 'login', pathMatch: 'full' },
 
-  //  Pública
+  // 🔓 Ruta pública
   { path: 'login', component: LoginComponent },
 
-  //  Protegidas principales
+  // 🔐 Rutas protegidas
   { path: 'seleccion', component: SeleccionComponent, canActivate: [authGuard] },
   { path: 'expedientes', component: ListadoExpedientesComponent, canActivate: [authGuard] },
+
+  { path: 'nuevo-usuario', component: NuevoUsuarioComponent, canActivate: [authGuard] },
   { path: 'nuevo-usuario-penal', component: PenalForm, canActivate: [authGuard] },
+
   { path: 'vp', component: ValoracionPenalComponent, canActivate: [authGuard] },
   { path: 'valoracion-psicologica', component: ValoracionPenalComponent, canActivate: [authGuard] },
+  {
+    path: 'formu-psico',
+    component: FormuPsico,
+    canActivate: [authGuard]
+  },
 
-  //  Perfiles (LAS QUE PEDISTE)
-  { path: 'psicologa', component: PerfilPsicologa, canActivate: [authGuard] },
-  { path: 'guia', component: PerfilGuia, canActivate: [authGuard] },
-  { path: 'trabajos', component: PerfilTrabajoS, canActivate: [authGuard] },
-  { path: 'admin', component: PerfilAdmin, canActivate: [authGuard] },
-  { path: 'formu-psico', component: FormuPsico, canActivate: [authGuard] },
-  { path: 'segui-psi', component: SeguimientoPsi, canActivate: [authGuard] },
-
-  //  Otras rutas
   {
     path: 'trabajo-social',
     canActivate: [authGuard],
@@ -66,16 +70,73 @@ export const routes: Routes = [
         .then(m => m.ProyectoVida),
   },
 
-  // Cívico
+  // VOLUNTARIOS - Personas
   {
-    path: 'nuevo-expediente-civico',
+    path: 'voluntarios/personas',
     canActivate: [authGuard],
     loadComponent: () =>
-      import('./pages/nuevo-expediente-civico/nuevo-expediente-civico')
-        .then(m => m.NuevoExpedienteCivicoComponent),
+      import('./voluntarios/pages/personas/personas-list/personas-list')
+        .then(m => m.PersonasList)
+  },
+  {
+    path: 'voluntarios/personas/nuevo',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./voluntarios/pages/personas/persona-form/persona-form')
+        .then(m => m.PersonaForm)
+  },
+  {
+    path: 'voluntarios/personas/editar/:id',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./voluntarios/pages/personas/persona-form/persona-form')
+        .then(m => m.PersonaForm)
   },
 
-  // 🔴 ÚNICO wildcard (AQUÍ DECIDES)
-  { path: '**', redirectTo: 'login' }
+  // VOLUNTARIOS - Actividades
+  {
+    path: 'voluntarios/actividades',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./voluntarios/pages/actividades/actividades-list/actividades-list')
+        .then(m => m.ActividadesList)
+  },
+  {
+    path: 'voluntarios/actividades/nueva',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./voluntarios/pages/actividades/actividad-form/actividad-form')
+        .then(m => m.ActividadForm)
+  },
+  {
+    path: 'voluntarios/actividades/editar/:id',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./voluntarios/pages/actividades/actividad-form/actividad-form')
+        .then(m => m.ActividadForm)
+  },
 
-];  
+  //civico
+{
+  path: 'nuevo-expediente-civico',
+  canActivate: [authGuard], // opcional pero recomendado
+  loadComponent: () =>
+    import('./pages/nuevo-expediente-civico/nuevo-expediente-civico')
+      .then(m => m.NuevoExpedienteCivicoComponent),
+  title: 'Nuevo Expediente Cívico'
+},
+// Perfiles 
+  { path: 'psicologa', component: PerfilPsicologa, canActivate: [authGuard] },
+  { path: 'guia', component: PerfilGuia, canActivate: [authGuard] },
+  { path: 'trabajos', component: PerfilTrabajoS, canActivate: [authGuard] },
+  { path: 'admin', component: PerfilAdmin, canActivate: [authGuard] },
+
+  //  Psicología 
+  { path: 'formu-psico', component: FormuPsico, canActivate: [authGuard] },
+  { path: 'segui-psi', component: SeguimientoPsi, canActivate: [authGuard] },
+
+// FINAL
+{ path: '**', redirectTo: 'login' }
+
+
+];

@@ -17,7 +17,9 @@ export class SeleccionComponent {
   irAModulo(modulo: string) {
     // Navegación según módulo seleccionado
     if (modulo === 'penal') {
-      this.router.navigate(['/vp']);
+
+      //this.router.navigate(['/vp']);
+      this.router.navigate(['/nuevo-expediente-penal']);
     } else if (modulo === 'civico') {
 
       this.router.navigate(['/nuevo-expediente-civico']);

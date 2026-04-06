@@ -23,6 +23,11 @@
         <svg class="icon-margin" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
         Nuevo Ingreso
       </button>
+
+      <button *ngIf="role === 'admin'" class="btn-primary pulse-hover" (click)="nuevoUsuario()" style="background-color: #2ecc71;">
+        <svg class="icon-margin" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle><line x1="12" y1="12" x2="12" y2="18"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>
+        Nuevo Usuario
+      </button>
     </div>
 
     <div class="controls-section fade-in-up delay-1">
@@ -102,7 +107,7 @@
         </div>
 
         <div class="card-footer">
-          <button class="btn-action" (click)="continuarSeguimiento(exp.id)">
+          <button class="btn-action" (click)="continuarSeguimiento(exp)">
             {{ exp.estatus === 'Incompleto' ? 'Completar Datos →' : 'Ver Detalles →' }}
           </button>
         </div>
