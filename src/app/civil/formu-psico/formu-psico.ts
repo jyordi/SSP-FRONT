@@ -1,6 +1,6 @@
-import { Component } from '@angular/core';
+import { Component, ViewEncapsulation } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormArray } from '@angular/forms';
-import { ViewEncapsulation } from '@angular/core';
+
 @Component({
   selector: 'app-formu-psico',
   standalone: true,
@@ -13,11 +13,7 @@ export class FormuPsico {
 
   entrevistaForm: FormGroup;
 
-  currentSection = 1;
-  totalSections = 7;
-
   constructor(private fb: FormBuilder) {
-
     this.entrevistaForm = this.fb.group({
 
       // 1️⃣ GENERALES
@@ -36,16 +32,16 @@ export class FormuPsico {
       ocupacion: [''],
       domicilio: [''],
 
-      // SITUACIÓN JURÍDICA
+      // 2️⃣ SITUACIÓN JURÍDICA
       fechaDetencion: [''],
       faltaCivica: [''],
       relatoHechos: [''],
 
-      // NÚCLEO FAMILIAR
+      // 3️⃣ NÚCLEO FAMILIAR
       familiares: this.fb.array([]),
       observacionesFamilia: [''],
 
-      // USO DE SUSTANCIAS
+      // 4️⃣ USO DE SUSTANCIAS
       consumeAlcohol: [''],
       especificaConsumo: [''],
       haRecibidoTerapias: [''],
@@ -57,35 +53,35 @@ export class FormuPsico {
       perteneceGrupoCultural: [''],
       especifiquegrupo: [''],
 
-
-      // EMOCIONES
+      // 5️⃣ EMOCIONES
       miedo: [''],
       alegria: [''],
       enojo: [''],
       tristeza: [''],
       amor: [''],
 
-      // PROYECTO DE VIDA
+      // 6️⃣ DESTREZAS Y SALUD
+      destrezas: [''],
+      deportes: [''],
+      tiempoLibre: [''],
+      saludGeneral: [''],
+      enfermedadCronica: [''],
+      llevaTratamiento: [''],
+      detalleTratamiento: [''],
+
+      // 7️⃣ PROYECTO DE VIDA
       proyectoPersonal: [''],
       proyectoFamiliar: [''],
       proyectoLaboral: [''],
       proyectoEspiritual: [''],
       proyectoAcademico: [''],
-      proyectoSocial: [''],
-
-
-      destrezas: [''],
-deportes: [''],
-tiempoLibre: [''],
-saludGeneral: [''],
-enfermedadCronica: [''],
-llevaTratamiento: [''],
-detalleTratamiento: [''],
+      proyectoSocial: ['']
     });
-
   }
 
-  //FORMARRAY
+  // =====================
+  // MANEJO DEL FORMARRAY (Familiares)
+  // =====================
   get familiares(): FormArray {
     return this.entrevistaForm.get('familiares') as FormArray;
   }
@@ -107,24 +103,14 @@ detalleTratamiento: [''],
     this.familiares.removeAt(index);
   }
 
-  //  NAVEGACIÓN
-  nextSection() {
-    if (this.currentSection < this.totalSections) {
-      this.currentSection++;
-    }
-  }
-
-  prevSection() {
-    if (this.currentSection > 1) {
-      this.currentSection--;
-    }
-  }
-
-  //  SUBMIT
+  // =====================
+  // SUBMIT
+  // =====================
   onSubmit() {
     if (this.entrevistaForm.valid) {
-      console.log(this.entrevistaForm.value);
+      console.log('✅ Formulario válido y listo para enviar:', this.entrevistaForm.value);
     } else {
+      console.warn('❌ Faltan campos requeridos.');
       this.entrevistaForm.markAllAsTouched();
     }
   }

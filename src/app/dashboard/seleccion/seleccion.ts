@@ -21,10 +21,10 @@ export class SeleccionComponent {
       //this.router.navigate(['/vp']);
       this.router.navigate(['/nuevo-expediente-penal']);
     } else if (modulo === 'civico') {
-      
+
       this.router.navigate(['/nuevo-expediente-civico']);
     } else if (modulo === 'voluntario') {
-      console.log('Ir a voluntariado');
+      this.router.navigate(['/voluntarios/personas']);
     }
   }
 

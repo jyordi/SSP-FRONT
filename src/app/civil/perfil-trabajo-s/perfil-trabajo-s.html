@@ -1,0 +1,279 @@
+<div class="dashboard-layout">
+  <main class="main-content">
+    
+    <header class="topbar">
+      <div class="topbar-left">
+        <h3 class="topbar-title">Portal Institucional <br></h3>
+      </div>
+      
+      <div class="topbar-center">
+        @if (vistaPrincipal === 'lista') {
+          <app-busqueda></app-busqueda>
+        }
+      </div>
+
+      <div class="topbar-right">
+        <button class="btn-logout user-profile" (click)="openLogoutModal()" title="Cerrar sesión">
+          <div class="avatar">👩‍💼</div>
+          <div class="user-info">
+            <strong>Trabajo Social</strong>
+            <span class="status-online">En línea </span>
+          </div>
+        </button>
+
+        
+      </div>
+    </header>
+
+    <!-- MODAL  -->
+@if (showLogoutModal) {
+  <div class="modal-overlay">
+    <div class="modal">
+      <h3>¿Cerrar sesión?</h3>
+      <p>Tu sesión actual se cerrará.</p>
+
+      <div class="modal-actions">
+        <button class="btn-cancel" (click)="closeLogoutModal()">Cancelar</button>
+        <button class="btn-confirm" (click)="logout()">Sí, cerrar sesión</button>
+      </div>
+    </div>
+  </div>
+}
+    <div class="content-area">
+
+      <!-- INICIO -->
+      @if (vistaPrincipal === 'inicio') {
+        <div class="fade-in">
+          
+          <div class="welcome-banner">
+            <h1 class="page-title">Bienvenido(a) al Panel de Control</h1>
+            <p class="page-subtitle">Seleccione el área de trabajo a la que desea acceder.</p>
+          </div>
+
+          <div class="quick-actions-grid">
+            <div class="action-card" (click)="irAPendientes()">
+              <div class="action-icon">⏳</div>
+              <h3>Pendientes</h3>
+              <p>Expedientes por evaluar</p>
+            </div>
+
+            <div class="action-card" (click)="irAHistorial()">
+              <div class="action-icon">📂</div>
+              <h3>Historial</h3>
+              <p>Evaluaciones completadas</p>
+            </div>
+          </div>
+
+        </div>
+      }
+
+      <!-- LISTA -->
+      @if (vistaPrincipal === 'lista') {
+        <div class="fade-in">
+          
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">
+                {{ vistaLateral === 'pendientes' ? 'Expedientes Pendientes' : 'Historial de Evaluaciones' }}
+              </h1>
+              <p class="page-subtitle">
+                {{ vistaLateral === 'pendientes'
+                  ? 'Seleccione un joven para redactar su estudio y plan de trabajo.'
+                  : 'Consulte los estudios y planes ya finalizados.' }}
+              </p>
+            </div>
+
+            <!-- BOTÓN VOLVER -->
+            <button class="btn-volver-pro" (click)="volver()">
+              <span class="icon">{{ iconoBotonVolver }}</span>
+              <span class="text">{{ textoBotonVolver }}</span>
+            </button>
+          </div>
+
+          <div class="cards-grid">
+            @for (persona of personasFiltradas; track persona.id) {
+              <div class="profile-card" (click)="verDetalle(persona)">
+                <div class="profile-card-header">
+                  <div class="profile-avatar"
+                       [ngStyle]="{'background-color': persona.estado === 'completado' ? 'var(--success-bg)' : 'var(--bg-light)'}">
+                    {{ persona.estado === 'completado' ? '✅' : '📝' }}
+                  </div>
+                  <div>
+                    <h3>{{ persona.nombre }}</h3>
+                    <span class="badge">{{ persona.expediente }}</span>
+                  </div>
+                </div>
+                
+                <div class="profile-card-body" style="margin-bottom: 1rem;">
+                  <p style="margin: 0;">
+                    <strong>Estado:</strong> 
+                    <span [ngStyle]="{
+                      'color': persona.estado === 'completado' ? 'var(--success-text)' : 'var(--brand-primary)',
+                      'font-weight': '600'
+                    }">
+                      {{ persona.estado | uppercase }}
+                    </span>
+                  </p>
+                </div>
+                
+                <button class="btn-ver-perfil">
+                  {{ persona.estado === 'pendiente' ? 'Iniciar Evaluación →' : 'Ver Documentos →' }}
+                </button>
+              </div>
+            }
+            
+            @if (personasFiltradas.length === 0) {
+              <div class="empty-state" style="text-align: center; padding: 3rem; color: var(--text-tertiary);">
+                <h2 style="font-size: 3rem; margin-bottom: 1rem;">📭</h2>
+                <p>No hay registros en esta sección por el momento.</p>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- DETALLE -->
+      @if (vistaPrincipal === 'detalle' && personaSeleccionada) {
+        <div class="fade-in">
+          
+          <div class="detalle-header">
+            <div class="header-left">
+
+              <div class="breadcrumb-buttons">
+                <button class="btn-volver-pro" (click)="volver()">
+                  <span class="icon">{{ iconoBotonVolver }}</span>
+                  <span class="text">{{ textoBotonVolver }}</span>
+                </button>
+              </div>
+
+              <h1 class="page-title" style="margin-top: 0.5rem;">
+                {{ personaSeleccionada.nombre }}
+              </h1>
+
+              <p class="page-subtitle" style="margin-bottom: 0;">
+                Expediente:
+                <span class="badge">{{ personaSeleccionada.expediente }}</span>
+              </p>
+            </div>
+            
+            <div class="action-bar-right">
+              <button class="btn-secondary" (click)="descargarPDF('Documento_TS')">
+                📄 Imprimir/PDF
+              </button>
+
+              @if (personaSeleccionada.estado === 'pendiente') {
+                <button class="btn-success" (click)="guardarYCompletar()">
+                  💾 Guardar y Finalizar
+                </button>
+              }
+            </div>
+          </div>
+
+          <div class="tabs-container">
+            <button class="tab"
+                    [class.active]="tabActual === 'estudio'"
+                    (click)="cambiarTab('estudio')">
+              📄 Estudio de Trabajo Social
+            </button>
+
+            <button class="tab"
+                    [class.active]="tabActual === 'plan'"
+                    (click)="cambiarTab('plan')">
+              🎯 Plan de Trabajo Individual
+            </button>
+          </div>
+
+          <!-- ESTUDIO -->
+          @if (tabActual === 'estudio') {
+            <div class="tab-content fade-in editor-container">
+              <div class="word-document">
+
+                <div style="text-align: center; margin-bottom: 2rem;">
+                  <h2 style="margin: 0;">ESTUDIO DE TRABAJO SOCIAL</h2>
+                  <p style="color: var(--text-secondary); margin-top: 0.5rem;">
+                    SUBSECRETARÍA DE PREVENCIÓN Y REINSERCIÓN SOCIAL
+                  </p>
+                </div>
+                
+                <div>
+                  <p><strong>Nombre:</strong> {{ personaSeleccionada.nombre }}</p>
+                  <p><strong>Expediente:</strong> {{ personaSeleccionada.expediente }}</p>
+
+                  <hr style="margin: 1.5rem 0; border: 0; border-top: 1px solid var(--border-primary);">
+                  
+                  <textarea [(ngModel)]="personaSeleccionada.estudioWord"
+                            class="word-textarea"
+                            placeholder="Comience a redactar el estudio social aquí...">
+                  </textarea>
+                </div>
+              </div>
+            </div>
+          }
+
+          <!-- PLAN -->
+          @if (tabActual === 'plan') {
+            <div class="tab-content fade-in">
+              <div class="form-card">
+                
+                <h2 class="form-title">PLAN DE TRABAJO INDIVIDUAL</h2>
+                
+                <div class="table-wrapper">
+                  <div class="table-header-title">
+                    <h3>
+                      Proceso de seguimiento de actividades del programa 
+                      <i style="font-family: serif;">“RECONECTA CON LA PAZ.”</i>
+                    </h3>
+                  </div>
+
+                  <div class="table-responsive">
+                    <table class="data-table">
+                      <thead>
+                        <tr>
+                          <th>ACTIVIDAD</th>
+                          <th>ESTATUS</th>
+                          <th>OBJETIVO</th>
+                          <th>CUMPLIMIENTO</th>
+                        </tr>
+                      </thead>
+
+                      <tbody>
+                        @for (actividad of personaSeleccionada.planTrabajo.actividadesSeguimiento; track actividad.nombre) {
+                          <tr>
+                            <td class="cell-actividad">{{ actividad.nombre }}</td>
+
+                            <td class="cell-input">
+                              <input type="text" [(ngModel)]="actividad.estatus">
+                            </td>
+
+                            <td class="cell-input">
+                              <textarea [(ngModel)]="actividad.objetivo"></textarea>
+                            </td>
+
+                            <td class="cell-input">
+                              <textarea [(ngModel)]="actividad.cumplimiento"></textarea>
+                            </td>
+                          </tr>
+                        }
+
+                        <tr>
+                          <td class="cell-actividad">OBSERVACIONES</td>
+                          <td colspan="3" class="cell-input">
+                            <textarea [(ngModel)]="personaSeleccionada.planTrabajo.observaciones"></textarea>
+                          </td>
+                        </tr>
+
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          }
+
+        </div>
+      }
+
+    </div>
+  </main>
+</div>

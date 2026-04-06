@@ -125,13 +125,7 @@ export class ListadoExpedientesComponent implements OnInit {
   }
 
   cargarVoluntario() {
-    this.expedientesService.getVoluntario().subscribe({
-      next: (res) => {
-        console.log('Voluntario:', res);
-        this.expedientes = res;
-      },
-      error: (err) => console.error(err)
-    });
+    this.router.navigate(['/voluntarios/personas']);
   }
 
   continuarSeguimiento(expediente: any) {

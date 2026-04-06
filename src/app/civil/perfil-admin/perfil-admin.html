@@ -1,0 +1,450 @@
+<div class="dashboard-layout">
+
+  
+
+  <main class="main-content">
+    
+   <header class="topbar">
+
+  <!-- IZQUIERDA -->
+  <div class="topbar-left">
+    <h3 class="topbar-title">Portal Institucional - Admin</h3>
+  </div>
+
+  <!-- CENTRO (BUSCADOR) -->
+  <div class="topbar-center">
+    @if (vistaPrincipal === 'lista') {
+      <app-busqueda></app-busqueda>
+    }
+  </div>
+
+  <!-- DERECHA -->
+  <div class="topbar-right">
+
+    <button class="btn-secondary"
+      style="margin-right: 1rem; border: 1px solid var(--border-input); padding: 0.4rem 1rem; border-radius: 6px;"
+      (click)="abrirModalPlantilla()">
+      ⚙️ Configurar Plantilla
+    </button>
+
+    <button class="user-profile logout-btn" (click)="openLogoutModal()">
+      <div class="avatar">🧑‍💻</div>
+      <div class="user-info">
+        <strong>Administrador</strong>
+        <span>En línea</span>
+      </div>
+    </button>
+
+  </div>
+
+</header>
+
+<!-- MODAL -->
+@if (showLogoutModal) {
+  <div class="modal-overlay">
+    <div class="modal">
+      <h3>¿Cerrar sesión?</h3>
+      <p>Tu sesión actual se cerrará.</p>
+
+      <div class="modal-actions">
+        <button  class="btn-cancel" (click)="closeLogoutModal()">Cancelar</button>
+        <button class="btn-confirm" (click)="logout()">Sí, cerrar sesión</button>
+      </div>
+    </div>
+  </div>
+}
+
+
+    <div class="content-area">
+
+      @if (vistaPrincipal === 'lista') {
+        <div class="fade-in">
+          <h1 class="page-title">Expediente Único de Usuarios</h1>
+          <p class="page-subtitle">Monitoreo global de avances por departamento.</p>
+          
+
+          <div class="table-card">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Expediente</th>
+                  <th>Nombre Completo</th>
+                  <th>Avance (Horas)</th>
+                  <th>Estado Global</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (persona of expedientesMaestros; track persona.id) {
+                  <tr>
+                    <td><strong>{{ persona.expediente }}</strong></td>
+                    <td>{{ persona.nombre }}</td>
+                    <td>
+                      <div style="display: flex; align-items: center; gap: 10px;">
+                        <progress [value]="persona.guias.horasCubiertas" [max]="persona.guias.horasTotales" style="width: 100px;"></progress>
+                        <span style="font-size: 0.85rem;">{{ persona.guias.horasCubiertas }}/{{ persona.guias.horasTotales }}</span>
+                      </div>
+                    </td>
+                    <td>
+                      <span class="badge" [ngClass]="persona.guias.horasCubiertas >= persona.guias.horasTotales ? 'badge-success' : 'badge-neutral'">
+                        {{ persona.guias.horasCubiertas >= persona.guias.horasTotales ? 'Apto para Oficio' : 'En Seguimiento' }}
+                      </span>
+                    </td>
+                    <td><button class="btn-action" style="border-color: #111827; color: #111827;" (click)="verDetalle(persona)">Ver Expediente</button></td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      }
+
+  
+      @if (vistaPrincipal === 'detalle' && personaSeleccionada) {
+        <div class="fade-in">
+         <div class="breadcrumb-buttons">
+  <button class="btn-volver-pro" (click)="volverALista()">
+    <span class="icon">←</span>
+    <span>Volver a lista</span>
+  </button>
+</div>
+          
+          <div class="detalle-header" style="background: white; padding: 2rem; border-radius: 10px; border: 1px solid var(--border-primary); margin-bottom: 2rem;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+              <div>
+                <h1 style="margin: 0; color: var(--text-primary); font-size: 2.2rem;">{{ personaSeleccionada.nombre }}</h1>
+                <p style="margin: 5px 0 0 0; color: var(--text-tertiary); font-size: 1.1rem;">EXP: <strong>{{ personaSeleccionada.expediente }}</strong></p>
+              </div>
+              <div style="text-align: right;">
+                <h3 style="margin: 0; font-size: 2.5rem; color: var(--brand-primary);">
+                  {{ personaSeleccionada.guias.horasCubiertas }}<span style="font-size: 1.2rem; color: var(--text-tertiary);">/{{ personaSeleccionada.guias.horasTotales }} hrs</span>
+                </h3>
+              </div>
+            </div>
+          </div>
+
+          <div class="tabs-container">
+            
+            <button class="tab" [class.active]="tabActual === 'psicologia'" (click)="cambiarTab('psicologia')"> Área Psicología</button>
+            <button class="tab" [class.active]="tabActual === 'guias'" (click)="cambiarTab('guias')"> Área Guías</button>
+            <button class="tab" [class.active]="tabActual === 'tsocial'" (click)="cambiarTab('tsocial')"> Área Trabajo Social</button>
+            <button class="tab" [class.active]="tabActual === 'oficio'" (click)="cambiarTab('oficio')" style="color: var(--brand-primary); font-weight: bold;"> Resolución / Oficio</button>
+          </div>
+
+
+          <!-- ==========================================
+               VISTA: ÁREA DE PSICOLOGÍA
+               ========================================== -->
+          @if (tabActual === 'psicologia') {
+            <div class="tab-content fade-in">
+              <div style="background-color: #fdf8f9; border-left: 4px solid var(--brand-primary); padding: 1rem; margin-bottom: 1.5rem; border-radius: 4px;">
+                <p style="margin: 0; color: var(--brand-dark); font-weight: 600;"> Área de Psicología</p>
+              </div>
+
+              <div class="cards-grid">
+                <div class="form-card" style="grid-column: 1 / -1;">
+                  <h3 style="color: var(--brand-primary); border-bottom: 1px solid var(--border-input); padding-bottom: 0.5rem;">Entrevista Clínica Inicial</h3>
+                  <div style="margin-top: 1rem;">
+                    <p style="font-weight: bold; margin-bottom: 0.2rem;">Motivo de Consulta / Canalización:</p>
+                    <div style="background: var(--bg-light); padding: 1rem; border-radius: 6px; border: 1px solid var(--border-input);">
+                      {{ personaSeleccionada.psicologia.motivoConsulta }}
+                    </div>
+                  </div>
+                  <div style="margin-top: 1rem;">
+                    <p style="font-weight: bold; margin-bottom: 0.2rem;">Diagnóstico / Impresión Clínica:</p>
+                    <div style="background: var(--bg-light); padding: 1rem; border-radius: 6px; border: 1px solid var(--border-input);">
+                      {{ personaSeleccionada.psicologia.diagnostico }}
+                    </div>
+                  </div>
+                </div>
+
+                <div class="form-card" style="grid-column: 1 / -1;">
+                  <h3 style="color: var(--brand-primary); border-bottom: 1px solid var(--border-input); padding-bottom: 0.5rem;">Historial de Notas de Evolución</h3>
+                  @for (nota of personaSeleccionada.psicologia.notasEvolucion; track nota.fecha) {
+                    <div style="background: white; padding: 1rem; border-left: 3px solid #3b82f6; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-top: 1rem;">
+                      <p style="font-size: 0.85rem; color: var(--text-tertiary); margin: 0 0 0.5rem 0;">Fecha de sesión: <strong>{{ nota.fecha }}</strong></p>
+                      <p style="margin: 0;">{{ nota.nota }}</p>
+                    </div>
+                  }
+                </div>
+              </div>
+            </div>
+          }
+
+          <!-- ==========================================
+               VISTA: ÁREA DE GUÍAS (OPERATIVO)
+               ========================================== -->
+          @if (tabActual === 'guias') {
+            <div class="tab-content fade-in">
+              <div style="background-color: #fdf8f9; border-left: 4px solid var(--brand-primary); padding: 1rem; margin-bottom: 1.5rem; border-radius: 4px;">
+                <p style="margin: 0; color: var(--brand-dark); font-weight: 600;"> Área Operativa (Guías)</p>
+              </div>
+
+              <div class="table-card" style="margin-bottom: 2rem;">
+                <h3 style="padding: 1rem 1.5rem; margin: 0; background: var(--bg-light); border-bottom: 1px solid var(--border-primary);">Control de Horas Cubiertas</h3>
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Fecha</th>
+                      <th>Actividad Realizada</th>
+                      <th style="text-align: right;">Horas Acreditadas</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (hora of personaSeleccionada.guias.registrosHoras; track hora.fecha) {
+                      <tr>
+                        <td>{{ hora.fecha }}</td>
+                        <td>{{ hora.actividad }}</td>
+                        <td style="text-align: right; font-weight: bold; color: var(--success-text);">+ {{ hora.horas }} hrs</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+
+              @if (personaSeleccionada.guias.inasistencias.length > 0) {
+                <div class="table-card" style="border-color: #fca5a5;">
+                  <h3 style="padding: 1rem 1.5rem; margin: 0; background: #fee2e2; color: #991b1b; border-bottom: 1px solid #fca5a5;">Reporte de Inasistencias e Incidencias</h3>
+                  <table class="data-table">
+                    <thead>
+                      <tr>
+                        <th>Fecha</th>
+                        <th>Tipo</th>
+                        <th>Descripción de los hechos</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @for (falta of personaSeleccionada.guias.inasistencias; track falta.fecha) {
+                        <tr>
+                          <td style="font-weight: bold;">{{ falta.fecha }}</td>
+                          <td style="color: #991b1b; font-weight: 600;">{{ falta.tipo }}</td>
+                          <td>{{ falta.descripcion }}</td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                </div>
+              }
+            </div>
+          }
+
+          <!-- ==========================================
+               VISTA: ÁREA DE TRABAJO SOCIAL
+               ========================================== -->
+          @if (tabActual === 'tsocial') {
+            <div class="tab-content fade-in">
+              <div style="background-color: #fdf8f9; border-left: 4px solid var(--brand-primary); padding: 1rem; margin-bottom: 1.5rem; border-radius: 4px;">
+                <p style="margin: 0; color: var(--brand-dark); font-weight: 600;">Área de Trabajo Social</p>
+              </div>
+
+              <div class="form-card" style="margin-bottom: 2rem;">
+                <h3 style="color: var(--brand-primary); border-bottom: 1px solid var(--border-input); padding-bottom: 0.5rem; margin-top: 0;">Estudio de Trabajo Social</h3>
+                <div style="background: var(--bg-page); padding: 1.5rem; border-radius: 6px; border: 1px dashed var(--border-input); margin-top: 1rem; white-space: pre-wrap; font-family: 'Times New Roman', Times, serif; font-size: 1.1rem;">
+                  {{ personaSeleccionada.trabajoSocial.estudioWord }}
+                </div>
+              </div>
+
+              <div class="form-card">
+                <h3 style="color: var(--brand-primary); border-bottom: 1px solid var(--border-input); padding-bottom: 0.5rem; margin-top: 0;">Plan de Trabajo Individual</h3>
+                <table style="width: 100%; border-collapse: collapse; margin-top: 1rem;">
+                  <thead>
+                    <tr>
+                      <th style="border: 1px solid black; padding: 0.8rem; background-color: var(--bg-light);">ACTIVIDAD</th>
+                      <th style="border: 1px solid black; padding: 0.8rem; background-color: var(--bg-light);">ESTATUS</th>
+                      <th style="border: 1px solid black; padding: 0.8rem; background-color: var(--bg-light);">OBJETIVO</th>
+                      <th style="border: 1px solid black; padding: 0.8rem; background-color: var(--bg-light);">CUMPLIMIENTO</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (act of personaSeleccionada.trabajoSocial.planTrabajo.actividadesSeguimiento; track act.nombre) {
+                      <tr>
+                        <td style="border: 1px solid black; padding: 0.8rem; font-weight: bold;">{{ act.nombre }}</td>
+                        <td style="border: 1px solid black; padding: 0.8rem;">{{ act.estatus }}</td>
+                        <td style="border: 1px solid black; padding: 0.8rem;">{{ act.objetivo }}</td>
+                        <td style="border: 1px solid black; padding: 0.8rem;">{{ act.cumplimiento }}</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+                <div style="margin-top: 1rem; padding: 1rem; background: var(--bg-light); border: 1px solid var(--border-input); border-radius: 4px;">
+                  <strong>Observaciones de Trabajo Social: </strong> {{ personaSeleccionada.trabajoSocial.planTrabajo.observaciones }}
+                </div>
+              </div>
+            </div>
+          }
+
+
+
+          @if (tabActual === 'oficio') {
+            <div class="tab-content fade-in">
+              <div class="form-card" style="padding: 2rem;">
+                <h2 style="font-size: 1.5rem; margin-bottom: 1.5rem; color: var(--brand-primary);">Datos para el Oficio de Conclusión</h2>
+                
+                @if (puedeGenerarOficio()) {
+                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
+                    <div>
+                      <label style="font-weight: 600;">Nombre del Lcdo. (Encabezado)</label>
+                      <input type="text" [(ngModel)]="datosOficio.lcdoEncabezado" class="table-input" placeholder="Ej: JUAN PÉREZ LÓPEZ" style="border: 1px solid var(--border-input); border-radius: 6px;">
+                    </div>
+                    <div>
+                      <label style="font-weight: 600;">Número de Oficio Generado</label>
+                      <input type="text" [(ngModel)]="datosOficio.noOficio" class="table-input" placeholder="Ej: DGPD/045/2026" style="border: 1px solid var(--border-input); border-radius: 6px;">
+                    </div>
+                    <div>
+                      <label style="font-weight: 600;">Oficio Remitente (Referencia Inicial)</label>
+                      <input type="text" [(ngModel)]="datosOficio.oficioInicial" class="table-input" placeholder="Ej: JCM/102/2025" style="border: 1px solid var(--border-input); border-radius: 6px;">
+                    </div>
+                    <div>
+                      <label style="font-weight: 600;">Fecha del Oficio Inicial</label>
+                      <input type="text" [(ngModel)]="datosOficio.fechaInicial" class="table-input" placeholder="Ej: 15 de enero de 2025" style="border: 1px solid var(--border-input); border-radius: 6px;">
+                    </div>
+                    <div style="grid-column: 1 / -1;">
+                      <label style="font-weight: 600;">Nombre del Juez que lo remitió</label>
+                      <input type="text" [(ngModel)]="datosOficio.juezRemitente" class="table-input" placeholder="Ej: MATEO RAMÍREZ DÍAZ" style="border: 1px solid var(--border-input); border-radius: 6px;">
+                    </div>
+                    <div style="grid-column: 1 / -1;">
+                      <label style="font-weight: 600;">Actividades realizadas a destacar:</label>
+                      <input type="text" [(ngModel)]="datosOficio.actividad1" class="table-input" style="border: 1px solid var(--border-input); border-radius: 6px; margin-bottom: 0.5rem;">
+                      <input type="text" [(ngModel)]="datosOficio.actividad2" class="table-input" style="border: 1px solid var(--border-input); border-radius: 6px; margin-bottom: 0.5rem;">
+                      <input type="text" [(ngModel)]="datosOficio.actividad3" class="table-input" style="border: 1px solid var(--border-input); border-radius: 6px;">
+                    </div>
+                  </div>
+
+                  <div style="text-align: center;">
+                    <button class="btn-download" style="font-size: 1.2rem; padding: 1rem 2rem; background-color: var(--brand-primary);" (click)="descargarOficio()">
+                      📜 Generar y Descargar Oficio PDF
+                    </button>
+                  </div>
+                } @else {
+                  <div style="background-color: #fef3c7; color: #92400e; padding: 1.5rem; border-radius: 8px; text-align: center;">
+                    <strong>Documento Bloqueado</strong><br>
+                    Aún faltan horas por cubrir. El oficio solo puede generarse al llegar al 100%.
+                  </div>
+                }
+              </div>
+            </div>
+          }
+
+        </div>
+      }
+
+    </div>
+  </main>
+</div>
+
+@if (personaSeleccionada) {
+<div class="hoja-impresion print-only">
+  
+  <div style="text-align: center; margin-bottom: 2rem; font-family: 'Times New Roman', Times, serif; font-size: 10pt; font-weight: bold;">
+    <p>{{ plantillaOficial.lemaAnual }}</p>
+  </div>
+
+  <div style="display: flex; justify-content: space-between; font-family: 'Times New Roman', Times, serif; font-size: 11pt; margin-bottom: 2rem;">
+    <div style="width: 50%;">
+      <p style="margin: 0;"><strong>LCDO. {{ datosOficio.lcdoEncabezado }}</strong></p>
+      <p style="margin: 0;"><strong>Sección:</strong> {{ plantillaOficial.seccion }}</p>
+      <p style="margin: 0;"><strong>No. de oficio:</strong> {{ datosOficio.noOficio }}</p>
+      <p style="margin: 0;"><strong>Asunto:</strong> {{ plantillaOficial.asunto }}</p>
+    </div>
+    <div style="width: 40%; text-align: right;">
+      <p style="margin: 0;">Oaxaca de Juárez, Oaxaca, {{ fechaHoy }}</p>
+    </div>
+  </div>
+
+  <div style="font-family: 'Times New Roman', Times, serif; font-size: 11pt; margin-bottom: 2rem; white-space: pre-wrap; font-weight: bold;">
+    {{ plantillaOficial.destinatario }}
+  </div>
+
+  <div style="text-align: justify; line-height: 1.8; font-family: 'Times New Roman', Times, serif; font-size: 12pt;">
+    <p>
+      Por medio del presente, y en seguimiento al oficio <strong>{{ datosOficio.oficioInicial }}</strong>, fechado el <strong>{{ datosOficio.fechaInicial }}</strong> del año en curso, remitido por el Lcdo. <strong>{{ datosOficio.juezRemitente }}</strong>, Juez Cívico Municipal Especializado en Faltas Administrativas para la Buena Convivencia Comunitaria, me permito informar lo siguiente:
+    </p>
+    <p>
+      El C. <strong>{{ personaSeleccionada.nombre | uppercase }}</strong> con número de expediente: <strong>{{ personaSeleccionada.expediente }}</strong>, concluyó de manera exitosa su participación en el programa “Reconecta con la Paz”, implementado por esta Dirección como parte de las acciones para la reintegración social y prevención de la reincidencia.
+    </p>
+    <p>
+      Durante su proceso, el beneficiario mostró compromiso y disposición para participar en las actividades psicosociales, culturales, comunitarias y formativas que contempla el programa.
+    </p>
+    <p>A lo largo de su estancia, llevó a cabo de forma satisfactoria las siguientes actividades:</p>
+    <ul style="list-style-type: decimal; margin-left: 2rem; margin-bottom: 1rem;">
+      <li>{{ datosOficio.actividad1 }}</li>
+      <li>{{ datosOficio.actividad2 }}</li>
+      <li>{{ datosOficio.actividad3 }}</li>
+    </ul>
+    <p>
+      En virtud de lo anterior, se considera que ha cumplido con los objetivos establecidos en su plan de intervención individual, concluyendo satisfactoriamente su proceso dentro del esquema de seguimiento del programa.
+    </p>
+    <p>
+      Para cualquier duda o aclaración, favor de comunicarse con el <strong>{{ plantillaOficial.coordinadorNombre }}</strong>, Coordinador del programa “Reconecta con la Paz”, al número <strong>{{ plantillaOficial.coordinadorTel }}</strong> o al correo electrónico <strong>{{ plantillaOficial.coordinadorCorreo }}</strong>. Sin otro particular, quedo a su disposición.
+    </p>
+  </div>
+
+  <div style="text-align: center; margin-top: 3rem; font-family: 'Times New Roman', Times, serif; font-size: 11pt;">
+    <p style="font-weight: bold; letter-spacing: 2px;">A T E N T A M E N T E</p>
+    <p style="white-space: pre-wrap;">{{ plantillaOficial.lemasDespedida }}</p>
+    
+    <br><br><br>
+    
+    <p style="font-weight: bold; margin: 0;">{{ plantillaOficial.directorNombre }}</p>
+    <p style="white-space: pre-wrap; margin: 0; font-weight: bold;">{{ plantillaOficial.directorCargo }}</p>
+  </div>
+
+  <div style="position: absolute; bottom: 2cm; left: 0; width: 100%; text-align: center; font-family: 'Times New Roman', Times, serif; font-size: 9pt; border-top: 1px solid black; padding-top: 5px;">
+    {{ plantillaOficial.piePagina }}
+  </div>
+
+</div>
+}
+
+@if (mostrarModalPlantilla) {
+  <div class="modal-overlay">
+    <div class="modal-content fade-in" style="max-width: 700px; max-height: 90vh; overflow-y: auto;">
+      
+      <div class="modal-header">
+        <h2>Configurar Plantilla Oficial (Administración)</h2>
+        <button class="btn-close" (click)="cerrarModalPlantilla()">✖</button>
+      </div>
+
+      <div class="modal-body">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div class="form-group" style="grid-column: 1 / -1;">
+            <label style="font-weight: 600;">Lema Anual (Encabezado Superior)</label>
+            <input type="text" [(ngModel)]="plantillaOficial.lemaAnual" class="table-input" style="border: 1px solid var(--border-input);">
+          </div>
+          <div class="form-group" style="grid-column: 1 / -1;">
+            <label style="font-weight: 600;">Dirección / Sección</label>
+            <input type="text" [(ngModel)]="plantillaOficial.seccion" class="table-input" style="border: 1px solid var(--border-input);">
+          </div>
+          <div class="form-group" style="grid-column: 1 / -1;">
+            <label style="font-weight: 600;">Destinatario Principal (Juez Cívico)</label>
+            <textarea [(ngModel)]="plantillaOficial.destinatario" rows="3" class="table-input" style="border: 1px solid var(--border-input); resize: vertical;"></textarea>
+          </div>
+          <div class="form-group">
+            <label style="font-weight: 600;">Nombre del Coordinador (Dudas)</label>
+            <input type="text" [(ngModel)]="plantillaOficial.coordinadorNombre" class="table-input" style="border: 1px solid var(--border-input);">
+          </div>
+          <div class="form-group">
+            <label style="font-weight: 600;">Teléfono del Coordinador</label>
+            <input type="text" [(ngModel)]="plantillaOficial.coordinadorTel" class="table-input" style="border: 1px solid var(--border-input);">
+          </div>
+          <div class="form-group" style="grid-column: 1 / -1;">
+            <label style="font-weight: 600;">Lemas de Despedida (Sufragio efectivo...)</label>
+            <textarea [(ngModel)]="plantillaOficial.lemasDespedida" rows="2" class="table-input" style="border: 1px solid var(--border-input);"></textarea>
+          </div>
+          <div class="form-group">
+            <label style="font-weight: 600;">Nombre del Director(a) General</label>
+            <input type="text" [(ngModel)]="plantillaOficial.directorNombre" class="table-input" style="border: 1px solid var(--border-input);">
+          </div>
+          <div class="form-group">
+            <label style="font-weight: 600;">Cargo del Director(a)</label>
+            <textarea [(ngModel)]="plantillaOficial.directorCargo" rows="2" class="table-input" style="border: 1px solid var(--border-input);"></textarea>
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; margin-top: 1.5rem;">
+          <button class="btn-success" (click)="cerrarModalPlantilla()">Guardar Configuración</button>
+        </div>
+      </div>
+    </div>
+  </div>
+} 

@@ -108,22 +108,73 @@ export class PersonaForm implements OnInit {
       return;
     }
     const datos = this.form.value as any;
+    
+    // Campos que son checkboxes (deben quedar como booleanos)
+    const camposBooleanos = ['certificadoPrimaria', 'certificadoSecundaria', 'certificadoBachillerato'];
+    
+    // Campos que deben convertirse a "Si"/"No" (select/radio buttons)
+    const camposSiNo = [
+      'practicaDeporte',
+      'tieneActaNacimiento',
+      'sabeLeerEscribir',
+      'leGustariaEstudiar',
+      'trabajaFormal',
+      'leGustariaCambiarTrabajo',
+      'sabeOficio',
+      'leGustariaAprenderOficio',
+      'padecimientoEnfermedad',
+      'cuentaTratamiento',
+      'enfermedadTransmisionSexual',
+      'necesitaLentes',
+      'atencionPsicologica'
+    ];
+    
+    const datosLimpios = Object.keys(datos).reduce((acc: any, key: string) => {
+      const valor = datos[key];
+      
+      // Si es un campo booleano (checkbox), mantenerlo como booleano
+      if (camposBooleanos.includes(key)) {
+        acc[key] = typeof valor === 'boolean' ? valor : false;
+      }
+      // Si es un campo "Si/No" y es booleano, convertir a string
+      else if (camposSiNo.includes(key) && typeof valor === 'boolean') {
+        acc[key] = valor ? 'Si' : 'No';
+      }
+      // Si es edad, convertir a string
+      else if (key === 'edad' && valor !== null && valor !== undefined && valor !== '') {
+        acc[key] = String(valor);
+      }
+      // Para otros campos: si no está vacío, incluirlo
+      else if (valor !== null && valor !== undefined && valor !== '') {
+        acc[key] = valor;
+      }
+      
+      return acc;
+    }, {});
+    
+    console.log('Datos limpios a enviar:', datosLimpios);
 
     if (this.editando && this.personaId) {
-      this.svc.update(this.personaId, datos).subscribe({
+      this.svc.update(this.personaId, datosLimpios).subscribe({
         next: () => {
           console.log('Persona actualizada');
           this.router.navigate(['/voluntarios/personas']);
         },
-        error: (err) => console.error('Error al actualizar:', err)
+        error: (err) => {
+          console.error('Error al actualizar:', err);
+          console.error('Mensaje de validación:', err.error?.message);
+        }
       });
     } else {
-      this.svc.create(datos).subscribe({
+      this.svc.create(datosLimpios).subscribe({
         next: () => {
           console.log('Persona creada');
           this.router.navigate(['/voluntarios/personas']);
         },
-        error: (err) => console.error('Error al crear:', err)
+        error: (err) => {
+          console.error('Error al crear:', err);
+          console.error('Mensaje de validación:', err.error?.message);
+        }
       });
     }
   }
@@ -132,9 +183,15 @@ export class PersonaForm implements OnInit {
     const datos = this.form.value;
     const doc = new jsPDF();
 
-    // Header
+    // Header con borde dorado
     doc.setFillColor(123, 29, 58);
     doc.rect(0, 0, 210, 25, 'F');
+    
+    // Borde dorado superior
+    doc.setFillColor(200, 149, 42);
+    doc.rect(0, 0, 210, 2, 'F');
+    doc.rect(0, 23, 210, 2, 'F');
+    
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(16);
     doc.setFont('helvetica', 'bold');
@@ -144,9 +201,9 @@ export class PersonaForm implements OnInit {
     doc.text('Gobierno del Estado de Oaxaca', 105, 16, { align: 'center' });
     doc.text('Centro de Rehabilitación Camino Hacia La Fe', 105, 21, { align: 'center' });
 
-    // Folio
-    doc.setTextColor(0, 0, 0);
-    doc.setFontSize(10);
+    // Folio con estilo
+    doc.setTextColor(123, 29, 58);
+    doc.setFontSize(11);
     doc.setFont('helvetica', 'bold');
     doc.text(`FOLIO: ${datos.folio || 'Sin asignar'}`, 15, 35);
 
@@ -154,14 +211,18 @@ export class PersonaForm implements OnInit {
 
     const addField = (label: string, value: any, yPos: number) => {
       doc.setFont('helvetica', 'bold');
+      doc.setTextColor(123, 29, 58);
       doc.text(label + ':', 15, yPos);
       doc.setFont('helvetica', 'normal');
+      doc.setTextColor(0, 0, 0);
       doc.text(String(value || '—'), 70, yPos);
     };
 
     // I. GENERALES
     doc.setFillColor(123, 29, 58);
     doc.rect(15, y, 180, 7, 'F');
+    doc.setFillColor(200, 149, 42);
+    doc.rect(15, y, 3, 7, 'F');
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(11);
     doc.setFont('helvetica', 'bold');
@@ -197,6 +258,8 @@ export class PersonaForm implements OnInit {
     y += 5;
     doc.setFillColor(123, 29, 58);
     doc.rect(15, y, 180, 7, 'F');
+    doc.setFillColor(200, 149, 42);
+    doc.rect(15, y, 3, 7, 'F');
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(11);
     doc.setFont('helvetica', 'bold');
@@ -226,6 +289,8 @@ export class PersonaForm implements OnInit {
     y += 5;
     doc.setFillColor(123, 29, 58);
     doc.rect(15, y, 180, 7, 'F');
+    doc.setFillColor(200, 149, 42);
+    doc.rect(15, y, 3, 7, 'F');
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(11);
     doc.setFont('helvetica', 'bold');
@@ -247,6 +312,8 @@ export class PersonaForm implements OnInit {
     y += 5;
     doc.setFillColor(123, 29, 58);
     doc.rect(15, y, 180, 7, 'F');
+    doc.setFillColor(200, 149, 42);
+    doc.rect(15, y, 3, 7, 'F');
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(11);
     doc.setFont('helvetica', 'bold');
@@ -267,6 +334,8 @@ export class PersonaForm implements OnInit {
     y += 5;
     doc.setFillColor(123, 29, 58);
     doc.rect(15, y, 180, 7, 'F');
+    doc.setFillColor(200, 149, 42);
+    doc.rect(15, y, 3, 7, 'F');
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(11);
     doc.setFont('helvetica', 'bold');

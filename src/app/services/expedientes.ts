@@ -46,7 +46,7 @@ getCivicoById(id: number): Observable<any> {
 
   // VOLUNTARIO (ajusta si cambia endpoint)
   getVoluntario(): Observable<any> {
-    return this.http.get(`${this.API_URL}/voluntario/expedientes`);
+    return this.http.get(`${this.API_URL}/voluntarios/personas`);
   }
 
 }

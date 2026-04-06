@@ -1,0 +1,258 @@
+/* =========================================
+   ESTILOS GLOBALES LAYOUT
+   ========================================= */
+.dashboard-layout { 
+  display: flex; 
+  height: 100vh; 
+  width: 100vw; 
+  font-family: 'Segoe UI', Roboto, sans-serif; 
+  overflow: hidden; 
+  background-color: #f4f0ed; 
+}
+
+/* SIDEBAR Y MENÚ (Forzando el color vino) */
+.sidebar { width: 280px; color: white; display: flex; flex-direction: column; z-index: 10; background-color: #7B1D3A !important; }
+.sidebar-header { padding: 2rem 1.5rem; display: flex; align-items: center; gap: 1rem; border-bottom: 1px solid rgba(255,255,255,0.1); }
+.logo-icon { font-size: 2rem; }
+.sidebar-header h2 { margin: 0; font-size: 1.2rem; }
+.sidebar-nav { flex: 1; padding: 1.5rem 1rem; display: flex; flex-direction: column; gap: 0.5rem; }
+.sidebar-nav button { display: flex; align-items: center; gap: 1rem; width: 100%; padding: 1rem; background: transparent; border: none; color: rgba(255,255,255,0.8); font-size: 1rem; text-align: left; border-radius: 8px; cursor: pointer; transition: 0.2s; }
+.sidebar-nav button:hover { background-color: rgba(255,255,255,0.1); color: white; }
+.sidebar-nav button.active { background-color: #5A1229 !important; color: white; font-weight: 600; border-left: 4px solid #C8952A !important; }
+.sidebar-footer { padding: 1.5rem 1rem; border-top: 1px solid rgba(255,255,255,0.1); }
+.btn-logout { width: 100%; padding: 0.8rem; background-color: rgba(255,255,255,0.1); border: none; color: white; border-radius: 8px; cursor: pointer; }
+.btn-logout:hover { background-color: #fee2e2; color: #991b1b; }
+
+/* CONTENIDO PRINCIPAL Y BARRA SUPERIOR */
+.main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+.topbar { height: 70px; background-color: white; border-bottom: 1px solid #e5e7eb; display: flex; align-items: center; justify-content: space-between; padding: 0 2rem; }
+.topbar-title h3 { margin: 0; color: #111827; }
+.user-profile { display: flex; align-items: center; gap: 1rem; }
+.avatar { background-color: #f4f0ed; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; border: 1px solid #7B1D3A !important; }
+.user-info { display: flex; flex-direction: column; }
+.user-info strong { color: #111827; font-size: 0.9rem; }
+.user-info span { color: #10b981; font-size: 0.8rem; }
+.content-area { flex: 1; padding: 2rem 3rem; overflow-y: auto; }
+
+/* TEXTOS Y ANIMACIONES */
+.page-title { color: #111827; margin: 0 0 0.5rem 0; font-size: 1.8rem; }
+.page-subtitle { color: #6b7280; margin: 0 0 2rem 0; font-size: 1.1rem; }
+.fade-in { animation: fadeIn 0.3s ease-in-out; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+/* =========================================
+   TARJETAS DE INICIO (QUICK ACTIONS)
+   ========================================= */
+.quick-actions-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin-top: 2rem; }
+.action-card { background: white; border-radius: 10px; padding: 2.5rem 1.5rem; text-align: center; border: 1px solid #e5e7eb; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
+.action-card:hover { transform: translateY(-5px); box-shadow: 0 10px 15px rgba(123, 29, 58, 0.1); border-color: #7B1D3A; }
+.action-icon { font-size: 3rem; margin-bottom: 1rem; }
+.action-card h3 { color: #111827; margin: 0 0 0.5rem 0; font-size: 1.3rem; }
+.action-card p { color: #6b7280; margin: 0; font-size: 0.95rem; }
+
+/* =========================================
+   TABLA DE HISTORIAL
+   ========================================= */
+.table-card { background-color: white; border-radius: 10px; border: 1px solid #e5e7eb; overflow: hidden; margin-top: 2rem;}
+.data-table { width: 100%; border-collapse: collapse; }
+.data-table th, .data-table td { padding: 1rem 1.5rem; text-align: left; border-bottom: 1px solid #e5e7eb; }
+.data-table th { background-color: #f9fafb; color: #374151; font-weight: 600; font-size: 0.9rem; text-transform: uppercase; }
+.btn-action { background-color: transparent; border: 1px solid #7B1D3A; color: #7B1D3A; padding: 0.4rem 0.8rem; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.85rem; transition: all 0.2s; }
+.btn-action:hover { background-color: #7B1D3A; color: white; }
+.badge { padding: 0.3rem 0.8rem; border-radius: 9999px; font-size: 0.8rem; font-weight: 600; }
+.badge-success { background-color: #dcfce7; color: #166534; }
+.badge-neutral { background-color: #f3f4f6; color: #6b7280; }
+
+/* =========================================
+   TABS Y NAVEGACIÓN DE DETALLES
+   ========================================= */
+.btn-back { background: none; border: none; color: #6b7280; cursor: pointer; margin-bottom: 1rem; font-size: 1rem; padding: 0; }
+.btn-back:hover { color: #7B1D3A; text-decoration: underline; }
+.tabs-container { display: flex; border-bottom: 2px solid #e5e7eb; margin-bottom: 2rem; gap: 2rem; }
+.tab { background: none; border: none; padding: 0.8rem 1rem; font-size: 1rem; font-weight: 600; color: #6b7280; cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -2px; }
+.tab:hover { color: #7B1D3A !important; }
+.tab.active { color: #7B1D3A !important; border-bottom-color: #7B1D3A !important; }
+
+/* =========================================
+   SOBRESCRIBIR ESTILOS EN LÍNEA DEL HTML
+   (La magia para que no toques el HTML)
+   ========================================= */
+
+/* Botón "Crear Ficha Técnica" */
+.detalle-header button:nth-child(2) {
+  background-color: #7B1D3A !important;
+}
+
+/* Mensaje de "Modo Lectura" (Pestaña 1) */
+.tab-content > div[style*="border-left: 4px solid"] {
+  background-color: #fdf8f9 !important;
+  border-left-color: #7B1D3A !important;
+}
+.tab-content > div[style*="border-left: 4px solid"] p {
+  color: #7B1D3A !important;
+}
+
+/* Títulos h3 dentro de los detalles ("1. Datos Generales") */
+.form-card h3 {
+  color: #7B1D3A !important;
+}
+
+/* =========================================
+   IMPRESIÓN (PDF)
+   ========================================= */
+.print-only { display: none; }
+
+@media print {
+  .dashboard-layout { display: none !important; }
+  
+  .print-only {
+    display: block !important;
+    width: 100%;
+    background-color: white;
+    color: black;
+  }
+  @page { margin: 2.5cm; }
+}
+
+.back-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background-color: #f3f4f6;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  color: #374151;
+  transition: all 0.2s ease;
+}
+
+/* icono */
+.back-btn .icon {
+  font-size: 16px;
+}
+
+/* texto */
+.back-btn .text {
+  font-size: 14px;
+}
+
+/* hover elegante */
+.back-btn:hover {
+  background-color: #ede9fe; /* morado suave 💜 */
+  color: #7c3aed;
+  transform: translateX(-2px);
+}
+
+/* efecto click */
+.back-btn:active {
+  transform: scale(0.95);
+}
+
+/* Fondo oscuro */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Caja del modal */
+.modal {
+  background: white;
+  padding: 20px;
+  border-radius: 15px;
+  width: 300px;
+  text-align: center;
+  animation: fadeIn 0.3s ease;
+}
+
+
+.btn-cancel {
+  background: #e5e7eb;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.btn-confirm {
+  background: #dc2626;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.btn-confirm:hover {
+  background: #b91c1c;
+}
+
+/* Animación */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+  
+}
+.logout-btn {
+  border: none;        
+  outline: none;       
+  background: none;    }
+
+  .btn-volver-pro {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  padding: 6px 14px;
+
+  border-radius: 999px;
+  border: 1px solid rgba(123, 29, 58, 0.15);
+
+  background: #ffffff;
+  color: #7B1D3A;
+
+  font-size: 0.85rem;
+  font-weight: 600;
+
+  cursor: pointer;
+  transition: all 0.25s ease;
+
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+/* ICONO */
+.btn-volver-pro .icon {
+  font-size: 0.9rem;
+  transition: transform 0.25s ease;
+}
+
+/* HOVER */
+.btn-volver-pro:hover {
+  background: #7B1D3A;
+  color: white;
+  box-shadow: 0 6px 16px rgba(123, 29, 58, 0.25);
+}
+
+/* ANIMACIÓN */
+.btn-volver-pro:hover .icon {
+  transform: translateX(-4px);
+}
+
+/* CLICK */
+.btn-volver-pro:active {
+  transform: scale(0.95);
+}
