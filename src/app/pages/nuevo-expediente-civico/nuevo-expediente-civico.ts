@@ -1,10 +1,8 @@
-
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Civico } from '../../services/civico';
-import { SessionService } from '../../services/session';
 
 @Component({
   selector: 'app-nuevo-expediente-civico',
@@ -13,144 +11,227 @@ import { SessionService } from '../../services/session';
   templateUrl: './nuevo-expediente-civico.html',
   styleUrls: ['./nuevo-expediente-civico.css']
 })
-export class NuevoExpedienteCivicoComponent implements OnInit {
-form!: FormGroup;
-  beneficiarioForm!: FormGroup;
+export class NuevoExpedienteCivicoComponent {
 
+  paso = 1;
   loading = false;
-  success = false;
+  error = '';
+  mensaje = '';
 
-  userName = '';
-  role = '';
-  token = '';
+  beneficiarioId!: number;
 
-  step = 1; // 1 = beneficiario, 2 = expediente
-  beneficiarioIdCreado = '';
+  previewUrl: string | null = null;
+  fotoBase64: string | null = null;
+
+  beneficiarioForm: FormGroup;
+  civicoForm: FormGroup;
 
   constructor(
     private fb: FormBuilder,
     private service: Civico,
-    private router: Router,
-    private session: SessionService
-  ) {}
+    private router: Router
+  ) {
 
-  ngOnInit(): void {  
-
-    this.userName = this.session.getUserName();
-    this.role = this.session.getRole();
-    this.token = this.session.getToken() || '';
-
-    //  FORM EXPEDIENTE
-    this.form = this.fb.group({
-      beneficiarioId: ['', Validators.required],
-      folioExpediente: ['', Validators.required],
-      causaPenal: ['', Validators.required],
-      juezCivico: ['', Validators.required],
-      fechaInicioSentencia: ['', Validators.required],
-      horasSentencia: ['', Validators.required],
-      madreNombre: ['', Validators.required],
-      madreTelefono: ['', Validators.required]
-    });
-
-    //  FORM BENEFICIARIO
     this.beneficiarioForm = this.fb.group({
       nombre: ['', Validators.required],
-      tiempoAsignado: ['', Validators.required],
-      unidadDeTiempo: ['', Validators.required],
-      urlFoto: ['', Validators.required]
+      tiempoAsignado: [1, Validators.required],
+      unidadTiempo: ['HORAS', Validators.required],
+      urlFoto: ['']
+    });
+
+    this.civicoForm = this.fb.group({
+
+      curp: ['', [
+        Validators.required,
+        Validators.pattern(/^[A-Z]{4}\d{6}[HM][A-Z]{5}[A-Z\d]{2}$/)
+      ]],
+
+      fechaNacimiento: ['', Validators.required],
+      genero: ['', Validators.required],
+
+      domicilioCompleto: ['', Validators.required],
+      municipio: ['', Validators.required],
+      codigoPostal: ['', Validators.required],
+      telefonoContacto: ['', Validators.required],
+
+      escolaridadActual: [''],
+      estadoCivil: [''],
+      ocupacionActual: [''],
+      nacionalidad: ['Mexicana'],
+
+      madreNombre: ['', Validators.required],
+      madreTelefono: ['', Validators.required],
+
+      padreNombre: [''],
+      padreTelefono: [''],
+
+      folioExpediente: ['', Validators.required],
+      numJuzgadoCivico: ['', Validators.required],
+      juezControl: ['', Validators.required],
+      generoJuez: ['M'],
+
+      causaPenal: ['', Validators.required],
+      delitoImputado: [''],
+      agraviado: [''],
+
+      fechaDetencion: [''],
+      modalidadFalta: [''],
+
+      horasSentencia: [{ value: 0, disabled: true }, Validators.required],
+      horasPorDia: [4],
+
+      fechaInicioBeneficio: [''],
+      fechaTerminoBeneficio: [''],
+      fechaOficioCanalizacion: [''],
+      oficioCanalizacion: ['']
     });
   }
 
-  //  1. CREAR BENEFICIARIO
+  // 🔥 LIMPIAR + VALIDAR CURP
+  onCurpChange() {
+    let curp = this.civicoForm.value.curp || '';
+
+    curp = curp.toUpperCase().replace(/\s/g, '');
+
+    this.civicoForm.patchValue({ curp });
+
+    if (curp.length === 18) {
+      this.autocompletarDesdeCURP(curp);
+    }
+  }
+
+  // 🔥 AUTOCOMPLETAR DESDE CURP
+  autocompletarDesdeCURP(curp: string) {
+
+    const fecha = curp.substring(4, 10); // YYMMDD
+    const genero = curp.substring(10, 11);
+
+    const year = parseInt(fecha.substring(0, 2), 10);
+    const month = fecha.substring(2, 4);
+    const day = fecha.substring(4, 6);
+
+    const fullYear = year < 50 ? 2000 + year : 1900 + year;
+
+    const fechaISO = `${fullYear}-${month}-${day}`;
+
+    this.civicoForm.patchValue({
+      fechaNacimiento: fechaISO,
+      genero: genero === 'H' ? 'masculino' : 'femenino'
+    });
+  }
+
+  // 📸 COMPRESIÓN
+  onFileChange(event: any) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+
+    reader.onload = (e: any) => {
+      const img = new Image();
+      img.src = e.target.result;
+
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const scale = 300 / img.width;
+
+        canvas.width = 300;
+        canvas.height = img.height * scale;
+
+        const ctx = canvas.getContext('2d');
+        ctx?.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+        const compressed = canvas.toDataURL('image/jpeg', 0.5);
+
+        this.previewUrl = compressed;
+        this.fotoBase64 = compressed;
+
+        this.beneficiarioForm.patchValue({
+          urlFoto: compressed
+        });
+      };
+    };
+
+    reader.readAsDataURL(file);
+  }
+
+  // 🔥 PASO 1
   crearBeneficiario() {
 
     if (this.beneficiarioForm.invalid) {
-      this.beneficiarioForm.markAllAsTouched();
+      this.error = 'Completa los campos';
       return;
     }
 
     this.loading = true;
 
     const data = {
-      nombre: this.beneficiarioForm.value.nombre,
-      tiempoAsignado: Number(this.beneficiarioForm.value.tiempoAsignado),
-      unidadDeTiempo: this.beneficiarioForm.value.unidadDeTiempo,
-      urlFoto: this.beneficiarioForm.value.urlFoto
+      ...this.beneficiarioForm.value,
+      nombre: this.beneficiarioForm.value.nombre.toUpperCase()
     };
 
     this.service.crearBeneficiario(data).subscribe({
-
       next: (res) => {
-        console.log('Beneficiario creado:', res);
+        this.beneficiarioId = res.id;
 
-        this.loading = false;
-
-        // 🔥 AJUSTA ESTO SI TU BACK DEVUELVE OTRO NOMBRE
-        this.beneficiarioIdCreado = res.id;
-
-        // 🔥 PASAMOS EL ID AL FORM DE EXPEDIENTE
-        this.form.patchValue({
-          beneficiarioId: this.beneficiarioIdCreado
+        // 🔥 AUTORELLENO
+        this.civicoForm.patchValue({
+          horasSentencia: this.beneficiarioForm.value.tiempoAsignado
         });
 
-        // 🔥 CAMBIAMOS A SIGUIENTE PASO
-        this.step = 2;
-      },
-
-      error: (err) => {
-        console.error(err);
         this.loading = false;
-        alert('Error al crear beneficiario');
+        this.paso = 2;
+      },
+      error: () => {
+        this.loading = false;
+        this.error = 'Error al crear beneficiario';
       }
     });
   }
 
-  // 🔥 2. CREAR EXPEDIENTE
-  submit() {
-
-    if (this.form.invalid) {
-      this.form.markAllAsTouched();
-      return;
-    }
+  // 🔥 CREAR EXPEDIENTE (LIMPIO PARA BACKEND)
+  crearExpediente() {
 
     this.loading = true;
 
+    const raw = this.civicoForm.getRawValue();
+
     const data = {
-      beneficiarioId: this.form.value.beneficiarioId,
-      folioExpediente: this.form.value.folioExpediente,
-      causaPenal: this.form.value.causaPenal,
-      juezCivico: this.form.value.juezCivico,
-      fechaInicioSentencia: this.form.value.fechaInicioSentencia,
-      horasSentencia: Number(this.form.value.horasSentencia),
+      beneficiarioId: this.beneficiarioId,
+
+      ...raw,
+
+      genero: raw.genero === 'masculino' ? 'M' : 'F',
+
+      fechaDetencion: raw.fechaDetencion || null,
+      fechaInicioBeneficio: raw.fechaInicioBeneficio || null,
+      fechaTerminoBeneficio: raw.fechaTerminoBeneficio || null,
+      fechaOficioCanalizacion: raw.fechaOficioCanalizacion || null,
+
       contactosFamiliares: {
         madre: {
-          nombre: this.form.value.madreNombre,
-          telefono: this.form.value.madreTelefono
+          nombre: raw.madreNombre,
+          telefono: raw.madreTelefono
+        },
+        padre: {
+          nombre: raw.padreNombre || '',
+          telefono: raw.padreTelefono || ''
         }
-      },
-      rol: this.role,
-      token: this.token
+      }
     };
 
-    this.service.crearCivico(data, this.token).subscribe({
-
+    this.service.crearCivico(data).subscribe({
       next: () => {
-        this.loading = false;
-        this.success = true;
+        this.mensaje = 'Expediente creado ✅';
 
         setTimeout(() => {
           this.router.navigate(['/expedientes']);
-        }, 2000);
+        }, 1500);
       },
-
       error: (err) => {
-        console.error(err);
         this.loading = false;
-        alert('Error al crear expediente');
+        this.error = err.error?.message || 'Error en backend';
       }
     });
   }
-
-  
 }
-
