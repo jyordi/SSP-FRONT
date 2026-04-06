@@ -1,36 +1,6 @@
 /**
  * @file estudio-trabajo-social.component.ts
- * @description Componente Angular 18+ standalone para el Estudio de Trabajo
- *              Social del programa "Reconecta con la Paz" — DGPD y PC.
- *
- * ┌──────────────────────────────────────────────────────────────────┐
- * │  ARQUITECTURA                                                    │
- * │                                                                  │
- * │  EstudioTrabajoSocialComponent (Standalone, OnPush)             │
- * │  ├── Signals → tabActivo, pasoActual, mostrarVistaPrevia…       │
- * │  ├── Computed → porcentaje, formularioCompleto                  │
- * │  ├── FormGroup (ReactiveFormsModule) — 60+ controles            │
- * │  ├── PDF pipeline — jsPDF nativo (sin html2canvas)              │
- * │  │     _cargarJsPDF() → _generarPDF() → descargar/guardar       │
- * │  ├── Wizard paso a paso (10 secciones)                          │
- * │  ├── Historial en memoria Signal<EntradaHistorial[]>            │
- * │  └── Descarga en carpeta ZIP organizada (JSZip CDN)             │
- * └──────────────────────────────────────────────────────────────────┘
- *
- * Secciones del formulario (pasos del wizard):
- *   0.  Datos Personales (campos 1–12)
- *   1.  Situación Jurídica (campo 13)
- *   2.  Núcleo Familiar Primario (campo 14–15)
- *   3.  Núcleo Familiar Secundario (campo 16)
- *   4.  Datos del Indiciado / Trabajo (campo 17)
- *   5.  Grupos de Autoayuda y Adicciones (campo 9 del doc)
- *   6.  Opinión y Diagnóstico (campo 10 del doc)
- *   7.  Firmas
- *
- * PDF generado: fiel al documento oficial Word, 4 páginas carta aprox.
- *
- * @requires Angular 18+, jsPDF 2.5.1 (CDN), JSZip 3.10.1 (CDN)
- * @version 1.0.0
+ * @version 1.1.0  — Añade cálculo automático de edad desde fecha de nacimiento
  */
 
 import {
@@ -40,12 +10,15 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
+import { Router } from '@angular/router';
+import { PenalService } from '../../services/penal';
+import { NavbarReconectaComponent } from "../../shared/navbar-reconecta/navbar-reconecta";
+import { SessionService } from '../../services/session';
 
 // ═══════════════════════════════════════════════════════════════
 //  INTERFACES
 // ═══════════════════════════════════════════════════════════════
 
-/** Miembro de un núcleo familiar (fila de la tabla). */
 export interface MiembroFamiliar {
   nombre:      string;
   parentesco:  string;
@@ -55,12 +28,10 @@ export interface MiembroFamiliar {
   ocupacion:   string;
 }
 
-/** Archivo adjunto cargado por el usuario. */
 export interface ArchivoAdjunto {
   id: number; nombre: string; tamano: number; tipo: string; dataUrl: string;
 }
 
-/** Registro guardado en el historial de sesión. */
 export interface EntradaHistorial {
   id:         number;
   expediente: string;
@@ -71,12 +42,10 @@ export interface EntradaHistorial {
   archivos:   ArchivoAdjunto[];
 }
 
-/** Estado del overlay de progreso animado. */
 export interface EstadoPdf {
   activo: boolean; pct: number; fase: string; exito: boolean; error: string;
 }
 
-/** Metadatos de un paso del wizard. */
 export interface PasoWizard {
   titulo: string; descripcion: string; icono: string; campos: string[];
 }
@@ -85,7 +54,6 @@ export interface PasoWizard {
 //  CONSTANTES
 // ═══════════════════════════════════════════════════════════════
 
-/** Definición de cada paso del wizard con sus campos requeridos. */
 export const PASOS_TS: PasoWizard[] = [
   {
     titulo: '1. Datos Personales',
@@ -137,7 +105,6 @@ export const PASOS_TS: PasoWizard[] = [
   },
 ];
 
-/** Campos obligatorios (aplanados de todos los pasos). */
 export const CAMPOS_REQUERIDOS_TS = PASOS_TS.flatMap(p => p.campos);
 
 // ═══════════════════════════════════════════════════════════════
@@ -147,14 +114,17 @@ export const CAMPOS_REQUERIDOS_TS = PASOS_TS.flatMap(p => p.campos);
 @Component({
   selector: 'app-estudio-trabajo-social',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, NavbarReconectaComponent],
   templateUrl: './estudio-trabajo-social.component.html',
   styleUrls:   ['./estudio-trabajo-social.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EstudioTrabajoSocialComponent implements OnInit, OnDestroy {
 
-  private readonly fb = inject(FormBuilder);
+  private readonly fb     = inject(FormBuilder);
+  private readonly router = inject(Router);
+  private readonly penalService = inject(PenalService);
+  private session = inject(SessionService);
 
   // ── Signals de UI ────────────────────────────────────────────
   readonly tabActivo          = signal<'formulario' | 'historial'>('formulario');
@@ -192,7 +162,6 @@ export class EstudioTrabajoSocialComponent implements OnInit, OnDestroy {
   readonly opcionesNivel  = ['ALTO', 'MEDIO', 'BAJO'];
   readonly estadosCiviles = ['Soltero/a', 'Casado/a', 'Union libre', 'Divorciado/a', 'Viudo/a', 'Separado/a'];
 
-  /** Número de filas en la tabla de núcleo familiar primario. */
   readonly FILAS_FAMILIA = 4;
 
   private readonly destroy$ = new Subject<void>();
@@ -203,16 +172,20 @@ export class EstudioTrabajoSocialComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this._buildForm();
-    // Recalcular porcentaje cada vez que cambia el formulario
+    this.cargarDatosExpediente();
+    this._suscribirEdadAutomatica();   // 🔥 NUEVO
+    this.cargarHistorial();
+
     const calc = () => {
       const v = this._form?.value ?? {};
       const n = CAMPOS_REQUERIDOS_TS.filter(k => v[k] && v[k] !== '').length;
       this.porcentaje.set(
         CAMPOS_REQUERIDOS_TS.length
           ? Math.round((n / CAMPOS_REQUERIDOS_TS.length) * 100)
-          : 100 // Si no hay campos requeridos, marcar como 100%
+          : 100
       );
     };
+
     calc();
     this._form.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(calc);
   }
@@ -220,57 +193,271 @@ export class EstudioTrabajoSocialComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void { this.destroy$.next(); this.destroy$.complete(); }
 
   // ══════════════════════════════════════════════════════════════
+  //  🔥 EDAD AUTOMÁTICA DESDE FECHA DE NACIMIENTO
+  // ══════════════════════════════════════════════════════════════
+
+  private _suscribirEdadAutomatica(): void {
+    this._form.get('fechaNacimiento')?.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((fecha: string) => {
+        if (!fecha) return;
+
+        const hoy       = new Date();
+        const nacimiento = new Date(fecha);
+
+        // Validar que la fecha sea real
+        if (isNaN(nacimiento.getTime())) return;
+
+        let edad = hoy.getFullYear() - nacimiento.getFullYear();
+        const diffMes = hoy.getMonth() - nacimiento.getMonth();
+
+        // Ajustar si aún no ha llegado el cumpleaños este año
+        if (diffMes < 0 || (diffMes === 0 && hoy.getDate() < nacimiento.getDate())) {
+          edad--;
+        }
+
+        // Solo asignar si la edad es coherente
+        if (edad >= 0 && edad < 120) {
+          this._form.get('edad')?.setValue(String(edad), { emitEvent: false });
+        }
+      });
+  }
+
+  // ══════════════════════════════════════════════════════════════
+  //  AUTORELLENO DESDE EXPEDIENTE
+  // ══════════════════════════════════════════════════════════════
+
+ private cargarDatosExpediente(): void {
+  const expediente = history.state?.expediente
+    || JSON.parse(sessionStorage.getItem('expediente') || '{}');
+
+  const userId = this.session.getUserId();
+  const role = this.session.getRole();
+  const userName = this.session.getUserName();
+
+  console.log('📁 EXPEDIENTE:', expediente);
+  console.log('🆔 EXPEDIENTE ID:', expediente?.id);
+
+  console.log('👤 USER ID:', userId);
+  console.log('🎭 ROLE:', role);
+  console.log('🙋 NOMBRE:', userName);
+
+  if (!expediente || !this._form) return;
+
+  this._form.patchValue({
+    nombre:          expediente?.beneficiario?.nombre   || '',
+    delito:          expediente?.delito                  || '',
+    juzgado:         expediente?.juzgado                 || '',
+    expedientePenal: expediente?.folioExpediente         || '',
+    fechaDetencion:  expediente?.fechaIngreso            || '',
+    ocupacion:       expediente?.beneficiario?.ocupacion || '',
+  });
+}
+
+
+cargarHistorial(): void {
+
+  const expediente = history.state?.expediente
+    || JSON.parse(sessionStorage.getItem('expediente') || '{}');
+
+  if (!expediente || !expediente.id) {
+    console.warn('❌ No hay expediente');
+    return;
+  }
+
+  const expedienteId = expediente.id; // 🔥 AQUÍ ESTABA EL ERROR
+
+  console.log('📡 BUSCANDO TRABAJO SOCIAL DE EXPEDIENTE:', expedienteId);
+
+  this.penalService.getTrabajoSocialByExpediente(expedienteId).subscribe({
+    next: (res) => {
+
+      console.log('📂 RESPUESTA BACK:', res);
+
+      const data = res?.data || res;
+
+      if (!data) {
+        this.historial.set([]);
+        return;
+      }
+
+      // 🔥 SOPORTA OBJETO O ARRAY
+      const lista = Array.isArray(data) ? data : [data];
+
+      this.historial.set(
+        lista.map((item: any) => ({
+          id: item.id,
+          expediente: expedienteId,
+          nombre: item?.seccionesJsonb?.datos_generales?.nombre || 'Sin nombre',
+          delito: item?.seccionesJsonb?.situacion_juridica?.delito || 'Sin delito',
+          fecha: item.fechaEstudio,
+          pdf: { nombre: 'Estudio.pdf', dataUrl: '' },
+          archivos: []
+        }))
+      );
+
+    },
+    error: (err) => {
+      console.error('❌ Error al cargar historial:', err);
+      this.historial.set([]);
+    }
+  });
+}
+
+
+editarTrabajo(id: number) {
+  this.penalService.getTrabajoSocialById(id).subscribe(res => {
+
+    const data = res?.data || res;
+
+    console.log('✏️ EDITANDO:', data);
+
+    this._form.patchValue({
+      opinionPrograma: data.opinionPrograma,
+      diagnosticoSocial: data.diagnosticoSocial,
+      escolaridad: data?.seccionesJsonb?.datos_generales?.escolaridad,
+      ocupacion: data?.seccionesJsonb?.datos_generales?.ocupacion
+    });
+
+    this.tabActivo.set('formulario');
+    this.mostrarToast('Editando estudio');
+  });
+}
+eliminarTrabajo(id: number) {
+  if (!confirm('¿Eliminar este estudio?')) return;
+
+  this.penalService.deleteTrabajoSocial(id).subscribe({
+    next: () => {
+      this.mostrarToast('Eliminado correctamente');
+      this.historial.set([]); // 🔥 limpia vista
+    },
+    error: () => {
+      this.mostrarToast('Error al eliminar', 'error');
+    }
+  });
+}
+  // ══════════════════════════════════════════════════════════════
+  //  GUARDAR EN BACKEND
+  // ══════════════════════════════════════════════════════════════
+
+  guardarEnBackend(): void {
+
+  const expediente = history.state?.expediente
+    || JSON.parse(sessionStorage.getItem('expediente') || '{}');
+
+  const userId = this.session.getUserId();
+  const role = this.session.getRole();
+
+  console.log('🚀 GUARDANDO...');
+  console.log('📁 EXPEDIENTE:', expediente);
+  console.log('👤 USER ID:', userId);
+  console.log('🎭 ROLE:', role);
+
+  if (!expediente?.id) {
+    this.mostrarToast('Error: expediente no encontrado', 'error');
+    return;
+  }
+
+  if (!userId) {
+    this.mostrarToast('Error: usuario no válido', 'error');
+    return;
+  }
+
+  const form = this._form.value;
+
+  const payload = {
+    expedienteId: expediente.id,
+    trabajadorSocialId: userId, // 🔥 DESDE JWT
+
+    fechaEstudio: new Date().toISOString().split('T')[0],
+
+    seccionesJsonb: {
+      datos_generales: {
+        escolaridad: form.escolaridad,
+        ocupacion: form.ocupacion
+      },
+      situacion_juridica: {
+        delito: form.delito
+      },
+      nucleo_familiar_primario: {
+        padre: form.familiarPrimario?.[0]?.nombre || ''
+      },
+      vivienda: {
+        tipo: form.caracteristicasVivienda
+      }
+    },
+
+    opinionPrograma: form.opinionPrograma,
+    diagnosticoSocial: form.diagnosticoSocial
+  };
+
+  console.log('📦 PAYLOAD FINAL:', payload);
+
+  this.guardando.set(true);
+
+  this.penalService.saveTrabajoSocial(payload).subscribe({
+    next: (res) => {
+      console.log('✅ RESPUESTA BACKEND:', res);
+
+      this.guardando.set(false);
+      this.mostrarToast('Guardado correctamente');
+
+      this.router.navigate(['/detalle-penal', expediente.id]);
+    },
+    error: (err) => {
+      console.error('❌ ERROR BACKEND:', err);
+
+      this.guardando.set(false);
+      this.mostrarToast('Error al guardar', 'error');
+    }
+  });
+}
+
+  // ══════════════════════════════════════════════════════════════
   //  CONSTRUCCIÓN DEL FORMULARIO
-  //
-  //  Todos los campos arrancan vacíos/false.
-  //  Los controles de las tablas familiares se modelan como FormArray
-  //  de FormGroups (un FormGroup por fila de la tabla).
   // ══════════════════════════════════════════════════════════════
 
   private _buildForm(): void {
     this._form = this.fb.group({
 
       // ── 1. Datos Personales ─────────────────────────────────
-      nombre:        ['', Validators.required],   // Campo 1
-      edad:          ['', Validators.required],   // Campo 2
-      sobreNombre:   [''],                        // Campo 3
-      fechaNacimiento:['', Validators.required],  // Campo 4
-      originario:    ['', Validators.required],   // Campo 5
-      telefono:      [''],                        // Campo 6
-      escolaridad:   [''],                        // Campo 7
-      estadoCivil:   [''],                        // Campo 8
-      nacionalidad:  [''],                        // Campo 9 (dialecto/idioma)
-      religion:      [''],                        // Campo 10
-      ocupacion:     [''],                        // Campo 11
-      domicilioActual: [''],                      // Campo 12
+      nombre:          ['', Validators.required],
+      edad:            ['', Validators.required],   // se rellena automáticamente
+      sobreNombre:     [''],
+      fechaNacimiento: ['', Validators.required],   // dispara el cálculo de edad
+      originario:      ['', Validators.required],
+      telefono:        [''],
+      escolaridad:     [''],
+      estadoCivil:     [''],
+      nacionalidad:    [''],
+      religion:        [''],
+      ocupacion:       [''],
+      domicilioActual: [''],
 
-      // ── 2. Situación Jurídica (Campo 13) ────────────────────
+      // ── 2. Situación Jurídica ────────────────────────────────
       fechaDetencion:  [''],
       delito:          ['', Validators.required],
       juzgado:         [''],
       expedientePenal: ['', Validators.required],
 
-      // ── 3. Núcleo Familiar Primario (Campo 14–15) ───────────
-      // FormArray: 4 filas de la tabla de familia primaria
+      // ── 3. Núcleo Familiar Primario ─────────────────────────
       familiarPrimario: this.fb.array(
         Array.from({ length: this.FILAS_FAMILIA }, () => this._crearFilaFamiliar())
       ),
-      // Características económicas de la familia primaria
-      zonaFamiliaPrimaria:       [''], // default del documento
-      responsableManutension:    [''],
-      ingresosMensuales:         [''],
-      egresosMensuales:          [''],
-      beneficiarioCoopera:       [''],
-      // Características del núcleo familiar primario
-      grupoFamiliarPrimario:     [''],  // FUNCIONAL / DISFUNCIONAL
-      relacionesInterfamiliares: [''],  // ADECUADAS / INADECUADAS
-      huboViolenciaIntrafamiliar:[''],
-      violenciaEspecifique:      [''],
-      nivelSocioeconomico:       [''],  // ALTO / MEDIO / BAJO
-      antecedentesIntegrante:    [''],
-      conceptoFamiliaDelIndiciado: [''],
+      zonaFamiliaPrimaria:        [''],
+      responsableManutension:     [''],
+      ingresosMensuales:          [''],
+      egresosMensuales:           [''],
+      beneficiarioCoopera:        [''],
+      grupoFamiliarPrimario:      [''],
+      relacionesInterfamiliares:  [''],
+      huboViolenciaIntrafamiliar: [''],
+      violenciaEspecifique:       [''],
+      nivelSocioeconomico:        [''],
+      antecedentesIntegrante:     [''],
+      conceptoFamiliaDelIndiciado:[''],
 
-      // ── 4. Núcleo Familiar Secundario (Campo 16) ────────────
+      // ── 4. Núcleo Familiar Secundario ────────────────────────
       familiarSecundario: this.fb.array(
         Array.from({ length: this.FILAS_FAMILIA + 1 }, () => this._crearFilaFamiliar())
       ),
@@ -283,54 +470,49 @@ export class EstudioTrabajoSocialComponent implements OnInit, OnDestroy {
       problemasCondutaFamiliar:[''],
       numeroParejas:           [''],
 
-      // ── 5. Datos del Indiciado / Trabajo (Campo 17) ─────────
-      trabajoAnterior:        [''],
-      tiempoLaborar:          [''],
-      sueldoPercibido:        [''],
-      otrasAportaciones:      [''],
-      distribucionGasto:      [''],
-      alimentacion:           [''],
-      serviciosPublicos:      [''],
-      // Oferta de trabajo
-      cuentaOfertaTrabajo:    [''],
-      enQueConsisteOferta:    [''],
-      apoyoFamiliaPersona:    [''],
+      // ── 5. Datos del Indiciado ───────────────────────────────
+      trabajoAnterior:     [''],
+      tiempoLaborar:       [''],
+      sueldoPercibido:     [''],
+      otrasAportaciones:   [''],
+      distribucionGasto:   [''],
+      alimentacion:        [''],
+      serviciosPublicos:   [''],
+      cuentaOfertaTrabajo: [''],
+      enQueConsisteOferta: [''],
+      apoyoFamiliaPersona: [''],
 
-      // ── 6. Grupos de Autoayuda (Campo 9 del doc) ────────────
-      gruposAutoayuda:         [''],
-      consomeBebidas:          [''],
-      bebidaEspecifique:       [''],
-      recibitTerapias:         [''],
-      terapiasDonde:           [''],
-      terapiasPeriodo:         [''],
-      acudeAA:                 [''],
-      aaDonde:                 [''],
-      aaPeriodo:               [''],
-      estuvoCentroRehabilitacion: [''],
-      centroRehabDonde:        [''],
-      centroRehabPeriodo:      [''],
-      perteneceGrupoCultural:  [''],
-      grupoCulturalEspecifique:[''],
+      // ── 6. Grupos de Autoayuda ───────────────────────────────
+      gruposAutoayuda:           [''],
+      consomeBebidas:            [''],
+      bebidaEspecifique:         [''],
+      recibitTerapias:           [''],
+      terapiasDonde:             [''],
+      terapiasPeriodo:           [''],
+      acudeAA:                   [''],
+      aaDonde:                   [''],
+      aaPeriodo:                 [''],
+      estuvoCentroRehabilitacion:[''],
+      centroRehabDonde:          [''],
+      centroRehabPeriodo:        [''],
+      perteneceGrupoCultural:    [''],
+      grupoCulturalEspecifique:  [''],
 
-      // ── 7. Opinión y Diagnóstico (Campo 10) ─────────────────
-      opinionPrograma:         [''],
-      observaciones:           [''],
-      diagnosticoSocial:       [''],
+      // ── 7. Opinión y Diagnóstico ─────────────────────────────
+      opinionPrograma:   [''],
+      observaciones:     [''],
+      diagnosticoSocial: [''],
 
       // ── 8. Firmas ────────────────────────────────────────────
-      ciudadFecha:             [''],
-      diaFecha:                [''],
-      mesFecha:                [''],
-      anioFecha:               [''],
-      nombreResponsable:       [''],
-      nombreDirectora:         [''],
+      ciudadFecha:      [''],
+      diaFecha:         [''],
+      mesFecha:         [''],
+      anioFecha:        [''],
+      nombreResponsable:[''],
+      nombreDirectora:  [''],
     });
   }
 
-  /**
-   * Crea un FormGroup que representa una fila de la tabla familiar.
-   * Se reutiliza para familia primaria y secundaria.
-   */
   private _crearFilaFamiliar(): FormGroup {
     return this.fb.group({
       nombre:      [''],
@@ -342,20 +524,12 @@ export class EstudioTrabajoSocialComponent implements OnInit, OnDestroy {
     });
   }
 
-  // ── Getters para los FormArray ──────────────────────────────
-
-  /** FormArray de la tabla de familia primaria. */
-  get familiarPrimario(): FormArray {
-    return this._form.get('familiarPrimario') as FormArray;
-  }
-
-  /** FormArray de la tabla de familia secundaria. */
-  get familiarSecundario(): FormArray {
-    return this._form.get('familiarSecundario') as FormArray;
-  }
+  // ── Getters FormArray ─────────────────────────────────────────
+  get familiarPrimario():   FormArray { return this._form.get('familiarPrimario')   as FormArray; }
+  get familiarSecundario(): FormArray { return this._form.get('familiarSecundario') as FormArray; }
 
   // ══════════════════════════════════════════════════════════════
-  //  WIZARD — Navegación paso a paso
+  //  WIZARD — Navegación
   // ══════════════════════════════════════════════════════════════
 
   siguientePaso(): void {
@@ -383,8 +557,8 @@ export class EstudioTrabajoSocialComponent implements OnInit, OnDestroy {
     return Math.round((campos.filter(k => v[k] && v[k] !== '').length / campos.length) * 100);
   }
 
-  pasoCompleto(i: number): boolean { return this.completitudPaso(i) === 100; }
-  porcentajeCompletitud(): number  { return this.porcentaje(); }
+  pasoCompleto(i: number): boolean  { return this.completitudPaso(i) === 100; }
+  porcentajeCompletitud(): number   { return this.porcentaje(); }
 
   // ══════════════════════════════════════════════════════════════
   //  ARCHIVOS ADJUNTOS
@@ -416,17 +590,9 @@ export class EstudioTrabajoSocialComponent implements OnInit, OnDestroy {
   }
 
   // ══════════════════════════════════════════════════════════════
-  //  GENERACIÓN DE PDF — jsPDF nativo
-  //
-  //  El documento replica fielmente el Estudio de Trabajo Social:
-  //  – Encabezado institucional con logo (texto)
-  //  – Campos numerados 1–17
-  //  – Tablas de familia primaria y secundaria
-  //  – Sección de diagnóstico y firmas
-  //  – Paginación automática con saltos de página
+  //  GENERACIÓN DE PDF
   // ══════════════════════════════════════════════════════════════
 
-  /** Carga jsPDF desde CDN una sola vez. */
   private _cargarJsPDF(): Promise<void> {
     return new Promise((ok, err) => {
       if ((window as any).jspdf) return ok();
@@ -440,43 +606,12 @@ export class EstudioTrabajoSocialComponent implements OnInit, OnDestroy {
     });
   }
 
-  /**
-   * Genera el PDF completo del Estudio de Trabajo Social.
-   *
-   * Dimensiones: Letter (215.9 × 279.4 mm).
-   * Márgenes: 18 mm izq/der, 15 mm sup, 15 mm inf.
-   *
-   * Convenciones de dibujo:
-   *  Genera el PDF usando un cursor Y compartido como objeto {v:number}
-   *  para que todos los helpers lo modifiquen correctamente sin closures rotos.
-   *
-   *  Estructura del PDF (fiel al documento Word original):
-   *   Pág 1: Encabezado + Datos Personales + Situación Jurídica + Núcleo Familiar Primario
-   *   Pág 2: Núcleo Familiar Secundario + Datos del Indiciado
-   *   Pág 3: Grupos de Autoayuda + Opinión/Diagnóstico + Aviso + Firmas
-   */
-  /**
-   * Genera el PDF del Estudio de Trabajo Social directamente con jsPDF.
-   *
-   * CORRECCIONES v2:
-   *  – Una sola variable `y` se usa en todo el método (sin y -= 7 que rompe coords)
-   *  – `fila2col()` dibuja 2 campos en la misma línea sin retroceder el cursor
-   *  – `tablaFamiliar()` integrada en el flujo principal con `y` compartido
-   *  – Cada texto usa `splitTextToSize` con el ancho real disponible
-   *  – Las líneas de texto nunca superan el ancho de página
-   *  – El texto largo (etiquetas + valor) se ajusta automáticamente al ancho
-   *
-   * Formato: Letter 215.9 × 279.4 mm. Márgenes: 15mm todo.
-   */
   private async _generarPDF(): Promise<any> {
     await this._cargarJsPDF();
     const { jsPDF } = (window as any).jspdf;
     const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'letter' });
     const val = this._form.value;
 
-    // ════════════════════════════════════════════════════════════
-    //  CONSTANTES DE LAYOUT — Letter 215.9 × 279.4 mm
-    // ════════════════════════════════════════════════════════════
     const PW   = doc.internal.pageSize.getWidth();
     const PH   = doc.internal.pageSize.getHeight();
     const ML   = 15;
@@ -492,10 +627,8 @@ export class EstudioTrabajoSocialComponent implements OnInit, OnDestroy {
     const BLACK: RGB = [0,0,0];
     const WHITE: RGB = [255,255,255];
 
-    // ── Cursor Y como objeto para que los helpers lo modifiquen ──
     const cur = { y: MT };
 
-    // ── Nueva página con mini-encabezado ──────────────────────
     const nuevaPagina = () => {
       doc.addPage();
       cur.y = 12;
@@ -507,10 +640,8 @@ export class EstudioTrabajoSocialComponent implements OnInit, OnDestroy {
       cur.y += 8;
     };
 
-    // ── Verificar espacio; paginar si es necesario ────────────
     const pag = (need: number) => { if (cur.y + need > YMAX) nuevaPagina(); };
 
-    // ── Barra de sección ──────────────────────────────────────
     const SEC = (titulo: string, h = 6) => {
       pag(h + 4);
       doc.setFillColor(...GRAY);
@@ -522,7 +653,6 @@ export class EstudioTrabajoSocialComponent implements OnInit, OnDestroy {
       cur.y += h + 2;
     };
 
-    // ── Campo inline: lbl+línea+valor; avanza cur.y ──────────
     const CAMPO = (lbl: string, valor: string, x: number, maxW: number) => {
       doc.setFontSize(8.5).setFont('helvetica','bold').setTextColor(...BLACK);
       doc.text(lbl, x, cur.y);
@@ -536,12 +666,10 @@ export class EstudioTrabajoSocialComponent implements OnInit, OnDestroy {
       }
     };
 
-    // ── Fila 1 campo ancho completo ───────────────────────────
     const FILA1 = (lbl: string, val: string) => {
       pag(7); CAMPO(lbl, val, ML, W); cur.y += 7;
     };
 
-    // ── Fila 2 campos con porcentaje ──────────────────────────
     const FILA2 = (l1: string, v1: string, pct: number, l2: string, v2: string) => {
       pag(7);
       CAMPO(l1, v1, ML, W * pct - 2);
@@ -549,7 +677,6 @@ export class EstudioTrabajoSocialComponent implements OnInit, OnDestroy {
       cur.y += 7;
     };
 
-    // ── Área de texto ─────────────────────────────────────────
     const AREA = (lbl: string, valor: string, minH = 10) => {
       pag(minH + 10);
       if (lbl) {
@@ -569,13 +696,11 @@ export class EstudioTrabajoSocialComponent implements OnInit, OnDestroy {
       cur.y += h + 3;
     };
 
-    // ── Tabla de núcleo familiar ──────────────────────────────
     const TABLA = (filas: any[]) => {
       const cW  = [W*0.30, W*0.15, W*0.08, W*0.13, W*0.18, W*0.16];
       const cL  = ['NOMBRE','PARENTESCO','EDAD','EDO.CIVIL','ESCOLARIDAD','OCUPACION'];
       const rH  = 7;
       pag((filas.length + 1) * rH + 2);
-      // Cabecera
       let xc = ML;
       cL.forEach((h, i) => {
         doc.setFillColor(...GRAY);
@@ -587,7 +712,6 @@ export class EstudioTrabajoSocialComponent implements OnInit, OnDestroy {
         xc += cW[i];
       });
       cur.y += rH;
-      // Filas de datos
       filas.forEach(f => {
         xc = ML;
         [f?.nombre||'', f?.parentesco||'', f?.edad||'', f?.edoCivil||'', f?.escolaridad||'', f?.ocupacion||''].forEach((txt, i) => {
@@ -605,17 +729,13 @@ export class EstudioTrabajoSocialComponent implements OnInit, OnDestroy {
       cur.y += 2;
     };
 
-    // ── Radio horizontal ──────────────────────────────────────
     const radioStr = (actual: string, opts: string[]) =>
       opts.map(o => `${o === actual ? '(X)' : '( )'} ${o}`).join('   ');
 
-    // ── SI / NO ───────────────────────────────────────────────
     const siNo = (v: string) =>
       v === 'SI' ? 'SI (X)  NO ( )' : v === 'NO' ? 'SI ( )  NO (X)' : 'SI ( )  NO ( )';
 
-    // ════════════════════════════════════════════════════════════
-    //  ENCABEZADO INSTITUCIONAL
-    // ════════════════════════════════════════════════════════════
+    // ── ENCABEZADO ────────────────────────────────────────────
     doc.setFontSize(11).setFont('helvetica','bold').setTextColor(...VINO);
     doc.text('SEGURIDAD CIUDADANA', ML, cur.y+6);
     doc.setFontSize(6).setFont('helvetica','normal').setTextColor(...DGRAY);
@@ -638,9 +758,7 @@ export class EstudioTrabajoSocialComponent implements OnInit, OnDestroy {
     doc.setLineWidth(0.2);
     cur.y += 5;
 
-    // ════════════════════════════════════════════════════════════
-    //  DATOS PERSONALES (1–12)
-    // ════════════════════════════════════════════════════════════
+    // ── DATOS PERSONALES ─────────────────────────────────────
     SEC('DATOS PERSONALES DEL IMPUTADO');
     FILA2('1.- NOMBRE DEL IMPUTADO: ', val.nombre||'', 0.65, '2.- EDAD: ', val.edad||'');
     FILA2('3.- SOBRENOMBRE: ', val.sobreNombre||'', 0.5, '4.- FECHA DE NACIMIENTO: ', val.fechaNacimiento||'');
@@ -649,23 +767,16 @@ export class EstudioTrabajoSocialComponent implements OnInit, OnDestroy {
     FILA2('9.- NACIONALIDAD / DIALECTO O IDIOMA: ', val.nacionalidad||'', 0.55, '10.- RELIGION: ', val.religion||'');
     FILA2('11.- OCUPACION: ', val.ocupacion||'', 0.5, '12.- DOMICILIO ACTUAL: ', val.domicilioActual||'');
 
-    // ════════════════════════════════════════════════════════════
-    //  SITUACION JURIDICA (13)
-    // ════════════════════════════════════════════════════════════
+    // ── SITUACION JURIDICA ────────────────────────────────────
     SEC('13.- SITUACION JURIDICA:');
     FILA2('FECHA DE DETENCION: ', val.fechaDetencion||'', 0.5, 'EXPEDIENTE PENAL o PROCESO: ', val.expedientePenal||'');
     FILA1('DELITO(S): ', val.delito||'');
     FILA1('JUZGADO: ', val.juzgado||'');
 
-    // ════════════════════════════════════════════════════════════
-    //  14. NUCLEO FAMILIAR PRIMARIO
-    // ════════════════════════════════════════════════════════════
+    // ── NUCLEO FAMILIAR PRIMARIO ──────────────────────────────
     SEC('14.- DATOS GENERALES DEL NUCLEO FAMILIAR PRIMARIO');
     TABLA(val.familiarPrimario || []);
 
-    // ════════════════════════════════════════════════════════════
-    //  15. SITUACION ECONOMICA FAMILIAR PRIMARIA
-    // ════════════════════════════════════════════════════════════
     SEC('15.- SENALAR COMO ERA LA SITUACION ECONOMICA EN SU FAMILIA PRIMARIA:');
 
     pag(12);
@@ -720,9 +831,7 @@ export class EstudioTrabajoSocialComponent implements OnInit, OnDestroy {
     AREA('ALGUN INTEGRANTE DE LA FAMILIA TIENE ANTECEDENTES PENALES O DE ADICCION A ALGUN ESTUPEFACIENTE O CUALQUIER TIPO DE TOXICOS: ESPECIFIQUE:', val.antecedentesIntegrante||'');
     AREA('CONCEPTO QUE TIENE LA FAMILIA DEL INDICIADO:', val.conceptoFamiliaDelIndiciado||'');
 
-    // ════════════════════════════════════════════════════════════
-    //  16. NUCLEO FAMILIAR SECUNDARIO
-    // ════════════════════════════════════════════════════════════
+    // ── NUCLEO FAMILIAR SECUNDARIO ────────────────────────────
     SEC('16.- DATOS GENERALES DEL NUCLEO FAMILIAR SECUNDARIO');
     pag(5);
     doc.setFontSize(7.5).setFont('helvetica','italic').setTextColor(...DGRAY);
@@ -749,9 +858,7 @@ export class EstudioTrabajoSocialComponent implements OnInit, OnDestroy {
     AREA('ALGUN MIEMBRO DE LA FAMILIA PRESENTA PROBLEMAS DE CONDUCTA PARA O ANTISOCIAL. ESPECIFIQUE:', val.problemasCondutaFamiliar||'');
     FILA1('NUMERO DE PAREJAS CON LAS QUE HA VIVIDO DE MANERA ESTABLE: ', val.numeroParejas||'');
 
-    // ════════════════════════════════════════════════════════════
-    //  17. DATOS DEL INDICIADO
-    // ════════════════════════════════════════════════════════════
+    // ── DATOS DEL INDICIADO ───────────────────────────────────
     SEC('17.- DATOS DEL INDICIADO:');
     FILA1('TRABAJO DESEMPENADO ANTERIORMENTE: ', val.trabajoAnterior||'');
     FILA2('TIEMPO DE LABORAR: ', val.tiempoLaborar||'', 0.5, 'SUELDO PERCIBIDO: ', val.sueldoPercibido||'');
@@ -775,9 +882,7 @@ export class EstudioTrabajoSocialComponent implements OnInit, OnDestroy {
     doc.text(siNo(val.apoyoFamiliaPersona), ML+doc.getTextWidth('CUENTA CON EL APOYO DE LA FAMILIA O DE ALGUNA PERSONA: '), cur.y);
     cur.y += 7;
 
-    // ════════════════════════════════════════════════════════════
-    //  9. GRUPOS DE AUTOAYUDA
-    // ════════════════════════════════════════════════════════════
+    // ── GRUPOS DE AUTOAYUDA ───────────────────────────────────
     SEC('9.- GRUPOS DE AUTOAYUDA:');
     AREA('GRUPOS DE AUTOAYUDA:', val.gruposAutoayuda||'');
 
@@ -803,9 +908,7 @@ export class EstudioTrabajoSocialComponent implements OnInit, OnDestroy {
     itemSiNo('HA ESTADO EN REHABILITACION O ANEXADO EN ALGUN GRUPO DE AUTOAYUDA SOCIAL: ', val.estuvoCentroRehabilitacion, 'EN DONDE', val.centroRehabDonde, 'PERIODO', val.centroRehabPeriodo);
     itemSiNo('PERTENECE A ALGUN GRUPO CULTURAL, RELIGIOSO, DEPORTIVO, CLUB, ETC.: ', val.perteneceGrupoCultural, 'ESPECIFIQUE EN DONDE', val.grupoCulturalEspecifique);
 
-    // ════════════════════════════════════════════════════════════
-    //  10. OPINION Y DIAGNOSTICO
-    // ════════════════════════════════════════════════════════════
+    // ── OPINION Y DIAGNOSTICO ─────────────────────────────────
     SEC('10.- CUAL ES SU OPINION ACERCA DEL PROGRAMA RECONECTA CON LA PAZ:');
     AREA('', val.opinionPrograma||'', 14);
     AREA('OBSERVACIONES:', val.observaciones||'');
@@ -818,9 +921,7 @@ export class EstudioTrabajoSocialComponent implements OnInit, OnDestroy {
     doc.setTextColor(...BLACK);
     cur.y += 10;
 
-    // ════════════════════════════════════════════════════════════
-    //  AVISO DE PRIVACIDAD
-    // ════════════════════════════════════════════════════════════
+    // ── AVISO DE PRIVACIDAD ───────────────────────────────────
     const avisoTxt = 'Los datos personales recabados seran protegidos, incorporados y tratados en el Sistema de Datos Personales de la Direccion General de Prevencion del Delito y Participacion Ciudadana (DGPDyPC) de la Secretaria de Seguridad Publica y Proteccion Ciudadana del Estado, de conformidad con lo dispuesto por el articulo 12 de la Ley de Transparencia y Acceso a la Informacion Publica del Estado de Oaxaca y 9,10,11,12,13,14,15 de la Ley de Proteccion de Datos Personales del Estado de Oaxaca. A si mismo, se le informa que sus datos no podran ser difundidos sin su consentimiento expreso, salvo las excepciones previstas en la Ley, a su vez podra ejercer los derechos de acceso, rectificacion, cancelacion y oposicion, asi como la revocacion del consentimiento en la DGPDyPC ubicada en la calle de las Aguilas num. 124. Col. Universidad, hacienda de Candiani.';
     const avisoLines = doc.splitTextToSize(avisoTxt, W-4);
     const avisoH = avisoLines.length * 3.5 + 8;
@@ -832,9 +933,7 @@ export class EstudioTrabajoSocialComponent implements OnInit, OnDestroy {
     doc.setTextColor(...BLACK);
     cur.y += avisoH + 7;
 
-    // ════════════════════════════════════════════════════════════
-    //  FIRMAS
-    // ════════════════════════════════════════════════════════════
+    // ── FIRMAS ────────────────────────────────────────────────
     pag(38);
     const dia  = val.diaFecha  || '00';
     const mes  = (val.mesFecha  || 'ENERO').toUpperCase();
@@ -843,9 +942,9 @@ export class EstudioTrabajoSocialComponent implements OnInit, OnDestroy {
     doc.text(`${val.ciudadFecha||'OAXACA DE JUAREZ'}, ${dia} DE ${mes} DEL ${anio}.`, ML, cur.y);
     cur.y += 14;
 
-    const cFW  = W * 0.42;
-    const xFL  = ML;
-    const xFR  = ML + W - cFW;
+    const cFW = W * 0.42;
+    const xFL = ML;
+    const xFR = ML + W - cFW;
 
     doc.setDrawColor(...BLACK); doc.setLineWidth(0.3);
     doc.line(xFL, cur.y, xFL+cFW, cur.y);
@@ -906,7 +1005,7 @@ export class EstudioTrabajoSocialComponent implements OnInit, OnDestroy {
   }
 
   // ══════════════════════════════════════════════════════════════
-  //  CARGA DE JSZip PARA CARPETA ORGANIZADA
+  //  JSZip
   // ══════════════════════════════════════════════════════════════
 
   private _cargarJsZip(): Promise<void> {
@@ -935,13 +1034,7 @@ export class EstudioTrabajoSocialComponent implements OnInit, OnDestroy {
   }
 
   // ══════════════════════════════════════════════════════════════
-  //  GUARDAR EN HISTORIAL + DESCARGA EN CARPETA ZIP
-  //
-  //  Estructura del ZIP:
-  //  {expediente}/
-  //    {fecha}_ESTUDIO-DE-TRABAJO-SOCIAL/
-  //      ESTUDIO-DE-TRABAJO-SOCIAL_{nombre}.pdf
-  //      <archivos adjuntos>
+  //  GUARDAR EN HISTORIAL + ZIP
   // ══════════════════════════════════════════════════════════════
 
   async guardarEnHistorial(): Promise<void> {
@@ -949,11 +1042,11 @@ export class EstudioTrabajoSocialComponent implements OnInit, OnDestroy {
     this.guardando.set(true);
     try {
       this.estadoPdf.update(s => ({ ...s, pct:35, fase:'Generando PDF...' }));
-      const doc      = await this._generarPDF();
-      const dataUrl  = doc.output('datauristring');
-      const val      = this._form.value;
-      const expId    = val.expedientePenal || `EXP-TS-${Date.now()}`;
-      const pdfNom   = `ESTUDIO-DE-TRABAJO-SOCIAL_${this._sanitizar(val.nombre || 'SIN-NOMBRE')}.pdf`;
+      const doc     = await this._generarPDF();
+      const dataUrl = doc.output('datauristring');
+      const val     = this._form.value;
+      const expId   = val.expedientePenal || `EXP-TS-${Date.now()}`;
+      const pdfNom  = `ESTUDIO-DE-TRABAJO-SOCIAL_${this._sanitizar(val.nombre || 'SIN-NOMBRE')}.pdf`;
 
       const entrada: EntradaHistorial = {
         id:         Date.now(),
@@ -965,7 +1058,6 @@ export class EstudioTrabajoSocialComponent implements OnInit, OnDestroy {
         archivos:   [...this.archivosAdjuntos()],
       };
 
-      // Guardar en historial en memoria
       this.historial.update(prev => {
         const idx = prev.findIndex(e => e.expediente === expId);
         if (idx >= 0) {
@@ -980,7 +1072,6 @@ export class EstudioTrabajoSocialComponent implements OnInit, OnDestroy {
       await this._cargarJsZip();
       const JSZip = (window as any).JSZip;
       const zip   = new JSZip();
-
       const carpetaRaiz = this._sanitizar(expId);
       const fechaLimpia = entrada.fecha.replace(/\//g, '-');
       const ruta = `${carpetaRaiz}/${fechaLimpia}_ESTUDIO-DE-TRABAJO-SOCIAL/`;
@@ -992,8 +1083,8 @@ export class EstudioTrabajoSocialComponent implements OnInit, OnDestroy {
 
       this.estadoPdf.update(s => ({ ...s, pct:85, fase:'Descargando ZIP...' }));
       const blob: Blob = await zip.generateAsync({ type: 'blob' });
-      const url  = URL.createObjectURL(blob);
-      const a    = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      const a   = document.createElement('a');
       a.href = url; a.download = `${carpetaRaiz}.zip`; a.click();
       URL.revokeObjectURL(url);
 
@@ -1020,16 +1111,14 @@ export class EstudioTrabajoSocialComponent implements OnInit, OnDestroy {
     this.mostrarToast('Expediente eliminado');
   }
 
-  descargarPdfHistorial(e: EntradaHistorial): void {
-    this._dl(e.pdf.dataUrl, e.pdf.nombre);
-  }
+  descargarPdfHistorial(e: EntradaHistorial): void { this._dl(e.pdf.dataUrl, e.pdf.nombre); }
 
   async descargarExpedienteCompleto(e: EntradaHistorial): Promise<void> {
     this.estadoPdf.set({ activo:true, pct:10, fase:'Preparando carpeta...', exito:false, error:'' });
     try {
       await this._cargarJsZip();
-      const JSZip = (window as any).JSZip;
-      const zip   = new JSZip();
+      const JSZip    = (window as any).JSZip;
+      const zip      = new JSZip();
       const carpeta  = this._sanitizar(e.expediente);
       const fechaL   = e.fecha.replace(/\//g, '-');
       const ruta     = `${carpeta}/${fechaL}_ESTUDIO-DE-TRABAJO-SOCIAL/`;
@@ -1064,21 +1153,17 @@ export class EstudioTrabajoSocialComponent implements OnInit, OnDestroy {
   cerrarSesion(): void { alert('Sesion cerrada.\n(TODO: integrar con AuthService + Router)'); }
 
   // ── Helpers para el template ─────────────────────────────────
-  /** Obtiene el valor actual de un control del FormGroup principal. */
   v(k: string): any { return this._form?.get(k)?.value; }
 
-  /** Obtiene el valor de un control dentro de un item del FormArray. */
   vArr(arr: string, idx: number, campo: string): string {
     const fa = this._form?.get(arr) as FormArray;
     return fa?.at(idx)?.get(campo)?.value || '';
   }
 
-  /** Devuelve [X] si el valor es 'SI', [ ] si es 'NO' o vacío. */
   chkView(v: string): string {
     return v === 'SI' ? 'SI [X]  NO [ ]' : v === 'NO' ? 'SI [ ]  NO [X]' : 'SI [ ]  NO [ ]';
   }
 
-  /** Devuelve (*) para la opción seleccionada. */
   radioView(actual: string, opciones: string[]): string {
     return opciones.map(op => `${op === actual ? '(X)' : '( )'} ${op}`).join('   ');
   }

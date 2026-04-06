@@ -927,6 +927,8 @@ export class ValoracionPenalComponent implements OnInit, OnDestroy {
     .subscribe({
       next: (res) => {
         console.log('✅ Guardado correctamente:', res);
+        // manda a componente de deatlle penal
+        this.router.navigate(['/detalle-penal', this.expediente?.id], { state: { valoracionGuardada: true } });
         this.mostrarToast('Guardado correctamente');
       },
       error: (err) => {
@@ -938,6 +940,7 @@ export class ValoracionPenalComponent implements OnInit, OnDestroy {
           this.mostrarToast('No autorizado (token)', 'error');
         } else if (err.status === 409) {
           this.mostrarToast('Ya existe valoración', 'error');
+          this.router.navigate(['/detalle-penal', this.expediente?.id], { state: { valoracionGuardada: true } });
         } else {
           this.mostrarToast('Error al guardar', 'error');
         }

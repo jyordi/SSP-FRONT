@@ -72,7 +72,9 @@
   ═══════════════════════════════════════════════════════════════ -->
   @if(mostrarVistaPrevia()){
     <div class="preview-overlay">
+      <br> <br> <br>
       <div class="preview-toolbar">
+        <br><br> <br> <br><br> <br>
         <div class="preview-title">👁️ Vista Previa — Valoracion Clinica Psicologica</div>
         <div class="preview-actions">
           <button class="btn-pa btn-edit" (click)="mostrarVistaPrevia.set(false)">✏️ Seguir Editando</button>
@@ -80,7 +82,7 @@
             @if(generandoPdf()){<span class="mini-spin"></span> Generando...} @else {⬇️ Descargar PDF}
           </button>
           <button class="btn-pa btn-save" (click)="guardarEnHistorial()" [disabled]="guardando()||generandoPdf()">
-            @if(guardando()){<span class="mini-spin"></span> Guardando...} @else {💾 Guardar en Expediente}
+            @if(guardando()){<span class="mini-spin"></span> Guardando...} @else {💾 Guardar }
           </button>
         </div>
       </div>
@@ -1202,9 +1204,7 @@
             <!-- CTA -->
             <div class="cta-zone">
               @if(formularioCompleto()){
-                <button class="btn-main" (click)="mostrarVistaPrevia.set(true)">
-                  <span>👁️</span> Vista Previa y Descargar PDF
-                </button>
+                
               } @else {
                 <div class="cta-pending">
                   <p>Completa los campos obligatorios <span class="req">✦</span> para continuar</p>

@@ -5,15 +5,12 @@
   Programa: Reconecta con la Paz — DGPD y PC
 ════════════════════════════════════════════════════════════════════
 -->
+
 <app-navbar-reconecta></app-navbar-reconecta>
-
-<div class="contenido">
-
-  //salto de linea
-  <div style="height: 20px;"></div>
- <div class="app-shell">
+<div class="app-shell">
 
   <!-- ══ NAVBAR ══════════════════════════════════════════════════ -->
+  
 
   <!-- ══ TAB BAR ══════════════════════════════════════════════════ -->
   <div class="tab-bar">
@@ -83,12 +80,16 @@
   <!-- ══════════════════════════════════════════════════════════════
        VISTA PREVIA PDF
   ═══════════════════════════════════════════════════════════════════ -->
-  @if(mostrarVistaPrevia()){
-    <div class="preview-overlay">
 
+  
+  @if(mostrarVistaPrevia()){
+    
+    <div class="preview-overlay">
+<br><br> <br> <br>
       <div class="preview-toolbar">
         <div class="preview-title">👁️ Vista Previa — Estudio de Trabajo Social</div>
         <div class="preview-actions">
+          
           <button class="btn-pa btn-edit" (click)="mostrarVistaPrevia.set(false)">✏️ Seguir Editando</button>
           <button class="btn-pa btn-pdf" (click)="descargarPdf()" [disabled]="generandoPdf()||guardando()">
             @if(generandoPdf()){ <span class="mini-spin"></span> Generando... }
@@ -486,12 +487,12 @@
             <div class="doc-firma-col">
               <div class="doc-firma-line-h"></div>
               <p class="doc-firma-cargo">ENC. DEL DEPTO. DE TRAB. SOC.</p>
-              <p class="doc-firma-nombre">{{v('nombreResponsable')||''}}</p>
+              <p class="doc-firma-nombre">{{v('nombreResponsable')||'C. ESVEL LAGUNAS RODRIGUEZ'}}</p>
             </div>
             <div class="doc-firma-col">
               <div class="doc-firma-line-h"></div>
               <p class="doc-firma-cargo">Vo. Bo.</p>
-              <p class="doc-firma-nombre">{{v('nombreDirectora')||''}}</p>
+              <p class="doc-firma-nombre">{{v('nombreDirectora')||'MTRA. LII YIO PEREZ ZARATE'}}</p>
               <p class="doc-firma-cargo">DIRECTORA DE PREVENCION DEL DELITO</p>
               <p class="doc-firma-cargo">Y PARTICIPACION CIUDADANA</p>
             </div>
@@ -1139,7 +1140,7 @@
     }
 
     <!-- ═══ TAB: HISTORIAL ═══════════════════════════════════════════ -->
-  @if(tabActivo()==='historial'){
+    @if(tabActivo()==='historial'){
   <div class="historial-wrap">
 
     <div class="historial-head">
@@ -1163,7 +1164,8 @@
 
         <div class="hcard-body">
 
-        
+          
+
           <div class="hcard-meta">
             📅 Fecha: {{ historial()[0].fecha }}
           </div>
@@ -1172,8 +1174,9 @@
             ⚖️ Delito: {{ historial()[0].delito }}
           </div>
 
-          
+         
 
+          
 
           <!-- 🔥 BOTONES -->
           <div class="hcard-actions">
@@ -1210,7 +1213,3 @@
 
   </div><!-- /.main-content -->
 </div><!-- /.app-shell -->
-
-  
-</div>
-
