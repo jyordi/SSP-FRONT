@@ -33,6 +33,7 @@ export class PenalService {
 
   crearBeneficiario(data: any): Observable<any> {
     return this.http.post(this.API_BENEFICIARIO, data, { headers: this._headers() });
+    console.log('DATA QUE ENVÍAS:', data);
   }
 
   getBeneficiario(id: number | string): Observable<any> {
@@ -51,4 +52,24 @@ export class PenalService {
   saveValoracionPsicologica(data: any): Observable<any> {
     return this.http.post(this.API_VALORACION, data, { headers: this._headers() });
   }
+
+  // 🔥 VALORACIÓN - GET POR EXPEDIENTE
+getValoracionByExpediente(expedienteId: number): Observable<any> {
+  return this.http.get(`${this.API_VALORACION}/expediente/${expedienteId}`, { headers: this._headers() });
+}
+
+// 🔥 ACTUALIZAR VALORACIÓN
+updateValoracion(id: number, data: any): Observable<any> {
+  return this.http.patch(`${this.API_VALORACION}/${id}`, data, { headers: this._headers() });
+}
+
+// 🔥 ELIMINAR VALORACIÓN
+deleteValoracion(id: number): Observable<any> {
+  return this.http.delete(`${this.API_VALORACION}/${id}`, { headers: this._headers() });
+}
+
+// 🔥 ACTUALIZAR BENEFICIARIO
+updateBeneficiario(id: number, data: any): Observable<any> {
+  return this.http.patch(`${this.API_BENEFICIARIO}/${id}`, data, { headers: this._headers() });
+}
 }

@@ -4,7 +4,6 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
 import { Router } from '@angular/router';
 import { PenalService } from '../../services/penal';
 
-
 @Component({
   selector: 'app-nuevo-expediente-penal',
   standalone: true,
@@ -21,6 +20,9 @@ export class NuevoExpedientePenalComponent {
 
   beneficiarioId!: number;
 
+  previewUrl: string | null = null;
+  fotoBase64: string | null = null;
+
   beneficiarioForm: FormGroup;
   penalForm: FormGroup;
 
@@ -30,17 +32,16 @@ export class NuevoExpedientePenalComponent {
     private router: Router
   ) {
 
-    // 🔥 FORM BENEFICIARIO
     this.beneficiarioForm = this.fb.group({
       nombre: ['', Validators.required],
       curp: ['', Validators.required],
       sexo: ['HOMBRE', Validators.required],
       fechaNacimiento: ['', Validators.required],
       tiempoAsignado: [1, Validators.required],
-      unidadTiempo: ['HORAS', Validators.required]
+      unidadTiempo: ['HORAS', Validators.required],
+      urlFoto: ['']
     });
 
-    // 🔥 FORM PENAL
     this.penalForm = this.fb.group({
       cPenal: [''],
       expedienteTecnico: [''],
@@ -56,17 +57,67 @@ export class NuevoExpedientePenalComponent {
     });
   }
 
-  // 🔥 CREAR BENEFICIARIO
+  // 📸 COMPRESIÓN DE IMAGEN (SOLUCIÓN 413)
+  onFileChange(event: any) {
+    const file = event.target.files[0];
+
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      this.error = 'Solo se permiten imágenes';
+      return;
+    }
+
+    const reader = new FileReader();
+
+    reader.onload = (e: any) => {
+      const img = new Image();
+      img.src = e.target.result;
+
+      img.onload = () => {
+
+        const canvas = document.createElement('canvas');
+
+        const MAX_WIDTH = 300;
+        const scale = MAX_WIDTH / img.width;
+
+        canvas.width = MAX_WIDTH;
+        canvas.height = img.height * scale;
+
+        const ctx = canvas.getContext('2d');
+        ctx?.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+        // 🔥 COMPRIMIR
+        const compressed = canvas.toDataURL('image/jpeg', 0.5);
+
+        this.previewUrl = compressed;
+        this.fotoBase64 = compressed;
+
+        this.beneficiarioForm.patchValue({
+          urlFoto: compressed
+        });
+      };
+    };
+
+    reader.readAsDataURL(file);
+  }
+
   crearBeneficiario() {
+
     if (this.beneficiarioForm.invalid) {
-      this.error = 'Completa todos los campos obligatorios';
+      this.error = 'Completa los campos';
       return;
     }
 
     this.loading = true;
     this.error = '';
 
-    this.penalService.crearBeneficiario(this.beneficiarioForm.value)
+    const data = {
+      ...this.beneficiarioForm.value,
+      nombre: this.beneficiarioForm.value.nombre.toUpperCase()
+    };
+
+    this.penalService.crearBeneficiario(data)
       .subscribe({
         next: (res) => {
           this.beneficiarioId = res.id;
@@ -80,7 +131,6 @@ export class NuevoExpedientePenalComponent {
       });
   }
 
-  // 🔥 CREAR EXPEDIENTE
   crearExpediente() {
 
     this.loading = true;
