@@ -1,39 +1,19 @@
 <!--
-  estudio-trabajo-social.component.html  v1.0.0
+  estudio-trabajo-social.component.html  v1.1.0
   ════════════════════════════════════════════════════════════════════
   Template del componente Estudio de Trabajo Social.
   Programa: Reconecta con la Paz — DGPD y PC
-
-  ESTRUCTURA:
-    1.  Navbar institucional
-    2.  Tab bar (Formulario / Historial)
-    3.  Toast de notificación
-    4.  Overlay de progreso PDF
-    5.  Vista previa PDF (replica fiel al documento Word oficial)
-    6.  Barra de progreso ESTÁTICA global
-    7.  Wizard: sidebar de pasos + cuerpo del formulario
-    8.  Historial de expedientes
-  ════════════════════════════════════════════════════════════════════
+════════════════════════════════════════════════════════════════════
 -->
- 
-<div class="app-shell">
+<app-navbar-reconecta></app-navbar-reconecta>
+
+<div class="contenido">
+
+  //salto de linea
+  <div style="height: 20px;"></div>
+ <div class="app-shell">
 
   <!-- ══ NAVBAR ══════════════════════════════════════════════════ -->
-  <nav class="navbar">
-    <div class="nav-brand">
-      <img class="nav-logo"
-           src="https://pbs.twimg.com/profile_images/1553024740645867521/Y01tlpcP_400x400.jpg"
-           alt="Logo Reconecta con la Paz"/>
-      <div>
-        <div class="nav-title">Reconecta con la Paz</div>
-        <div class="nav-subtitle">Estudio de Trabajo Social</div>
-      </div>
-    </div>
-    <div class="nav-right">
-      <span class="nav-user">C. Esvel Lagunas Rodriguez</span>
-      <button class="btn-nav" (click)="cerrarSesion()">Cerrar Sesion</button>
-    </div>
-  </nav>
 
   <!-- ══ TAB BAR ══════════════════════════════════════════════════ -->
   <div class="tab-bar">
@@ -55,26 +35,38 @@
   <!-- ══ OVERLAY DE PROGRESO PDF ══════════════════════════════════ -->
   @if(estadoPdf().activo){
     <div class="pdf-overlay">
-      <div class="pdf-card" [class.card-success]="estadoPdf().exito" [class.card-error]="estadoPdf().error">
-        <div class="pdf-icon" [class.icon-success]="estadoPdf().exito" [class.icon-error]="estadoPdf().error">
+      <div class="pdf-card"
+           [class.card-success]="estadoPdf().exito"
+           [class.card-error]="estadoPdf().error">
+        <div class="pdf-icon"
+             [class.icon-success]="estadoPdf().exito"
+             [class.icon-error]="estadoPdf().error">
           @if(estadoPdf().exito){
-            <svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="20" stroke="currentColor" stroke-width="2.5" fill="none"/>
-              <path d="M14 24l8 8 12-14" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="check-path"/></svg>
+            <svg viewBox="0 0 48 48">
+              <circle cx="24" cy="24" r="20" stroke="currentColor" stroke-width="2.5" fill="none"/>
+              <path d="M14 24l8 8 12-14" stroke="currentColor" stroke-width="2.5"
+                    stroke-linecap="round" stroke-linejoin="round" class="check-path"/>
+            </svg>
           } @else if(estadoPdf().error){
-            <svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="20" stroke="currentColor" stroke-width="2.5" fill="none"/>
-              <path d="M16 16l16 16M32 16l-16 16" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+            <svg viewBox="0 0 48 48">
+              <circle cx="24" cy="24" r="20" stroke="currentColor" stroke-width="2.5" fill="none"/>
+              <path d="M16 16l16 16M32 16l-16 16" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+            </svg>
           } @else {
             <svg viewBox="0 0 48 48" class="spin-svg">
               <circle cx="24" cy="24" r="18" stroke="currentColor" stroke-width="3" fill="none"
-                      stroke-dasharray="70 40" stroke-linecap="round"/></svg>
+                      stroke-dasharray="70 40" stroke-linecap="round"/>
+            </svg>
           }
         </div>
         <div class="pdf-title">
-          @if(estadoPdf().exito){Completado!}
-          @else if(estadoPdf().error){Error}
-          @else {Procesando...}
+          @if(estadoPdf().exito){ Completado! }
+          @else if(estadoPdf().error){ Error }
+          @else { Procesando... }
         </div>
-        <div class="pdf-fase" [class.fase-success]="estadoPdf().exito" [class.fase-error]="estadoPdf().error">
+        <div class="pdf-fase"
+             [class.fase-success]="estadoPdf().exito"
+             [class.fase-error]="estadoPdf().error">
           {{estadoPdf().fase}}
         </div>
         <div class="pdf-prog-track">
@@ -89,37 +81,32 @@
   }
 
   <!-- ══════════════════════════════════════════════════════════════
-       VISTA PREVIA PDF — Replica fiel al documento Word oficial
+       VISTA PREVIA PDF
   ═══════════════════════════════════════════════════════════════════ -->
   @if(mostrarVistaPrevia()){
     <div class="preview-overlay">
 
-      <!-- Toolbar de acciones -->
       <div class="preview-toolbar">
         <div class="preview-title">👁️ Vista Previa — Estudio de Trabajo Social</div>
         <div class="preview-actions">
           <button class="btn-pa btn-edit" (click)="mostrarVistaPrevia.set(false)">✏️ Seguir Editando</button>
           <button class="btn-pa btn-pdf" (click)="descargarPdf()" [disabled]="generandoPdf()||guardando()">
-            @if(generandoPdf()){<span class="mini-spin"></span> Generando...}
-            @else {⬇️ Descargar PDF}
+            @if(generandoPdf()){ <span class="mini-spin"></span> Generando... }
+            @else { ⬇️ Descargar PDF }
           </button>
-          <button class="btn-pa btn-save" (click)="guardarEnHistorial()" [disabled]="guardando()||generandoPdf()">
-            @if(guardando()){<span class="mini-spin"></span> Guardando...}
-            @else {💾 Guardar en Expediente (ZIP)}
-          </button>
+          
         </div>
       </div>
 
-      <!-- Área de scroll con el documento -->
       <div class="preview-scroll">
         <div class="doc-page">
 
-          <!-- ── ENCABEZADO INSTITUCIONAL ──────────────────── -->
+          <!-- ENCABEZADO -->
           <table class="doc-hdr-table">
             <colgroup>
               <col class="w-145"/>
               <col/>
-              <col class="w-0"/><!-- sin columna de expediente en este doc -->
+              <col/>
             </colgroup>
             <tr>
               <td class="doc-logo-cell">
@@ -137,7 +124,7 @@
           </table>
           <div class="doc-red-line"></div>
 
-          <!-- ── 1–12. DATOS PERSONALES ─────────────────────── -->
+          <!-- 1–12. DATOS PERSONALES -->
           <div class="doc-sec">DATOS PERSONALES DEL IMPUTADO</div>
 
           <div class="doc-campo-fila">
@@ -206,7 +193,7 @@
             </div>
           </div>
 
-          <!-- ── 13. SITUACIÓN JURÍDICA ─────────────────────── -->
+          <!-- 13. SITUACIÓN JURÍDICA -->
           <div class="doc-sec">13.- SITUACION JURIDICA</div>
 
           <div class="doc-campo-fila">
@@ -228,7 +215,7 @@
             <span class="dc-val">{{v('juzgado')}}</span>
           </div>
 
-          <!-- ── 14. NÚCLEO FAMILIAR PRIMARIO ──────────────── -->
+          <!-- 14. NÚCLEO FAMILIAR PRIMARIO -->
           <div class="doc-sec">14.- DATOS GENERALES DEL NUCLEO FAMILIAR PRIMARIO</div>
           <table class="doc-familia-table">
             <thead>
@@ -251,7 +238,7 @@
             </tbody>
           </table>
 
-          <!-- ── 15. SITUACIÓN ECONÓMICA FAMILIAR PRIMARIA ─── -->
+          <!-- 15. SITUACIÓN ECONÓMICA FAMILIAR PRIMARIA -->
           <div class="doc-sec">15.- SITUACION ECONOMICA EN SU FAMILIA PRIMARIA</div>
 
           <div class="doc-campo-full">
@@ -290,8 +277,9 @@
           </div>
           <div class="doc-campo-full">
             <span class="dc-lbl">HUBO VIOLENCIA INTRAFAMILIAR:</span>
-            <span class="dc-val">{{v('huboViolenciaIntrafamiliar')}}
-            @if(v('violenciaEspecifique')){ — EN CASO AFIRMATIVO ESPECIFICAR: {{v('violenciaEspecifique')}} }
+            <span class="dc-val">
+              {{v('huboViolenciaIntrafamiliar')}}
+              @if(v('violenciaEspecifique')){ — EN CASO AFIRMATIVO ESPECIFICAR: {{v('violenciaEspecifique')}} }
             </span>
           </div>
           <div class="doc-campo-full">
@@ -307,7 +295,7 @@
             <div class="dc-area-val">{{v('conceptoFamiliaDelIndiciado')}}</div>
           </div>
 
-          <!-- ── 16. NÚCLEO FAMILIAR SECUNDARIO ─────────────── -->
+          <!-- 16. NÚCLEO FAMILIAR SECUNDARIO -->
           <div class="doc-sec">16.- DATOS GENERALES DEL NUCLEO FAMILIAR SECUNDARIO</div>
           <p class="doc-hint">(Conteste los siguientes puntos si el indiciado es casado o vive en union libre)</p>
 
@@ -365,7 +353,7 @@
             <span class="dc-val">{{v('numeroParejas')}}</span>
           </div>
 
-          <!-- ── 17. DATOS DEL INDICIADO ─────────────────────── -->
+          <!-- 17. DATOS DEL INDICIADO -->
           <div class="doc-sec">17.- DATOS DEL INDICIADO</div>
 
           <div class="doc-campo-full">
@@ -400,8 +388,9 @@
           </div>
           <div class="doc-campo-full">
             <span class="dc-lbl">CUENTA CON OFERTA DE TRABAJO:</span>
-            <span class="dc-val">{{chkView(v('cuentaOfertaTrabajo'))}}
-            @if(v('enQueConsisteOferta')){ &nbsp;— EN QUE CONSISTE: {{v('enQueConsisteOferta')}} }
+            <span class="dc-val">
+              {{chkView(v('cuentaOfertaTrabajo'))}}
+              @if(v('enQueConsisteOferta')){ &nbsp;— EN QUE CONSISTE: {{v('enQueConsisteOferta')}} }
             </span>
           </div>
           <div class="doc-campo-full">
@@ -409,7 +398,7 @@
             <span class="dc-val">{{chkView(v('apoyoFamiliaPersona'))}}</span>
           </div>
 
-          <!-- ── 9. GRUPOS DE AUTOAYUDA ─────────────────────── -->
+          <!-- 9. GRUPOS DE AUTOAYUDA -->
           <div class="doc-sec">9.- GRUPOS DE AUTOAYUDA</div>
 
           <div class="doc-area-box">
@@ -418,39 +407,44 @@
           </div>
           <div class="doc-campo-full">
             <span class="dc-lbl">CONSUME BEBIDAS EMBRIAGANTES O ADICTO A ALGUN PSICOTROPICO:</span>
-            <span class="dc-val">{{chkView(v('consomeBebidas'))}}
-            @if(v('bebidaEspecifique')){ &nbsp;ESPECIFIQUE: {{v('bebidaEspecifique')}} }
+            <span class="dc-val">
+              {{chkView(v('consomeBebidas'))}}
+              @if(v('bebidaEspecifique')){ &nbsp;ESPECIFIQUE: {{v('bebidaEspecifique')}} }
             </span>
           </div>
           <div class="doc-campo-full">
             <span class="dc-lbl">HA RECIBIDO TERAPIAS PSICOLOGICAS O DE OTRA INDOLE:</span>
-            <span class="dc-val">{{chkView(v('recibitTerapias'))}}
-            @if(v('terapiasDonde')){ &nbsp;EN DONDE: {{v('terapiasDonde')}} }
-            @if(v('terapiasPeriodo')){ &nbsp;PERIODO: {{v('terapiasPeriodo')}} }
+            <span class="dc-val">
+              {{chkView(v('recibitTerapias'))}}
+              @if(v('terapiasDonde')){ &nbsp;EN DONDE: {{v('terapiasDonde')}} }
+              @if(v('terapiasPeriodo')){ &nbsp;PERIODO: {{v('terapiasPeriodo')}} }
             </span>
           </div>
           <div class="doc-campo-full">
             <span class="dc-lbl">ACUDE A SESIONES DE GRUPOS (AA, NEUROTICOS ANONIMOS, ETC.):</span>
-            <span class="dc-val">{{chkView(v('acudeAA'))}}
-            @if(v('aaDonde')){ &nbsp;EN DONDE: {{v('aaDonde')}} }
-            @if(v('aaPeriodo')){ &nbsp;PERIODO: {{v('aaPeriodo')}} }
+            <span class="dc-val">
+              {{chkView(v('acudeAA'))}}
+              @if(v('aaDonde')){ &nbsp;EN DONDE: {{v('aaDonde')}} }
+              @if(v('aaPeriodo')){ &nbsp;PERIODO: {{v('aaPeriodo')}} }
             </span>
           </div>
           <div class="doc-campo-full">
             <span class="dc-lbl">HA ESTADO EN REHABILITACION O ANEXADO EN ALGUN GRUPO DE AUTOAYUDA:</span>
-            <span class="dc-val">{{chkView(v('estuvoCentroRehabilitacion'))}}
-            @if(v('centroRehabDonde')){ &nbsp;EN DONDE: {{v('centroRehabDonde')}} }
-            @if(v('centroRehabPeriodo')){ &nbsp;PERIODO: {{v('centroRehabPeriodo')}} }
+            <span class="dc-val">
+              {{chkView(v('estuvoCentroRehabilitacion'))}}
+              @if(v('centroRehabDonde')){ &nbsp;EN DONDE: {{v('centroRehabDonde')}} }
+              @if(v('centroRehabPeriodo')){ &nbsp;PERIODO: {{v('centroRehabPeriodo')}} }
             </span>
           </div>
           <div class="doc-campo-full">
             <span class="dc-lbl">PERTENECE A ALGUN GRUPO CULTURAL, RELIGIOSO, DEPORTIVO, CLUB, ETC.:</span>
-            <span class="dc-val">{{chkView(v('perteneceGrupoCultural'))}}
-            @if(v('grupoCulturalEspecifique')){ &nbsp;ESPECIFIQUE: {{v('grupoCulturalEspecifique')}} }
+            <span class="dc-val">
+              {{chkView(v('perteneceGrupoCultural'))}}
+              @if(v('grupoCulturalEspecifique')){ &nbsp;ESPECIFIQUE: {{v('grupoCulturalEspecifique')}} }
             </span>
           </div>
 
-          <!-- ── 10. OPINIÓN Y DIAGNÓSTICO ──────────────────── -->
+          <!-- 10. OPINIÓN Y DIAGNÓSTICO -->
           <div class="doc-sec">10.- OPINION Y DIAGNOSTICO SOCIAL</div>
 
           <div class="doc-area-box">
@@ -467,20 +461,22 @@
             <span class="dc-diag-val">{{v('diagnosticoSocial')||'FAVORABLE'}}</span>
           </div>
 
-          <!-- ── AVISO DE PRIVACIDAD ─────────────────────────── -->
+          <!-- AVISO DE PRIVACIDAD -->
           <div class="doc-aviso">
-            <p>Los datos personales recabados seran protegidos, incorporados y tratados en el Sistema de Datos Personales
-            de la Direccion General de Prevencion del Delito y Participacion Ciudadana (DGPDyPC) de la Secretaria de
-            Seguridad Publica y Proteccion Ciudadana del Estado, de conformidad con lo dispuesto por el articulo 12 de
-            la Ley de Transparencia y Acceso a la Informacion Publica del Estado de Oaxaca y 9,10,11,12,13,14,15 de la
-            Ley de Proteccion de Datos Personales del Estado de Oaxaca. A si mismo, se le informa que sus datos no
-            podran ser difundidos sin su consentimiento expreso, salvo las excepciones previstas en la Ley, a su vez
-            podra ejercer los derechos de acceso, rectificacion, cancelacion y oposicion, asi como la revocacion del
-            consentimiento en la DGPDyPC ubicada en la calle de las Aguilas num. 124. Col. Universidad, hacienda de
-            Candiani.</p>
+            <p>Los datos personales recabados seran protegidos, incorporados y tratados en el
+            Sistema de Datos Personales de la Direccion General de Prevencion del Delito y
+            Participacion Ciudadana (DGPDyPC) de la Secretaria de Seguridad Publica y Proteccion
+            Ciudadana del Estado, de conformidad con lo dispuesto por el articulo 12 de la Ley
+            de Transparencia y Acceso a la Informacion Publica del Estado de Oaxaca y
+            9,10,11,12,13,14,15 de la Ley de Proteccion de Datos Personales del Estado de Oaxaca.
+            A si mismo, se le informa que sus datos no podran ser difundidos sin su consentimiento
+            expreso, salvo las excepciones previstas en la Ley, a su vez podra ejercer los derechos
+            de acceso, rectificacion, cancelacion y oposicion, asi como la revocacion del
+            consentimiento en la DGPDyPC ubicada en la calle de las Aguilas num. 124.
+            Col. Universidad, hacienda de Candiani.</p>
           </div>
 
-          <!-- ── FECHA Y FIRMAS ──────────────────────────────── -->
+          <!-- FECHA Y FIRMAS -->
           <div class="doc-fecha">
             {{v('ciudadFecha')||'OAXACA DE JUAREZ'}}, {{v('diaFecha')||'__'}} DE
             {{v('mesFecha')||'ENERO'}} DEL {{v('anioFecha')||'2026'}}.
@@ -490,12 +486,12 @@
             <div class="doc-firma-col">
               <div class="doc-firma-line-h"></div>
               <p class="doc-firma-cargo">ENC. DEL DEPTO. DE TRAB. SOC.</p>
-              <p class="doc-firma-nombre">{{v('nombreResponsable')||'C. ESVEL LAGUNAS RODRIGUEZ'}}</p>
+              <p class="doc-firma-nombre">{{v('nombreResponsable')||''}}</p>
             </div>
             <div class="doc-firma-col">
               <div class="doc-firma-line-h"></div>
               <p class="doc-firma-cargo">Vo. Bo.</p>
-              <p class="doc-firma-nombre">{{v('nombreDirectora')||'MTRA. LII YIO PEREZ ZARATE'}}</p>
+              <p class="doc-firma-nombre">{{v('nombreDirectora')||''}}</p>
               <p class="doc-firma-cargo">DIRECTORA DE PREVENCION DEL DELITO</p>
               <p class="doc-firma-cargo">Y PARTICIPACION CIUDADANA</p>
             </div>
@@ -529,18 +525,18 @@
   <!-- ══ CONTENIDO PRINCIPAL ═══════════════════════════════════════ -->
   <div class="main-content">
 
-    <!-- ═══════════════════════════════════════════════════════════
-         TAB: FORMULARIO
-    ════════════════════════════════════════════════════════════════ -->
+    <!-- ═══ TAB: FORMULARIO ══════════════════════════════════════════ -->
     @if(tabActivo()==='formulario'){
       <div class="wizard-layout">
 
-        <!-- SIDEBAR DE PASOS -->
+        <!-- SIDEBAR -->
         <aside class="wizard-sidebar">
           <div class="sidebar-title">Secciones</div>
           @for(paso of pasos; track paso.titulo; let i=$index){
-            <button class="step-btn" [class.step-active]="pasoActual()===i"
-                    [class.step-done]="pasoCompleto(i)" (click)="irAlPaso(i)">
+            <button class="step-btn"
+                    [class.step-active]="pasoActual()===i"
+                    [class.step-done]="pasoCompleto(i)"
+                    (click)="irAlPaso(i)">
               <span class="step-icon">{{paso.icono}}</span>
               <span class="step-txt">
                 <span class="step-num">{{i+1}}</span>
@@ -554,7 +550,7 @@
         <!-- CUERPO DEL WIZARD -->
         <div class="wizard-body" [formGroup]="formGroup">
 
-          <!-- Encabezado del paso activo -->
+          <!-- Encabezado del paso -->
           <div class="paso-header">
             <div class="paso-icono">{{pasos[pasoActual()].icono}}</div>
             <div>
@@ -564,10 +560,17 @@
             <div class="paso-badge">Paso {{pasoActual()+1}} de {{totalPasos()}}</div>
           </div>
 
-          <!-- ════ PASO 0: Datos Personales ════════════════════ -->
+          <!-- ════ PASO 0: Datos Personales ════════════════════════ -->
           @if(pasoActual()===0){
             <div class="section-block">
               <div class="section-body">
+
+                <!-- 🔥 BANNER INFORMATIVO EDAD AUTOMÁTICA -->
+                <div class="info-banner">
+                  <span class="info-banner-ico">🎂</span>
+                  Al seleccionar la fecha de nacimiento, la <strong>edad se calcula automáticamente</strong>.
+                </div>
+
                 <div class="field-grid g2">
 
                   <div class="field-col">
@@ -577,20 +580,30 @@
                   </div>
 
                   <div class="field-col">
-                    <label class="lbl">2.- Edad <span class="req">✦</span></label>
-                    <input class="inp req-field" formControlName="edad" placeholder="Ej: 34"/>
-                    @if(!v('edad')){ <span class="field-hint">Obligatorio</span> }
+                    <label class="lbl">4.- Fecha de Nacimiento <span class="req">✦</span></label>
+                    <input class="inp req-field" type="date" formControlName="fechaNacimiento"/>
+                    @if(!v('fechaNacimiento')){ <span class="field-hint">Obligatorio</span> }
+                  </div>
+
+                  <!-- 🔥 CAMPO EDAD — solo lectura, calculado automáticamente -->
+                  <div class="field-col">
+                    <label class="lbl">2.- Edad <span class="req">✦</span>
+                      <span class="lbl-auto">⚡ Auto</span>
+                    </label>
+                    <div class="inp-readonly-wrap">
+                      <input class="inp inp-auto" formControlName="edad"
+                             placeholder="Se calcula al elegir fecha de nacimiento"
+                             readonly tabindex="-1"/>
+                      @if(v('edad')){
+                        <span class="edad-badge">{{v('edad')}} años</span>
+                      }
+                    </div>
+                    @if(!v('edad')){ <span class="field-hint">Selecciona la fecha de nacimiento</span> }
                   </div>
 
                   <div class="field-col">
                     <label class="lbl">3.- Sobrenombre</label>
                     <input class="inp" formControlName="sobreNombre"/>
-                  </div>
-
-                  <div class="field-col">
-                    <label class="lbl">4.- Fecha de Nacimiento <span class="req">✦</span></label>
-                    <input class="inp req-field" type="date" formControlName="fechaNacimiento"/>
-                    @if(!v('fechaNacimiento')){ <span class="field-hint">Obligatorio</span> }
                   </div>
 
                   <div class="field-col">
@@ -642,7 +655,7 @@
             </div>
           }
 
-          <!-- ════ PASO 1: Situación Jurídica ═══════════════════ -->
+          <!-- ════ PASO 1: Situación Jurídica ══════════════════════ -->
           @if(pasoActual()===1){
             <div class="section-block">
               <div class="section-body">
@@ -675,12 +688,11 @@
             </div>
           }
 
-          <!-- ════ PASO 2: Núcleo Familiar Primario ════════════ -->
+          <!-- ════ PASO 2: Núcleo Familiar Primario ════════════════ -->
           @if(pasoActual()===2){
             <div class="section-block">
               <div class="section-body">
 
-                <!-- Tabla de miembros -->
                 <label class="lbl dsp-block mb-8">14.- Composicion del Nucleo Familiar Primario</label>
                 <div class="tabla-familiar-wrap">
                   <table class="tabla-familiar" formArrayName="familiarPrimario">
@@ -705,7 +717,6 @@
                   </table>
                 </div>
 
-                <!-- 15. Situación económica -->
                 <div class="subsection-title mt-16">15.- Situacion Economica de la Familia Primaria</div>
 
                 <div class="field-col mb-12">
@@ -739,7 +750,6 @@
                   </div>
                 </div>
 
-                <!-- Características del núcleo -->
                 <div class="subsection-title mt-14">Caracteristicas del Nucleo Familiar Primario</div>
 
                 <div class="field-grid g2">
@@ -775,7 +785,7 @@
                   </div>
                   <div class="field-col">
                     <label class="lbl">Hubo Violencia Intrafamiliar</label>
-                    <input class="inp" formControlName="huboViolenciaIntrafamiliar" placeholder="Especifique si/no y detalles"/>
+                    <input class="inp" formControlName="huboViolenciaIntrafamiliar" placeholder="Si / No"/>
                   </div>
                   <div class="field-col">
                     <label class="lbl">En caso afirmativo, especificar</label>
@@ -783,11 +793,11 @@
                   </div>
                 </div>
 
-                <div class="field-col" style="margin-top:10px">
+                <div class="field-col mt-10">
                   <label class="lbl">Algun integrante de la familia tiene antecedentes penales o de adiccion. Especifique</label>
                   <textarea class="inp" formControlName="antecedentesIntegrante" rows="3"></textarea>
                 </div>
-                <div class="field-col" style="margin-top:10px">
+                <div class="field-col mt-10">
                   <label class="lbl">Concepto que tiene la familia del indiciado</label>
                   <textarea class="inp" formControlName="conceptoFamiliaDelIndiciado" rows="3"></textarea>
                 </div>
@@ -796,7 +806,7 @@
             </div>
           }
 
-          <!-- ════ PASO 3: Núcleo Familiar Secundario ══════════ -->
+          <!-- ════ PASO 3: Núcleo Familiar Secundario ══════════════ -->
           @if(pasoActual()===3){
             <div class="section-block">
               <div class="section-body">
@@ -815,7 +825,7 @@
                         <tr [formGroupName]="$index">
                           <td><input class="inp-tabla" formControlName="nombre"/></td>
                           <td><input class="inp-tabla" formControlName="parentesco"/></td>
-                          <td><input class="inp-tabla" formControlName="edad" style="width:50px"/></td>
+                          <td><input class="inp-tabla w-50" formControlName="edad"/></td>
                           <td><input class="inp-tabla" formControlName="edoCivil"/></td>
                           <td><input class="inp-tabla" formControlName="escolaridad"/></td>
                           <td><input class="inp-tabla" formControlName="ocupacion"/></td>
@@ -836,20 +846,20 @@
                   </div>
                 </div>
 
-                <div class="field-col" style="margin-top:10px">
+                <div class="field-col mt-10">
                   <label class="lbl">Caracteristicas de Vivienda</label>
                   <textarea class="inp" formControlName="caracteristicasVivienda" rows="3" placeholder="Tipo, estado, servicios..."></textarea>
                 </div>
-                <div class="field-col" style="margin-top:10px">
+                <div class="field-col mt-10">
                   <label class="lbl">El transporte esta cerca de su vivienda o tiene que caminar para tomarlo</label>
                   <input class="inp" formControlName="transporteCercaVivienda"/>
                 </div>
-                <div class="field-col" style="margin-top:10px">
+                <div class="field-col mt-10">
                   <label class="lbl">Mobiliario y Enseres Domesticos</label>
                   <textarea class="inp" formControlName="mobiliarioEnseres" rows="3"></textarea>
                 </div>
 
-                <div class="field-col" style="margin-top:12px">
+                <div class="field-col mt-12">
                   <label class="lbl">* Zona</label>
                   <div class="radio-group">
                     @for(op of opcionesZona; track op){
@@ -860,11 +870,11 @@
                   </div>
                 </div>
 
-                <div class="field-col" style="margin-top:10px">
+                <div class="field-col mt-10">
                   <label class="lbl">Relacion con el Medio Externo</label>
                   <textarea class="inp" formControlName="relacionMedioExterno" rows="3"></textarea>
                 </div>
-                <div class="field-col" style="margin-top:10px">
+                <div class="field-col mt-10">
                   <label class="lbl">Algun miembro de la familia presenta problemas de conducta para o antisocial. Especifique</label>
                   <textarea class="inp" formControlName="problemasCondutaFamiliar" rows="3"></textarea>
                 </div>
@@ -872,13 +882,13 @@
             </div>
           }
 
-          <!-- ════ PASO 4: Datos del Indiciado ════════════════ -->
+          <!-- ════ PASO 4: Datos del Indiciado ════════════════════ -->
           @if(pasoActual()===4){
             <div class="section-block">
               <div class="section-body">
                 <div class="field-grid g2">
 
-                  <div class="field-col" style="grid-column:span 2">
+                  <div class="field-col gs-span-2">
                     <label class="lbl">Trabajo desempenado anteriormente</label>
                     <input class="inp" formControlName="trabajoAnterior"/>
                   </div>
@@ -890,20 +900,19 @@
                     <label class="lbl">Sueldo percibido</label>
                     <input class="inp" formControlName="sueldoPercibido" placeholder="Ej: $300/dia"/>
                   </div>
-
-                  <div class="field-col" style="grid-column:span 2">
+                  <div class="field-col gs-span-2">
                     <label class="lbl">Aparte del indiciado, otras aportaciones economicas de la familia</label>
                     <textarea class="inp" formControlName="otrasAportaciones" rows="3"></textarea>
                   </div>
-                  <div class="field-col" style="grid-column:span 2">
+                  <div class="field-col gs-span-2">
                     <label class="lbl">Distribucion del gasto familiar</label>
                     <textarea class="inp" formControlName="distribucionGasto" rows="3"></textarea>
                   </div>
-                  <div class="field-col" style="grid-column:span 2">
+                  <div class="field-col gs-span-2">
                     <label class="lbl">La alimentacion en que consiste</label>
                     <input class="inp" formControlName="alimentacion"/>
                   </div>
-                  <div class="field-col" style="grid-column:span 2">
+                  <div class="field-col gs-span-2">
                     <label class="lbl">Con que servicios publicos cuenta actualmente (luz, agua, drenaje, etc)</label>
                     <input class="inp" formControlName="serviciosPublicos"/>
                   </div>
@@ -936,11 +945,11 @@
             </div>
           }
 
-          <!-- ════ PASO 5: Grupos de Autoayuda ════════════════ -->
+          <!-- ════ PASO 5: Grupos de Autoayuda ════════════════════ -->
           @if(pasoActual()===5){
             <div class="section-block">
               <div class="section-body">
-                <div class="field-col" style="margin-bottom:12px">
+                <div class="field-col mb-12">
                   <label class="lbl">Grupos de Autoayuda (describe grupos a los que pertenece)</label>
                   <textarea class="inp" formControlName="gruposAutoayuda" rows="3"></textarea>
                 </div>
@@ -970,7 +979,8 @@
                     @if(item.ctrl==='recibitTerapias' || item.ctrl==='acudeAA' || item.ctrl==='estuvoCentroRehabilitacion'){
                       <div class="field-col">
                         <label class="lbl">Periodo</label>
-                        <input class="inp" [formControlName]="item.ctrl==='recibitTerapias'?'terapiasPeriodo':item.ctrl==='acudeAA'?'aaPeriodo':'centroRehabPeriodo'"/>
+                        <input class="inp"
+                          [formControlName]="item.ctrl==='recibitTerapias'?'terapiasPeriodo':item.ctrl==='acudeAA'?'aaPeriodo':'centroRehabPeriodo'"/>
                       </div>
                     }
                   </div>
@@ -980,15 +990,16 @@
             </div>
           }
 
-          <!-- ════ PASO 6: Opinión y Diagnóstico ══════════════ -->
+          <!-- ════ PASO 6: Opinión y Diagnóstico ══════════════════ -->
           @if(pasoActual()===6){
             <div class="section-block">
               <div class="section-body">
-                <div class="field-col" style="margin-bottom:14px">
+                <div class="field-col mb-12">
                   <label class="lbl">10.- Cual es su opinion acerca del Programa Reconecta con la Paz</label>
-                  <textarea class="inp" formControlName="opinionPrograma" rows="5" placeholder="Opinion del evaluado sobre el programa..."></textarea>
+                  <textarea class="inp" formControlName="opinionPrograma" rows="5"
+                            placeholder="Opinion del evaluado sobre el programa..."></textarea>
                 </div>
-                <div class="field-col" style="margin-bottom:14px">
+                <div class="field-col mb-12">
                   <label class="lbl">Observaciones</label>
                   <textarea class="inp" formControlName="observaciones" rows="4"></textarea>
                 </div>
@@ -1006,14 +1017,13 @@
             </div>
           }
 
-          <!-- ════ PASO 7: Firmas ═══════════════════════════════ -->
+          <!-- ════ PASO 7: Firmas ═══════════════════════════════════ -->
           @if(pasoActual()===7){
             <div class="section-block">
               <div class="section-body">
 
-                <!-- Datos de fecha -->
-                <div class="subsection-title" style="margin-bottom:12px">Fecha del documento</div>
-                <div class="field-grid g4" style="margin-bottom:16px">
+                <div class="subsection-title mb-12">Fecha del documento</div>
+                <div class="field-grid g4 mb-16">
                   <div class="field-col">
                     <label class="lbl">Ciudad</label>
                     <input class="inp" formControlName="ciudadFecha"/>
@@ -1032,8 +1042,7 @@
                   </div>
                 </div>
 
-                <!-- Nombres de firmantes -->
-                <div class="subsection-title" style="margin-bottom:12px">Responsables</div>
+                <div class="subsection-title mb-12">Responsables</div>
                 <div class="field-grid g2">
                   <div class="field-col">
                     <label class="lbl">Enc. del Depto. de Trabajo Social</label>
@@ -1045,9 +1054,9 @@
                   </div>
                 </div>
 
-                <!-- Zona de adjuntos -->
-                <div class="subsection-title" style="margin-top:16px; margin-bottom:12px">📎 Documentos Adjuntos</div>
-                <div class="upload-zone" [class.dragging]="arrastrandoArchivo()"
+                <div class="subsection-title mt-16 mb-12">📎 Documentos Adjuntos</div>
+                <div class="upload-zone"
+                     [class.dragging]="arrastrandoArchivo()"
                      (dragover)="$event.preventDefault();arrastrandoArchivo.set(true)"
                      (dragleave)="arrastrandoArchivo.set(false)"
                      (drop)="$event.preventDefault();arrastrandoArchivo.set(false);procesarArchivos($any($event.dataTransfer?.files))"
@@ -1055,9 +1064,11 @@
                   <div class="upload-ico">📎</div>
                   <div class="upload-main">Arrastra documentos aqui</div>
                   <div class="upload-sub">PDF, JPG, PNG, DOCX — Haz clic para seleccionar</div>
-                  <input #fInput type="file" multiple accept=".pdf,.jpg,.jpeg,.png,.docx" style="display:none"
+                  <input #fInput type="file" multiple accept=".pdf,.jpg,.jpeg,.png,.docx"
+                         style="display:none"
                          (change)="procesarArchivos($any($event.target.files))"/>
                 </div>
+
                 @for(a of archivosAdjuntos(); track a.id){
                   <div class="uploaded-file">
                     <span class="file-ico">{{iconoArchivo(a.tipo)}}</span>
@@ -1069,18 +1080,24 @@
                   </div>
                 }
 
-                <!-- CTA Vista Previa -->
+                <!-- CTA -->
                 <div class="cta-zone">
                   @if(formularioCompleto()){
-                    <button class="btn-main" (click)="mostrarVistaPrevia.set(true)">
-                      <span>👁️</span> Vista Previa y Descargar PDF
+                    
+                    <button class="btn-guardar-final mt-12"
+                            (click)="guardarEnBackend()"
+                            [disabled]="guardando()">
+                      @if(guardando()){ <span class="mini-spin"></span> Guardando... }
+                      @else { 💾 Guardar Estudio en el Sistema }
                     </button>
                   } @else {
                     <div class="cta-pending">
                       <p>Completa los campos obligatorios <span class="req">✦</span> para continuar</p>
                       <p class="cta-count">{{camposPendientes().length}} campo(s) pendiente(s):</p>
                       <div class="pending-chips">
-                        @for(c of camposPendientes(); track c){ <span class="pending-chip">{{c}}</span> }
+                        @for(c of camposPendientes(); track c){
+                          <span class="pending-chip">{{c}}</span>
+                        }
                       </div>
                     </div>
                   }
@@ -1090,14 +1107,18 @@
             </div>
           }
 
-          <!-- ══ NAVEGACIÓN INFERIOR ════════════════════════════ -->
+          <!-- ══ NAVEGACIÓN INFERIOR ════════════════════════════════ -->
           <div class="wizard-nav">
-            <button class="wn-btn wn-back" [disabled]="pasoActual()===0" (click)="anteriorPaso()">← Anterior</button>
+            <button class="wn-btn wn-back" [disabled]="pasoActual()===0" (click)="anteriorPaso()">
+              ← Anterior
+            </button>
             <div class="wn-dots">
               @for(p of pasos; track p.titulo; let i=$index){
-                <button class="wn-dot" [class.dot-active]="pasoActual()===i"
+                <button class="wn-dot"
+                        [class.dot-active]="pasoActual()===i"
                         [class.dot-done]="pasoCompleto(i)"
-                        (click)="irAlPaso(i)" [title]="p.titulo"></button>
+                        (click)="irAlPaso(i)"
+                        [title]="p.titulo"></button>
               }
             </div>
             @if(pasoActual()<totalPasos()-1){
@@ -1106,7 +1127,9 @@
               @if(formularioCompleto()){
                 <button class="wn-btn wn-preview" (click)="mostrarVistaPrevia.set(true)">👁️ Vista Previa</button>
               } @else {
-                <button class="wn-btn wn-next" disabled>Campos pendientes ({{camposPendientes().length}})</button>
+                <button class="wn-btn wn-next" disabled>
+                  Campos pendientes ({{camposPendientes().length}})
+                </button>
               }
             }
           </div>
@@ -1115,55 +1138,79 @@
       </div><!-- /.wizard-layout -->
     }
 
-    <!-- ═══════════════════════════════════════════════════════════
-         TAB: HISTORIAL
-    ════════════════════════════════════════════════════════════════ -->
-    @if(tabActivo()==='historial'){
-      <div class="historial-wrap">
-        <div class="historial-head">
-          <div>
-            <h2 class="hist-titulo">Historial de Estudios</h2>
-            <p class="hist-sub">{{contadorHistorial()}} estudio(s) guardado(s) en esta sesion</p>
+    <!-- ═══ TAB: HISTORIAL ═══════════════════════════════════════════ -->
+  @if(tabActivo()==='historial'){
+  <div class="historial-wrap">
+
+    <div class="historial-head">
+      <h2 class="hist-titulo">📂 Estudio de Trabajo Social</h2>
+    </div>
+
+    <!-- 🔥 SI EXISTE -->
+    @if(historial().length > 0){
+
+      <div class="hcard">
+
+        <div class="hcard-hdr">
+          <div class="hcard-exp">
+            Expediente: {{ historial()[0].expediente }}
+          </div>
+
+          <div class="hcard-name">
+            {{ historial()[0].nombre }}
           </div>
         </div>
 
-        @if(historial().length===0){
-          <div class="empty-state">
-            <div class="empty-ico">🗂️</div>
-            <div class="empty-txt">No hay estudios guardados aun</div>
-            <div class="empty-sub">Completa el formulario y guardalo para verlo aqui</div>
+        <div class="hcard-body">
+
+        
+          <div class="hcard-meta">
+            📅 Fecha: {{ historial()[0].fecha }}
           </div>
-        } @else {
-          <div class="hist-grid">
-            @for(e of historial(); track e.id){
-              <div class="hcard">
-                <div class="hcard-hdr">
-                  <div class="hcard-exp">📁 EXP: {{e.expediente}}</div>
-                  <div class="hcard-name">{{e.nombre||'Sin nombre'}}</div>
-                </div>
-                <div class="hcard-body">
-                  <div class="hcard-meta">📅 {{e.fecha}}</div>
-                  @if(e.delito){ <div class="hcard-meta">⚖️ {{e.delito}}</div> }
-                  <div class="hcard-files">
-                    <div class="hfile" (click)="descargarPdfHistorial(e)">📄 {{truncar(e.pdf.nombre)}}</div>
-                    @for(a of e.archivos; track a.id){
-                      <div class="hfile" (click)="descargarArchivo(a)">{{iconoArchivo(a.tipo)}} {{truncar(a.nombre)}}</div>
-                    }
-                  </div>
-                  <div class="hcard-actions">
-                    <button class="hbtn" (click)="descargarPdfHistorial(e)">⬇️ Solo PDF</button>
-                    <button class="hbtn hbtn-folder" (click)="descargarExpedienteCompleto(e)" title="Descargar carpeta ZIP organizada">
-                      📁 Carpeta ZIP
-                    </button>
-                    <button class="hbtn hbtn-del" (click)="eliminarExpediente(e.id)">🗑️ Eliminar</button>
-                  </div>
-                </div>
-              </div>
-            }
+
+          <div class="hcard-meta">
+            ⚖️ Delito: {{ historial()[0].delito }}
           </div>
-        }
+
+          
+
+
+          <!-- 🔥 BOTONES -->
+          <div class="hcard-actions">
+
+            <button class="hbtn"
+                    (click)="editarTrabajo(historial()[0].id)">
+              ✏️ Editar
+            </button>
+
+            <button class="hbtn hbtn-del"
+                    (click)="eliminarTrabajo(historial()[0].id)">
+              🗑 Eliminar
+            </button>
+
+          </div>
+
+        </div>
+
       </div>
+
+    } @else {
+
+      <!-- 🔥 VACÍO -->
+      <div class="empty-state">
+        <div class="empty-ico">📭</div>
+        <div class="empty-txt">No hay estudio registrado</div>
+        <div class="empty-sub">Crea uno en el formulario</div>
+      </div>
+
     }
+
+  </div>
+}
 
   </div><!-- /.main-content -->
 </div><!-- /.app-shell -->
+
+  
+</div>
+

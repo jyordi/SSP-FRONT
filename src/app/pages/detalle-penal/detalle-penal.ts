@@ -5,10 +5,11 @@ import { SessionService } from '../../services/session';
 import { PenalService } from '../../services/penal';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { NavbarReconectaComponent } from "../../shared/navbar-reconecta/navbar-reconecta";
 
 @Component({
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, NavbarReconectaComponent],
   templateUrl: './detalle-penal.html',
   styleUrls: ['./detalle-penal.css']
 })
@@ -43,7 +44,9 @@ export class DetallePenalComponent implements OnInit {
         this.expediente = res.expediente;
         this.loading = false;
 
-        this.getValoracion();
+        if (this.esAdmin() || this.esPsicologo()) {
+  this.getValoracion();
+}
       },
       error: () => {
         this.loading = false;

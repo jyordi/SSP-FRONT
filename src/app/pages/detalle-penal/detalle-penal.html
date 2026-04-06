@@ -1,3 +1,5 @@
+<app-navbar-reconecta></app-navbar-reconecta>
+
 <div *ngIf="loading" class="overlay">
   <div class="loader"></div>
   <p>Cargando expediente...</p>
@@ -79,7 +81,7 @@
   </div>
 
   <!-- 🧠 VALORACIÓN -->
-  <div class="card valoracion" *ngIf="!loadingValoracion">
+  <div class="card valoracion" *ngIf="(esAdmin() || esPsicologo()) && !loadingValoracion">
 
     <h3>🧠 Valoración Psicológica</h3>
 

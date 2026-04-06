@@ -10,27 +10,12 @@
   ══════════════════════════════════════════════════════════════════════
 -->
 
+<app-navbar-reconecta></app-navbar-reconecta>
+
 <div class="app-shell">
 
   <!-- NAVBAR -->
-  <nav class="navbar">
-    <div class="nav-brand">
-      <img class="nav-logo"
-           src="https://pbs.twimg.com/profile_images/1553024740645867521/Y01tlpcP_400x400.jpg"
-           alt="Logo Reconecta con la Paz" />
-      <div>
-        <div class="nav-title">Reconecta con la Paz</div>
-        <div class="nav-subtitle">Sistema de Valoracion Clinica Psicologica</div>
-      </div>
-    </div>
-    <div class="nav-right">
-      <button class="btn-nav" (click)="regresarPantallaAnterior()">⬅️ Regresar</button>
-      @if(contadorHistorial() > 0){
-        <button class="btn-nav" (click)="irATrabajoSocial()">📋 Trabajo Social</button>
-      }
-      <button class="btn-nav" (click)="cerrarSesion()">Cerrar Sesion</button>
-    </div>
-  </nav>
+  
 
   <!-- TAB BAR -->
   <div class="tab-bar">

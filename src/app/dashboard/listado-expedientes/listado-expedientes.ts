@@ -4,12 +4,13 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { SessionService } from '../../services/session';
 import { ExpedientesService } from '../../services/expedientes';
+import { NavbarReconectaComponent } from "../../shared/navbar-reconecta/navbar-reconecta";
 
 
 @Component({
   selector: 'app-listado-expedientes',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, NavbarReconectaComponent],
   templateUrl: './listado-expedientes.html',
   styleUrls: ['./listado-expedientes.css'],
 })

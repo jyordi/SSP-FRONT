@@ -23,6 +23,7 @@ import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { PenalService } from '../../services/penal';
 import { SessionService } from '../../services/session';
+import { NavbarReconectaComponent } from "../../shared/navbar-reconecta/navbar-reconecta";
 
 // ─── Interfaces ──────────────────────────────────────────────────
 export interface ArchivoAdjunto   { id:number; nombre:string; tamano:number; tipo:string; dataUrl:string; }
@@ -68,7 +69,7 @@ export const CAMPOS_REQUERIDOS = PASOS.flatMap(p => p.campos);
 @Component({
   selector: 'app-valoracion-penal',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, NavbarReconectaComponent],
   templateUrl: './valoracion-penal.html',
   styleUrls:   ['./valoracion-penal.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,

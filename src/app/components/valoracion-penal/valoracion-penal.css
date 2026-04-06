@@ -93,7 +93,7 @@
 ───────────────────────────────────────────────────────────────── */
 .app-shell {
   min-height: 100vh;
-  background: var(--parchment);
+   background: #ffffff; /* 🔥 blanco limpio */
   background-image:
     radial-gradient(ellipse at 20% 0%,   rgba(133,10,49,0.06) 0%, transparent 50%),
     radial-gradient(ellipse at 80% 100%, rgba(200,149,42,0.08) 0%, transparent 50%);
