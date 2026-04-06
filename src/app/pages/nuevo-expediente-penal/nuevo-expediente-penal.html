@@ -6,13 +6,13 @@
     <p>Procesando...</p>
   </div>
 
-  <!-- 🔥 STEP INDICATOR -->
+  <!-- 🔥 STEPS -->
   <div class="steps">
     <div [class.active]="paso === 1">1. Beneficiario</div>
     <div [class.active]="paso === 2">2. Expediente</div>
   </div>
 
-  <!-- PASO 1 -->
+  <!-- 🔥 PASO 1 -->
   <div *ngIf="paso === 1" class="card fade">
 
     <h2>👤 Nuevo Beneficiario</h2>
@@ -22,20 +22,27 @@
       <input placeholder="Nombre completo" formControlName="nombre">
       <input placeholder="CURP" formControlName="curp">
 
-      <select formControlName="sexo" title="Selecciona el sexo">
-  <option value="HOMBRE">Hombre</option>
-  <option value="MUJER">Mujer</option>
-</select>
+      <!-- 📸 FOTO -->
+      <label class="file-label">Subir foto</label>
+      <input type="file" (change)="onFileChange($event)" accept="image/*">
 
-<select formControlName="unidadTiempo" title="Selecciona la unidad de tiempo">
-  <option value="HORAS">Horas</option>
-  <option value="DIAS">Días</option>
-</select>
+      <!-- 🔥 PREVIEW -->
+      <div *ngIf="previewUrl" class="preview">
+        <img [src]="previewUrl">
+      </div>
 
-      <input type="date" formControlName="fechaNacimiento" title="Fecha de nacimiento">
+      <select formControlName="sexo">
+        <option value="HOMBRE">Hombre</option>
+        <option value="MUJER">Mujer</option>
+      </select>
+
+      <select formControlName="unidadTiempo">
+        <option value="HORAS">Horas</option>
+        <option value="DIAS">Días</option>
+      </select>
+
+      <input type="date" formControlName="fechaNacimiento">
       <input type="number" placeholder="Tiempo asignado" formControlName="tiempoAsignado">
-
-
 
       <button type="button" (click)="crearBeneficiario()">
         Siguiente →
@@ -45,7 +52,7 @@
 
   </div>
 
-  <!-- PASO 2 -->
+  <!-- 🔥 PASO 2 -->
   <div *ngIf="paso === 2" class="card fade">
 
     <h2>⚖️ Expediente Penal</h2>
@@ -59,9 +66,9 @@
       <input placeholder="Delito" formControlName="delito">
       <input placeholder="Agraviado" formControlName="agraviado">
 
-      <input type="date" formControlName="fechaIngresoPrograma" title="Fecha ingreso al programa">
-      <input type="date" formControlName="fechaSuspensionProceso" title="Fecha suspensión de proceso">
-      <input type="date" formControlName="fechaFinSupervision" title="Fecha fin de supervisión">
+      <input type="date" formControlName="fechaIngresoPrograma">
+      <input type="date" formControlName="fechaSuspensionProceso">
+      <input type="date" formControlName="fechaFinSupervision">
 
       <input placeholder="Medida cautelar" formControlName="medidaCautelar">
 

@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ExpedientesService } from '../../services/expedientes';
 import { SessionService } from '../../services/session';
+import { PenalService } from '../../services/penal';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -18,22 +19,31 @@ export class DetallePenalComponent implements OnInit {
   guardando = false;
   role = '';
 
+  previewUrl: string | ArrayBuffer | null = null;
+  selectedFile!: File;
+
+  // 🔥 VALORACIÓN
+  valoracion: any = null;
+  loadingValoracion = true;
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private service: ExpedientesService,
-    private session: SessionService
+    private session: SessionService,
+    private penalService: PenalService
   ) {}
 
   ngOnInit() {
     this.role = this.session.getRole();
-
     const id = this.route.snapshot.params['id'];
 
     this.service.getResumenPenal(id).subscribe({
       next: (res: any) => {
         this.expediente = res.expediente;
         this.loading = false;
+
+        this.getValoracion();
       },
       error: () => {
         this.loading = false;
@@ -42,7 +52,38 @@ export class DetallePenalComponent implements OnInit {
     });
   }
 
-  // 🔥 ACTUALIZAR
+  // 🔥 TRAER VALORACIÓN
+  getValoracion() {
+    this.penalService.getValoracionByExpediente(this.expediente.id)
+      .subscribe({
+        next: (res: any) => {
+          this.valoracion = res;
+          this.loadingValoracion = false;
+        },
+        error: () => {
+          this.valoracion = null;
+          this.loadingValoracion = false;
+        }
+      });
+  }
+
+  // 🔥 FOTO
+  onFileSelected(event: any) {
+    if (!this.esAdmin()) return;
+
+    const file = event.target.files[0];
+    if (file) {
+      this.selectedFile = file;
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        this.previewUrl = reader.result;
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
+  // 🔥 GUARDAR
   guardarCambios() {
     this.guardando = true;
 
@@ -59,33 +100,20 @@ export class DetallePenalComponent implements OnInit {
       });
   }
 
-  // 🔥 NAVEGACIÓN CORREGIDA (SIN ID)
+  // 🔥 NAVEGACIÓN
   irModulo(ruta: string) {
+    sessionStorage.setItem('expediente', JSON.stringify(this.expediente));
 
-  // 🔥 GUARDAR EN SESSION (ANTI F5)
-  sessionStorage.setItem('expediente', JSON.stringify(this.expediente));
-
-  this.router.navigate([ruta], {
-    state: { expediente: this.expediente }
-  });
-}
-
-  // 🔥 ROLES
-  esAdmin() {
-    return this.role === 'admin';
+    this.router.navigate([ruta], {
+      state: { expediente: this.expediente }
+    });
   }
 
-  esPsicologo() {
-    return this.role === 'psicologo';
-  }
-
-  esTrabajoSocial() {
-    return this.role === 'trabajo_social';
-  }
-
-  esGuia() {
-    return this.role === 'guia';
-  }
+  // 🔐 ROLES
+  esAdmin() { return this.role === 'admin'; }
+  esPsicologo() { return this.role === 'psicologo'; }
+  esTrabajoSocial() { return this.role === 'trabajo_social'; }
+  esGuia() { return this.role === 'guia'; }
 
   // 🔙 VOLVER
   volver() {

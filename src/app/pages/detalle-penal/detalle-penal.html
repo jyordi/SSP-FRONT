@@ -5,85 +5,94 @@
 
 <div *ngIf="expediente" class="container fade">
 
-  <!-- 🔙 HEADER -->
+  <!-- HEADER -->
   <div class="header">
-    <button class="btn-back" (click)="volver()">
-      ← Regresar
-    </button>
-
+    <button class="btn-back" (click)="volver()">←</button>
     <h2>Expediente Penal</h2>
-
-    <div></div>
   </div>
 
-  <!-- 🔥 BOTONES ARRIBA -->
+  <!-- FOTO -->
+  <div class="foto-card">
+
+    <img 
+      class="avatar"
+      [src]="previewUrl || expediente?.beneficiario?.urlFoto || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'"
+    >
+
+    <h3>{{ expediente?.beneficiario?.nombre }}</h3>
+
+    <!-- 🔐 SOLO ADMIN -->
+    <input 
+      *ngIf="esAdmin()"
+      type="file" 
+      (change)="onFileSelected($event)" 
+      accept="image/*"
+    >
+
+  </div>
+
+  <!-- BOTONES -->
   <div class="modulos-top">
-
-    <!-- F1 Psicología -->
-    <button class="btn-psico"
-      *ngIf="esAdmin() || esPsicologo()"
-      (click)="irModulo('/vp')">
-      🧠 F1 Psicología
-    </button>
-
-    <!-- F2 Trabajo Social -->
-    <button class="btn-trabajo"
-      *ngIf="esAdmin() || esTrabajoSocial()"
-      (click)="irModulo('/trabajo-social')">
-      👥 F2 Trabajo Social
-    </button>
-
-    <!-- F3 Plan -->
-    <button class="btn-plan"
-      *ngIf="esAdmin()"
-      (click)="irModulo('/plan-individualizado')">
-      📋 F3 Plan
-    </button>
-
-    <!-- F4 Carátula -->
-    <button class="btn-caratula"
-      *ngIf="esAdmin()"
-      (click)="irModulo('/caratura-expediente')">
-      📄 F4 Carátula
-    </button>
-
-    <!-- F5 Proyecto -->
-    <button class="btn-proyecto"
-      *ngIf="esAdmin() || esPsicologo()"
-      (click)="irModulo('/proyecto-vida')">
-      🌱 F5 Proyecto
-    </button>
-
+    <button *ngIf="esAdmin() || esPsicologo()" (click)="irModulo('/vp')">🧠 Psicología</button>
+    <button *ngIf="esAdmin() || esTrabajoSocial()" (click)="irModulo('/trabajo-social')">👥 Trabajo Social</button>
+    <button *ngIf="esAdmin()" (click)="irModulo('/plan-individualizado')">📋 Plan</button>
+    <button *ngIf="esAdmin()" (click)="irModulo('/caratura-expediente')">📄 Carátula</button>
+    <button *ngIf="esAdmin() || esPsicologo()" (click)="irModulo('/proyecto-vida')">🌱 Proyecto</button>
   </div>
 
-  <!-- 🔥 CARD -->
+  <!-- FORM -->
   <div class="card">
 
-    <h3>Datos del expediente</h3>
+    <h3>Información general</h3>
 
-    <label>Beneficiario</label>
-    <input [(ngModel)]="expediente.beneficiario.nombre">
+    <div class="form-group">
+      <label>Delito</label>
+      <input [(ngModel)]="expediente.delito">
+    </div>
 
-    <label>Delito</label>
-    <input [(ngModel)]="expediente.delito">
+    <div class="form-group">
+      <label>Juzgado</label>
+      <input [(ngModel)]="expediente.juzgado">
+    </div>
 
-    <label>Juzgado</label>
-    <input [(ngModel)]="expediente.juzgado">
+    <div class="form-group">
+      <label>Agraviado</label>
+      <input [(ngModel)]="expediente.agraviado">
+    </div>
 
-    <label>Agraviado</label>
-    <input [(ngModel)]="expediente.agraviado">
+    <div class="form-group">
+      <label>Medida cautelar</label>
+      <input [(ngModel)]="expediente.medidaCautelar">
+    </div>
 
-    <label>Medida cautelar</label>
-    <input [(ngModel)]="expediente.medidaCautelar">
-
-    <label>Observaciones</label>
-    <textarea [(ngModel)]="expediente.observaciones"></textarea>
+    <div class="form-group">
+      <label>Observaciones</label>
+      <textarea [(ngModel)]="expediente.observaciones"></textarea>
+    </div>
 
     <button class="btn-guardar"
       (click)="guardarCambios()"
       [disabled]="guardando">
-      {{ guardando ? 'Guardando...' : 'Actualizar Expediente' }}
+      {{ guardando ? 'Guardando...' : 'Guardar cambios' }}
     </button>
+
+  </div>
+
+  <!-- 🧠 VALORACIÓN -->
+  <div class="card valoracion" *ngIf="!loadingValoracion">
+
+    <h3>🧠 Valoración Psicológica</h3>
+
+    <div *ngIf="valoracion; else sinValoracion">
+
+      <p><strong>Diagnóstico:</strong> {{ valoracion?.diagnostico }}</p>
+      <p><strong>Observaciones:</strong> {{ valoracion?.observaciones }}</p>
+
+    </div>
+
+    <ng-template #sinValoracion>
+      <p class="empty">No hay valoración psicológica registrada</p>
+    </ng-template>
 
   </div>
 

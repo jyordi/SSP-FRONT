@@ -1,4 +1,10 @@
 /* --- PALETA OFICIAL (Basada en el documento DOCX proporcionado) --- */
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  overflow-x: hidden; /* 🔥 evita scroll lateral */
+}
 :root {
   --brand-primary: #7B1D3A;   /* Vino principal */
   --brand-hover: #9E2A4A;     /* Hover del principal */
@@ -19,14 +25,17 @@
 }
 
 /* Tipografía base y reset */
-.dashboard-wrapper { 
-  min-height: 100vh; 
-  width: 100vw; 
-  background-color: var(--neutral-bg); 
-  font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, sans-serif; /* Fuentes modernas limpias */
-  overflow-x: hidden; 
-  margin: 0; padding: 0; 
+.dashboard-wrapper {
+  min-height: 100vh;
+  width: 100%;
+  max-width: 100%;
+  background-color: var(--neutral-bg);
+  font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, sans-serif;
+  overflow-x: hidden;
+  margin: 0;
+  padding: 0;
 }
+
 
 /* --- NAVBAR INSTITUCIONAL --- */
 .top-nav { 
@@ -45,7 +54,19 @@
 .btn-logout:hover { background: var(--bg-white); color: var(--brand-primary); transform: scale(1.05); }
 
 /* --- CONTENIDO PRINCIPAL --- */
-.content-area { max-width: 1280px; margin: 0 auto; padding: 3rem 2rem; box-sizing: border-box; }
+.content-area {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto; /* 🔥 centra */
+  padding: 2rem;
+  box-sizing: border-box;
+}
+
+.top-nav {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
 
 .page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2.5rem; flex-wrap: wrap; gap: 1rem; }
 .title-primary { color: var(--brand-primary); font-size: 2.4rem; margin: 0 0 0.4rem 0; font-weight: 800; letter-spacing: -0.8px; }
@@ -86,7 +107,11 @@
 .chip-warning:hover { border-color: #f59e0b; color: #b45309; }
 
 /* --- GRID DE TARJETAS (ELEGANCIA Y FLUIDEZ) --- */
-.cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 1.8rem; }
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
 .no-results { grid-column: 1 / -1; text-align: center; padding: 4rem 2rem; color: var(--text-tertiary); font-size: 1.1rem; background: var(--bg-white); border-radius: 16px; border: 1px dashed var(--cancel-border); display: flex; flex-direction: column; align-items: center; }
 .no-results-icon { color: #9ca3af; margin-bottom: 1rem; }
 
@@ -211,4 +236,45 @@ header.top-nav .btn-logout {
 header.top-nav .btn-logout:hover { 
   background: #ffffff !important; 
   color: #7B1D3A !important; 
+}
+
+/* 🔥 FORZAR NAVBAR FULL WIDTH REAL */
+header.top-nav {
+  position: sticky;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100vw; /* 👈 clave */
+  margin: 0;
+  padding-left: 2rem;
+  padding-right: 2rem;
+  box-sizing: border-box;
+}
+
+/* 🔥 ELIMINAR CUALQUIER CENTRADO GLOBAL */
+body, html {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+/* 🔥 ASEGURA QUE EL WRAPPER NO LIMITE */
+.dashboard-wrapper {
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+/* 🔥 OPCIONAL (mejora visual) */
+.content-area {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+header.top-nav {
+  width: 100vw;
+  position: sticky;
+  top: 0;
+  z-index: 9999;
+  backdrop-filter: blur(8px);
 }
