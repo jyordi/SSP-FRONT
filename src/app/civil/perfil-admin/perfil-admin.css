@@ -1,0 +1,248 @@
+/* Reutilizamos tus variables maestras */
+.dashboard-layout {
+  --brand-primary: #7B1D3A;
+  --brand-hover: #9E2A4A;
+  --brand-dark: #5A1229;
+  --bg-page: #f4f0ed;
+  --bg-white: #ffffff;
+  --bg-light: #f9fafb;
+  --border-primary: #e5e7eb;
+  --border-input: #d1d5db;
+  --text-primary: #111827;
+  --text-secondary: #374151;
+  --text-tertiary: #6b7280;
+  --success-bg: #dcfce7;
+  --success-text: #166534;
+  --neutral-bg: #f3f4f6;
+  --neutral-text: #6b7280;
+
+  display: flex; height: 100vh; width: 100vw; font-family: 'Segoe UI', Roboto, sans-serif; overflow: hidden; background-color: var(--bg-page);
+}
+
+/* Sidebar, Topbar, Tabs y Contenido (Iguales a los anteriores) */
+.sidebar { width: 280px; color: white; display: flex; flex-direction: column; z-index: 10; }
+.sidebar-header { padding: 2rem 1.5rem; display: flex; align-items: center; gap: 1rem; border-bottom: 1px solid rgba(255,255,255,0.1); }
+.logo-icon { font-size: 2rem; }
+.sidebar-header h2 { margin: 0; font-size: 1.2rem; }
+.sidebar-nav { flex: 1; padding: 1.5rem 1rem; display: flex; flex-direction: column; gap: 0.5rem; }
+.sidebar-nav button { display: flex; align-items: center; gap: 1rem; width: 100%; padding: 1rem; background: transparent; border: none; color: rgba(255,255,255,0.8); font-size: 1rem; text-align: left; border-radius: 8px; cursor: pointer; transition: 0.2s; }
+.sidebar-nav button:hover { background-color: rgba(255,255,255,0.1); color: white; }
+.sidebar-nav button.active { background-color: var(--brand-primary); color: white; font-weight: 600; border-left: 4px solid #C8952A; }
+.sidebar-footer { padding: 1.5rem 1rem; border-top: 1px solid rgba(255,255,255,0.1); }
+.btn-logout { width: 100%; padding: 0.8rem; background-color: rgba(255,255,255,0.1); border: none; color: white; border-radius: 8px; cursor: pointer; }
+.btn-logout:hover { background-color: #fee2e2; color: #991b1b; }
+
+.main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+.topbar { height: 70px; background-color: var(--bg-white); border-bottom: 1px solid var(--border-primary); display: flex; align-items: center; justify-content: space-between; padding: 0 2rem; }
+.topbar-title h3 { margin: 0; color: var(--text-primary); }
+.user-profile { display: flex; align-items: center; gap: 1rem; }
+.avatar { background-color: var(--bg-page); width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; border: 1px solid var(--border-primary); }
+.user-info { display: flex; flex-direction: column; }
+.user-info strong { color: var(--text-primary); font-size: 0.9rem; }
+.user-info span { color: #10b981; font-size: 0.8rem; }
+
+.content-area { flex: 1; padding: 2rem 3rem; overflow-y: auto; }
+.page-title { color: var(--text-primary); margin: 0 0 0.5rem 0; font-size: 1.8rem; }
+.page-subtitle { color: var(--text-tertiary); margin: 0 0 2rem 0; font-size: 1.1rem; }
+.fade-in { animation: fadeIn 0.3s ease-in-out; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Tabla y tarjetas */
+.table-card { background-color: var(--bg-white); border-radius: 10px; border: 1px solid var(--border-primary); overflow: hidden; }
+.data-table { width: 100%; border-collapse: collapse; }
+.data-table th, .data-table td { padding: 1rem 1.5rem; text-align: left; border-bottom: 1px solid var(--border-primary); }
+.data-table th { background-color: var(--bg-light); color: var(--text-secondary); font-weight: 600; font-size: 0.9rem; text-transform: uppercase; }
+.btn-action { background-color: transparent; border: 1px solid var(--brand-primary); color: var(--brand-primary); padding: 0.4rem 0.8rem; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.85rem; transition: all 0.2s; }
+.btn-action:hover { background-color: var(--brand-primary); color: white; }
+.badge { padding: 0.3rem 0.8rem; border-radius: 9999px; font-size: 0.8rem; font-weight: 600; }
+.badge-success { background-color: var(--success-bg); color: var(--success-text); }
+.badge-neutral { background-color: var(--neutral-bg); color: var(--neutral-text); }
+
+.cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; }
+.profile-card { background-color: var(--bg-white); border: 1px solid var(--border-primary); border-radius: 10px; padding: 1.5rem; }
+.btn-back { background: none; border: none; color: var(--text-tertiary); cursor: pointer; font-size: 1rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; padding: 0; }
+.btn-back:hover { color: var(--brand-primary); text-decoration: underline; }
+.tabs-container { display: flex; border-bottom: 2px solid var(--border-primary); margin-bottom: 2rem; gap: 2rem; }
+.tab { background: none; border: none; padding: 0.8rem 1rem; font-size: 1rem; font-weight: 600; color: var(--text-tertiary); cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -2px; }
+.tab:hover { color: var(--text-primary); }
+.tab.active { color: var(--text-primary); border-bottom-color: var(--text-primary); }
+.form-card { background-color: white; padding: 2rem; border-radius: 8px; border: 1px solid var(--border-primary); }
+.btn-download { color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; transition: background-color 0.2s; }
+.empty-state { text-align: center; color: var(--text-tertiary); padding: 4rem; grid-column: 1 / -1; background: var(--bg-white); border-radius: 10px; border: 1px dashed var(--border-primary); }
+
+/* Progress Bar Nativo */
+progress { border-radius: 7px; height: 8px; }
+progress::-webkit-progress-bar { background-color: #e5e7eb; border-radius: 7px; }
+progress::-webkit-progress-value { background-color: var(--success-text); border-radius: 7px; }
+
+/* =========================================
+   IMPRESIÓN DEL OFICIO
+   ========================================= */
+.print-only { display: none; }
+
+@media print {
+  .dashboard-layout { display: none !important; }
+  
+  .print-only {
+    display: block !important;
+    width: 100%;
+    background-color: white;
+    color: black;
+  }
+  @page { margin: 2.5cm; }
+}
+
+/* =========================================
+   ESTILOS DE LA PLANTILLA PARA PDF (MACHOTE)
+   ========================================= */
+.print-only { display: none; }
+.table-input { width: 100%; padding: 0.8rem; font-family: inherit; font-size: 0.95rem; }
+
+/* MODAL CONFIGURADOR */
+.modal-overlay { position: fixed !important; top: 0 !important; left: 0 !important; width: 100vw !important; height: 100vh !important; background-color: rgba(0, 0, 0, 0.6) !important; backdrop-filter: blur(3px) !important; display: flex !important; justify-content: center !important; align-items: center !important; z-index: 99999 !important; }
+.modal-content { background-color: #ffffff !important; border-radius: 12px !important; width: 90% !important; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3) !important; font-family: 'Segoe UI', Roboto, sans-serif !important; }
+.modal-header { background-color: #111827 !important; color: #ffffff !important; padding: 1.2rem 1.5rem !important; display: flex !important; justify-content: space-between !important; align-items: center !important; }
+.modal-header h2 { margin: 0 !important; font-size: 1.25rem !important; font-weight: 600 !important; }
+.btn-close { background: transparent !important; border: none !important; color: #ffffff !important; font-size: 1.5rem !important; cursor: pointer !important; }
+.modal-body { padding: 2rem !important; }
+.btn-success { background-color: #10b981; color: white; border: none; padding: 0.8rem 1.5rem; border-radius: 6px; font-weight: 600; cursor: pointer; }
+
+/* CUANDO EL ADMIN IMPRIME EL OFICIO */
+@media print {
+  /* Ocultar interfaz del sistema */
+  .dashboard-layout, .modal-overlay { display: none !important; }
+  
+  /* Mostrar hoja en blanco y negro */
+  .print-only {
+    display: block !important;
+    width: 100%;
+    background-color: white;
+    color: black;
+    position: relative; /* Para poder fijar el pie de página hasta abajo */
+    min-height: 25cm;
+  }
+  
+  /* Quitar los márgenes por defecto del navegador web y poner los de un oficio formal */
+  @page { 
+    size: letter;
+    margin-top: 2.5cm;
+    margin-bottom: 2cm;
+    margin-left: 2.5cm;
+    margin-right: 2.5cm;
+  }
+}
+
+
+
+/* Caja del modal */
+.modal {
+  background: white;
+  padding: 20px;
+  border-radius: 15px;
+  width: 300px;
+  text-align: center;
+  animation: fadeIn 0.3s ease;
+}
+
+
+.btn-cancel {
+  background: #e5e7eb;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.btn-confirm {
+  background: #dc2626;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.btn-confirm:hover {
+  background: #b91c1c;
+}
+
+/* Animación */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+  
+}
+.logout-btn {
+  border: none;        
+  outline: none;       
+  background: none;    }
+
+
+  /* HEADER GRID */
+.topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  min-width: 250px;
+}
+
+.topbar-center {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+}
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* HEADER CONTENT */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 2rem;
+}
+
+.breadcrumb-buttons {
+  margin-bottom: 1rem;
+}
+
+/* BOTÓN PRO */
+.btn-volver-pro {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(123, 29, 58, 0.15);
+  background: #fff;
+  color: #7B1D3A;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.btn-volver-pro:hover {
+  background: #7B1D3A;
+  color: #fff;
+  box-shadow: 0 6px 16px rgba(123, 29, 58, 0.25);
+}
+
+.btn-volver-pro .icon {
+  transition: transform 0.25s ease;
+}
+
+.btn-volver-pro:hover .icon {
+  transform: translateX(-4px);
+}

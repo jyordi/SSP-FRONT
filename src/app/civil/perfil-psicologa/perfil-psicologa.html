@@ -1,0 +1,224 @@
+<div class="dashboard-layout">
+
+  <main class="main-content">
+    
+    <!-- HEADER -->
+    <header class="topbar">
+
+      <div class="topbar-left">
+        <h3 class="topbar-title">Portal Institucional</h3>
+      </div>
+
+      <div class="topbar-center">
+        @if (vistaActual === 'historial') {
+          <app-busqueda></app-busqueda>
+        }
+      </div>
+
+      <div class="topbar-right">
+        <button class="user-profile logout-btn" (click)="openLogoutModal()">
+          <div class="avatar" style="border-color: #0369a1;">👩‍⚕️</div>
+          <div class="user-info">
+            <strong>Psicólog@ En Turno</strong>
+            <span>En línea</span>
+          </div>
+        </button>
+      </div>
+
+    </header>
+
+    <!-- MODAL -->
+    @if (showLogoutModal) {
+      <div class="modal-overlay">
+        <div class="modal">
+          <h3>¿Cerrar sesión?</h3>
+          <p>Tu sesión actual se cerrará.</p>
+
+          <div class="modal-actions">
+            <button class="btn-cancel" (click)="closeLogoutModal()">Cancelar</button>
+            <button class="btn-confirm" (click)="logout()">Sí, cerrar sesión</button>
+          </div>
+        </div>
+      </div>
+    }
+
+    <div class="content-area">
+
+      <!-- INICIO -->
+      @if (vistaActual === 'inicio') {
+        <div class="fade-in">
+          <h1 class="page-title">Bienvenid@ al sistema</h1>
+          <p class="page-subtitle">¿Qué acción desea realizar hoy?</p>
+
+          <div class="quick-actions-grid">
+            <div class="action-card" (click)="cambiarVista('nueva-entrevista')">
+              <div class="action-icon">📝</div>
+              <h3>Crear Entrevista</h3>
+              <p>Iniciar una Evaluación Clínica y Social nueva.</p>
+            </div>
+
+            <div class="action-card" (click)="cambiarVista('historial')">
+              <div class="action-icon">📂</div>
+              <h3>Ver Historial</h3>
+              <p>Consultar los expedientes de los usuarios.</p>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- NUEVA ENTREVISTA -->
+      @if (vistaActual === 'nueva-entrevista') {
+        <div class="fade-in">
+          <app-formu-psico></app-formu-psico>
+        </div>
+      }
+
+      <!-- NUEVA NOTA -->
+      @if (vistaActual === 'nueva-nota') {
+        <div class="fade-in">
+          <app-seguimiento-psi></app-seguimiento-psi>
+        </div>
+      }
+
+      <!-- HISTORIAL -->
+      @if (vistaActual === 'historial') {
+        <div class="fade-in">
+
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Historial de Expedientes</h1>
+              <p class="page-subtitle">Consulta los expedientes registrados</p>
+            </div>
+
+            <button class="btn-volver-pro" (click)="cambiarVista('inicio')">
+              <span class="icon">🏠</span>
+              <span>Volver a inicio</span>
+            </button>
+          </div>
+          
+          <div class="table-card">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Expediente</th>
+                  <th>Nombre del Usuario</th>
+                  <th>Última Sesión</th>
+                  <th>Estado</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (paciente of expedientes; track paciente.expediente) {
+                  <tr>
+                    <td><strong>{{ paciente.expediente }}</strong></td>
+                    <td>{{ paciente.nombre }}</td>
+                    <td>{{ paciente.fechaUltima }}</td>
+                    <td>
+                      <span class="badge" [ngClass]="paciente.estado === 'Activo' || paciente.estado === 'En Seguimiento' ? 'badge-success' : 'badge-neutral'">
+                        {{ paciente.estado }}
+                      </span>
+                    </td>
+                    <td>
+                      <button class="btn-action" (click)="verDetalles(paciente)">Ver Detalles</button>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+
+        </div>
+      }
+
+      <!-- DETALLE -->
+      @if (vistaActual === 'detalle' && pacienteSeleccionado) {
+        <div class="fade-in">
+
+          <!-- BOTÓN VOLVER -->
+          <div class="breadcrumb-buttons">
+            <button class="btn-volver-pro" (click)="volverHistorial()">
+              <span class="icon">←</span>
+              <span>Volver a historial</span>
+            </button>
+          </div>
+
+          <div class="detalle-header" style="background: white; padding: 2rem; border-radius: 10px; border: 1px solid #e5e7eb; margin-bottom: 2rem;">
+            <h1 style="margin: 0; color: #111827; font-size: 2.2rem;">
+              {{ pacienteSeleccionado.nombre }}
+            </h1>
+            <p style="margin: 5px 0 0 0; color: #6b7280; font-size: 1.1rem;">
+              EXP: <strong>{{ pacienteSeleccionado.expediente }}</strong>
+            </p>
+          </div>
+
+          <!-- TABS -->
+          <div class="tabs-container">
+            <button class="tab" [class.active]="tabDetalle === 'ver-entrevista'" (click)="tabDetalle = 'ver-entrevista'">
+              👁️ Ver Entrevista
+            </button>
+            <button class="tab" [class.active]="tabDetalle === 'crear-nota'" (click)="tabDetalle = 'crear-nota'">
+              📝 Crear Nota de Evolución
+            </button>
+            <button class="tab" [class.active]="tabDetalle === 'ficha-tecnica'" (click)="tabDetalle = 'ficha-tecnica'">
+              📄 Crear Ficha Técnica
+            </button>
+          </div>
+
+          <!-- CONTENIDO -->
+          @if (tabDetalle === 'ver-entrevista') {
+           <div class="tab-content fade-in">
+              <div style="background-color: #f0f9ff; border-left: 4px solid #0369a1; padding: 1rem; margin-bottom: 1.5rem; border-radius: 4px;">
+                <p style="margin: 0; color: #0369a1; font-weight: 600;">Modo Lectura: Esta entrevista ya fue llenada anteriormente.</p>
+              </div>
+
+              <div class="form-card" style="background: white; padding: 2rem; border-radius: 8px; border: 1px solid #e5e7eb;">
+                <h3 style="color: #0369a1; border-bottom: 1px solid #e5e7eb; padding-bottom: 0.5rem; margin-top: 0;">1. Datos Generales</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 2rem; margin-top: 1rem;">
+                  <p style="margin: 0;"><strong>Edad:</strong> {{ pacienteSeleccionado.entrevistaRealizada?.edad }} años</p>
+                  <p style="margin: 0;"><strong>CURP:</strong> {{ pacienteSeleccionado.entrevistaRealizada?.curp }}</p>
+                  <p style="margin: 0;"><strong>Escolaridad:</strong> {{ pacienteSeleccionado.entrevistaRealizada?.escolaridad }}</p>
+                  <p style="margin: 0;"><strong>Ocupación:</strong> {{ pacienteSeleccionado.entrevistaRealizada?.ocupacion }}</p>
+                </div>
+
+                <h3 style="color: #0369a1; border-bottom: 1px solid #e5e7eb; padding-bottom: 0.5rem;">2. Situación Jurídica y Motivo</h3>
+                <div style="margin-top: 1rem;">
+                  <p style="margin: 0 0 0.5rem 0;"><strong>Fecha de Detención:</strong> {{ pacienteSeleccionado.entrevistaRealizada?.fechaDetencion }}</p>
+                  <p style="margin: 0; font-weight: bold;">Relato / Motivo:</p>
+                  <div style="background: #f9fafb; padding: 1rem; border-radius: 6px; border: 1px solid #e5e7eb; margin-top: 0.5rem;">
+                    {{ pacienteSeleccionado.entrevistaRealizada?.motivo }}
+                  </div>
+                </div>
+              </div>
+            </div>
+          }
+
+          @if (tabDetalle === 'crear-nota') {
+            <div class="tab-content fade-in">
+              <app-seguimiento-psi></app-seguimiento-psi>
+            </div>
+          }
+
+          @if (tabDetalle === 'ficha-tecnica') {
+            <div class="tab-content fade-in">
+              <div class="form-card" style="background: white; padding: 4rem 2rem; border-radius: 8px; border: 1px dashed #d1d5db; text-align: center; opacity: 0.8;">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">🚧</div>
+                <h2 style="color: #6b7280; margin-bottom: 0.5rem;">Módulo en Construcción</h2>
+                <p style="color: #9ca3af; margin: 0;">El formulario para generar la Ficha Técnica estará disponible próximamente.</p>
+                
+                <!-- Campos visuales de adorno deshabilitados -->
+                <div style="max-width: 500px; margin: 2rem auto 0 auto; text-align: left;">
+                  <label style="display: block; margin-bottom: 0.5rem; color: #9ca3af; font-weight: bold;">Diagnóstico Preliminar</label>
+                  <textarea disabled rows="3" style="width: 100%; padding: 0.8rem; border: 1px solid #e5e7eb; border-radius: 6px; background-color: #f9fafb;"></textarea>
+                  
+                  <button disabled style="margin-top: 1rem; width: 100%; padding: 0.8rem; background-color: #d1d5db; color: white; border: none; border-radius: 6px; cursor: not-allowed;">Guardar Ficha Técnica</button>
+                </div>
+              </div>
+            </div>
+          }
+
+        </div>
+      }
+
+    </div>
+  </main>
+</div>
