@@ -1,0 +1,83 @@
+
+.page {
+  padding: 30px;
+}
+
+.top-bar {
+  background: #7B1D3A;
+  color: white;
+  padding: 10px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.role {
+  margin-left: 10px;
+  opacity: 0.8;
+}
+
+.roles-box {
+  background: #fff;
+  padding: 15px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  animation: fade 0.5s ease;
+}
+
+.card {
+  background: white;
+  padding: 25px;
+  border-radius: 12px;
+  animation: fadeUp 0.5s ease;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2,1fr);
+  gap: 15px;
+}
+
+.full {
+  grid-column: span 2;
+}
+
+input {
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+
+button {
+  margin-top: 20px;
+  padding: 12px;
+  background: #7B1D3A;
+  color: white;
+  border: none;
+  border-radius: 8px;
+}
+
+/* loading */
+.overlay {
+  position: fixed;
+  top:0;left:0;
+  width:100%;height:100%;
+  background: rgba(0,0,0,0.6);
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  flex-direction:column;
+  color:white;
+}
+
+.spinner {
+  width:50px;
+  height:50px;
+  border:5px solid white;
+  border-top:5px solid transparent;
+  border-radius:50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg);} }
+@keyframes fadeUp { from{opacity:0;transform:translateY(20px);} to{opacity:1;} }
+

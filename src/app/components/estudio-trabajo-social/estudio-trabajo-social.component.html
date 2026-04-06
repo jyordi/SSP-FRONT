@@ -1,0 +1,1169 @@
+<!--
+  estudio-trabajo-social.component.html  v1.0.0
+  ════════════════════════════════════════════════════════════════════
+  Template del componente Estudio de Trabajo Social.
+  Programa: Reconecta con la Paz — DGPD y PC
+
+  ESTRUCTURA:
+    1.  Navbar institucional
+    2.  Tab bar (Formulario / Historial)
+    3.  Toast de notificación
+    4.  Overlay de progreso PDF
+    5.  Vista previa PDF (replica fiel al documento Word oficial)
+    6.  Barra de progreso ESTÁTICA global
+    7.  Wizard: sidebar de pasos + cuerpo del formulario
+    8.  Historial de expedientes
+  ════════════════════════════════════════════════════════════════════
+-->
+
+<div class="app-shell">
+
+  <!-- ══ NAVBAR ══════════════════════════════════════════════════ -->
+  <nav class="navbar">
+    <div class="nav-brand">
+      <img class="nav-logo"
+           src="https://pbs.twimg.com/profile_images/1553024740645867521/Y01tlpcP_400x400.jpg"
+           alt="Logo Reconecta con la Paz"/>
+      <div>
+        <div class="nav-title">Reconecta con la Paz</div>
+        <div class="nav-subtitle">Estudio de Trabajo Social</div>
+      </div>
+    </div>
+    <div class="nav-right">
+      <span class="nav-user">C. Esvel Lagunas Rodriguez</span>
+      <button class="btn-nav" (click)="cerrarSesion()">Cerrar Sesion</button>
+    </div>
+  </nav>
+
+  <!-- ══ TAB BAR ══════════════════════════════════════════════════ -->
+  <div class="tab-bar">
+    <button class="tab-btn" [class.active]="tabActivo()==='formulario'"
+            (click)="tabActivo.set('formulario')">📋 Formulario</button>
+    <button class="tab-btn" [class.active]="tabActivo()==='historial'"
+            (click)="tabActivo.set('historial')">
+      🗂️ Historial
+      @if(contadorHistorial()>0){ <span class="tab-badge">{{contadorHistorial()}}</span> }
+    </button>
+  </div>
+
+  <!-- ══ TOAST ═══════════════════════════════════════════════════ -->
+  <div class="toast" [class.visible]="toast().mensaje"
+       [class.success]="toast().tipo==='success'" [class.error]="toast().tipo==='error'">
+    {{toast().mensaje}}
+  </div>
+
+  <!-- ══ OVERLAY DE PROGRESO PDF ══════════════════════════════════ -->
+  @if(estadoPdf().activo){
+    <div class="pdf-overlay">
+      <div class="pdf-card" [class.card-success]="estadoPdf().exito" [class.card-error]="estadoPdf().error">
+        <div class="pdf-icon" [class.icon-success]="estadoPdf().exito" [class.icon-error]="estadoPdf().error">
+          @if(estadoPdf().exito){
+            <svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="20" stroke="currentColor" stroke-width="2.5" fill="none"/>
+              <path d="M14 24l8 8 12-14" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="check-path"/></svg>
+          } @else if(estadoPdf().error){
+            <svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="20" stroke="currentColor" stroke-width="2.5" fill="none"/>
+              <path d="M16 16l16 16M32 16l-16 16" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+          } @else {
+            <svg viewBox="0 0 48 48" class="spin-svg">
+              <circle cx="24" cy="24" r="18" stroke="currentColor" stroke-width="3" fill="none"
+                      stroke-dasharray="70 40" stroke-linecap="round"/></svg>
+          }
+        </div>
+        <div class="pdf-title">
+          @if(estadoPdf().exito){Completado!}
+          @else if(estadoPdf().error){Error}
+          @else {Procesando...}
+        </div>
+        <div class="pdf-fase" [class.fase-success]="estadoPdf().exito" [class.fase-error]="estadoPdf().error">
+          {{estadoPdf().fase}}
+        </div>
+        <div class="pdf-prog-track">
+          <div class="pdf-prog-fill"
+               [class.fill-success]="estadoPdf().exito"
+               [class.fill-error]="estadoPdf().error"
+               [style.width.%]="estadoPdf().pct"></div>
+        </div>
+        <div class="pdf-pct">{{estadoPdf().pct}}%</div>
+      </div>
+    </div>
+  }
+
+  <!-- ══════════════════════════════════════════════════════════════
+       VISTA PREVIA PDF — Replica fiel al documento Word oficial
+  ═══════════════════════════════════════════════════════════════════ -->
+  @if(mostrarVistaPrevia()){
+    <div class="preview-overlay">
+
+      <!-- Toolbar de acciones -->
+      <div class="preview-toolbar">
+        <div class="preview-title">👁️ Vista Previa — Estudio de Trabajo Social</div>
+        <div class="preview-actions">
+          <button class="btn-pa btn-edit" (click)="mostrarVistaPrevia.set(false)">✏️ Seguir Editando</button>
+          <button class="btn-pa btn-pdf" (click)="descargarPdf()" [disabled]="generandoPdf()||guardando()">
+            @if(generandoPdf()){<span class="mini-spin"></span> Generando...}
+            @else {⬇️ Descargar PDF}
+          </button>
+          <button class="btn-pa btn-save" (click)="guardarEnHistorial()" [disabled]="guardando()||generandoPdf()">
+            @if(guardando()){<span class="mini-spin"></span> Guardando...}
+            @else {💾 Guardar en Expediente (ZIP)}
+          </button>
+        </div>
+      </div>
+
+      <!-- Área de scroll con el documento -->
+      <div class="preview-scroll">
+        <div class="doc-page">
+
+          <!-- ── ENCABEZADO INSTITUCIONAL ──────────────────── -->
+          <table class="doc-hdr-table">
+            <colgroup>
+              <col class="w-145"/>
+              <col/>
+              <col class="w-0"/><!-- sin columna de expediente en este doc -->
+            </colgroup>
+            <tr>
+              <td class="doc-logo-cell">
+                <strong class="doc-sc">SEGURIDAD CIUDADANA</strong>
+                <small>SECRETARIA DE SEGURIDAD<br/>Y PROTECCION</small>
+              </td>
+              <td class="doc-title-cell">
+                <p>SUBSECRETARIA DE PREVENCION Y REINSERCION SOCIAL</p>
+                <p>DIRECCION GENERAL DE PREVENCION DEL DELITO Y PARTICIPACION CIUDADANA</p>
+                <p class="doc-main-title">ESTUDIO DE TRABAJO SOCIAL</p>
+                <p class="doc-subtitle">Programa: RECONECTA CON LA PAZ</p>
+              </td>
+              <td></td>
+            </tr>
+          </table>
+          <div class="doc-red-line"></div>
+
+          <!-- ── 1–12. DATOS PERSONALES ─────────────────────── -->
+          <div class="doc-sec">DATOS PERSONALES DEL IMPUTADO</div>
+
+          <div class="doc-campo-fila">
+            <div class="doc-campo-bloque flex-2">
+              <span class="dc-lbl">1.- NOMBRE DEL IMPUTADO:</span>
+              <span class="dc-val">{{v('nombre')}}</span>
+            </div>
+            <div class="doc-campo-bloque flex-08">
+              <span class="dc-lbl">2.- EDAD:</span>
+              <span class="dc-val">{{v('edad')}}</span>
+            </div>
+          </div>
+
+          <div class="doc-campo-fila">
+            <div class="doc-campo-bloque">
+              <span class="dc-lbl">3.- SOBRENOMBRE:</span>
+              <span class="dc-val">{{v('sobreNombre')}}</span>
+            </div>
+            <div class="doc-campo-bloque">
+              <span class="dc-lbl">4.- FECHA DE NACIMIENTO:</span>
+              <span class="dc-val">{{v('fechaNacimiento')}}</span>
+            </div>
+          </div>
+
+          <div class="doc-campo-fila">
+            <div class="doc-campo-bloque flex-2">
+              <span class="dc-lbl">5.- ORIGINARIO:</span>
+              <span class="dc-val">{{v('originario')}}</span>
+            </div>
+            <div class="doc-campo-bloque">
+              <span class="dc-lbl">6.- TELEFONO:</span>
+              <span class="dc-val">{{v('telefono')}}</span>
+            </div>
+          </div>
+
+          <div class="doc-campo-fila">
+            <div class="doc-campo-bloque">
+              <span class="dc-lbl">7.- ESCOLARIDAD ACTUAL:</span>
+              <span class="dc-val">{{v('escolaridad')}}</span>
+            </div>
+            <div class="doc-campo-bloque">
+              <span class="dc-lbl">8.- ESTADO CIVIL:</span>
+              <span class="dc-val">{{v('estadoCivil')}}</span>
+            </div>
+          </div>
+
+          <div class="doc-campo-fila">
+            <div class="doc-campo-bloque">
+              <span class="dc-lbl">9.- NACIONALIDAD / DIALECTO O IDIOMA:</span>
+              <span class="dc-val">{{v('nacionalidad')}}</span>
+            </div>
+            <div class="doc-campo-bloque">
+              <span class="dc-lbl">10.- RELIGION:</span>
+              <span class="dc-val">{{v('religion')}}</span>
+            </div>
+          </div>
+
+          <div class="doc-campo-fila">
+            <div class="doc-campo-bloque">
+              <span class="dc-lbl">11.- OCUPACION:</span>
+              <span class="dc-val">{{v('ocupacion')}}</span>
+            </div>
+            <div class="doc-campo-bloque">
+              <span class="dc-lbl">12.- DOMICILIO ACTUAL:</span>
+              <span class="dc-val">{{v('domicilioActual')}}</span>
+            </div>
+          </div>
+
+          <!-- ── 13. SITUACIÓN JURÍDICA ─────────────────────── -->
+          <div class="doc-sec">13.- SITUACION JURIDICA</div>
+
+          <div class="doc-campo-fila">
+            <div class="doc-campo-bloque">
+              <span class="dc-lbl">FECHA DE DETENCION:</span>
+              <span class="dc-val">{{v('fechaDetencion')}}</span>
+            </div>
+            <div class="doc-campo-bloque">
+              <span class="dc-lbl">EXPEDIENTE PENAL / PROCESO:</span>
+              <span class="dc-val">{{v('expedientePenal')}}</span>
+            </div>
+          </div>
+          <div class="doc-campo-full">
+            <span class="dc-lbl">DELITO(S):</span>
+            <span class="dc-val">{{v('delito')}}</span>
+          </div>
+          <div class="doc-campo-full">
+            <span class="dc-lbl">JUZGADO:</span>
+            <span class="dc-val">{{v('juzgado')}}</span>
+          </div>
+
+          <!-- ── 14. NÚCLEO FAMILIAR PRIMARIO ──────────────── -->
+          <div class="doc-sec">14.- DATOS GENERALES DEL NUCLEO FAMILIAR PRIMARIO</div>
+          <table class="doc-familia-table">
+            <thead>
+              <tr>
+                <th>NOMBRE</th><th>PARENTESCO</th><th>EDAD</th>
+                <th>EDO.CIVIL</th><th>ESCOLARIDAD</th><th>OCUPACION</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for(_ of [0,1,2,3]; track $index){
+                <tr>
+                  <td>{{vArr('familiarPrimario',$index,'nombre')}}</td>
+                  <td>{{vArr('familiarPrimario',$index,'parentesco')}}</td>
+                  <td>{{vArr('familiarPrimario',$index,'edad')}}</td>
+                  <td>{{vArr('familiarPrimario',$index,'edoCivil')}}</td>
+                  <td>{{vArr('familiarPrimario',$index,'escolaridad')}}</td>
+                  <td>{{vArr('familiarPrimario',$index,'ocupacion')}}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+
+          <!-- ── 15. SITUACIÓN ECONÓMICA FAMILIAR PRIMARIA ─── -->
+          <div class="doc-sec">15.- SITUACION ECONOMICA EN SU FAMILIA PRIMARIA</div>
+
+          <div class="doc-campo-full">
+            <span class="dc-lbl">* ZONA:</span>
+            <span class="dc-val">{{radioView(v('zonaFamiliaPrimaria'),['URBANA','SUB-URBANA','RURAL','CRIMINOGENA'])}}</span>
+          </div>
+          <p class="doc-hint">(Existencia de bandas o pandillas, sobrepoblacion, prostibulos, cantinas, billares, etc.)</p>
+
+          <div class="doc-campo-full">
+            <span class="dc-lbl">* RESPONSABLE(S) DE LA MANUTENSION DEL HOGAR:</span>
+            <span class="dc-val">{{v('responsableManutension')}}</span>
+          </div>
+          <div class="doc-campo-fila">
+            <div class="doc-campo-bloque">
+              <span class="dc-lbl">* INGRESOS ECONOMICOS MENSUALES:</span>
+              <span class="dc-val">{{v('ingresosMensuales')}}</span>
+            </div>
+            <div class="doc-campo-bloque">
+              <span class="dc-lbl">* EGRESOS ECONOMICOS MENSUALES:</span>
+              <span class="dc-val">{{v('egresosMensuales')}}</span>
+            </div>
+          </div>
+          <div class="doc-campo-full">
+            <span class="dc-lbl">* ACTUALMENTE COOPERA EL BENEFICIARIO CON LA FAMILIA:</span>
+            <span class="dc-val">{{v('beneficiarioCoopera')}}</span>
+          </div>
+
+          <div class="doc-subsec">CARACTERISTICAS DEL NUCLEO FAMILIAR PRIMARIO:</div>
+          <div class="doc-campo-full">
+            <span class="dc-lbl">GRUPO FAMILIAR:</span>
+            <span class="dc-val">{{radioView(v('grupoFamiliarPrimario'),['FUNCIONAL','DISFUNCIONAL'])}}</span>
+          </div>
+          <div class="doc-campo-full">
+            <span class="dc-lbl">RELACIONES INTERFAMILIARES:</span>
+            <span class="dc-val">{{radioView(v('relacionesInterfamiliares'),['ADECUADAS','INADECUADAS'])}}</span>
+          </div>
+          <div class="doc-campo-full">
+            <span class="dc-lbl">HUBO VIOLENCIA INTRAFAMILIAR:</span>
+            <span class="dc-val">{{v('huboViolenciaIntrafamiliar')}}
+            @if(v('violenciaEspecifique')){ — EN CASO AFIRMATIVO ESPECIFICAR: {{v('violenciaEspecifique')}} }
+            </span>
+          </div>
+          <div class="doc-campo-full">
+            <span class="dc-lbl">NIVEL SOCIO-ECONOMICO Y CULTURAL:</span>
+            <span class="dc-val">{{radioView(v('nivelSocioeconomico'),['ALTO','MEDIO','BAJO'])}}</span>
+          </div>
+          <div class="doc-area-box">
+            <span class="dc-lbl">ALGUN INTEGRANTE DE LA FAMILIA TIENE ANTECEDENTES PENALES O DE ADICCION. ESPECIFIQUE:</span>
+            <div class="dc-area-val">{{v('antecedentesIntegrante')}}</div>
+          </div>
+          <div class="doc-area-box">
+            <span class="dc-lbl">CONCEPTO QUE TIENE LA FAMILIA DEL INDICIADO:</span>
+            <div class="dc-area-val">{{v('conceptoFamiliaDelIndiciado')}}</div>
+          </div>
+
+          <!-- ── 16. NÚCLEO FAMILIAR SECUNDARIO ─────────────── -->
+          <div class="doc-sec">16.- DATOS GENERALES DEL NUCLEO FAMILIAR SECUNDARIO</div>
+          <p class="doc-hint">(Conteste los siguientes puntos si el indiciado es casado o vive en union libre)</p>
+
+          <table class="doc-familia-table">
+            <thead>
+              <tr>
+                <th>NOMBRE</th><th>PARENTESCO</th><th>EDAD</th>
+                <th>EDO.CIVIL</th><th>ESCOLARIDAD</th><th>OCUPACION</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for(_ of [0,1,2,3,4]; track $index){
+                <tr>
+                  <td>{{vArr('familiarSecundario',$index,'nombre')}}</td>
+                  <td>{{vArr('familiarSecundario',$index,'parentesco')}}</td>
+                  <td>{{vArr('familiarSecundario',$index,'edad')}}</td>
+                  <td>{{vArr('familiarSecundario',$index,'edoCivil')}}</td>
+                  <td>{{vArr('familiarSecundario',$index,'escolaridad')}}</td>
+                  <td>{{vArr('familiarSecundario',$index,'ocupacion')}}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+
+          <div class="doc-campo-full">
+            <span class="dc-lbl">HIJOS DE UNIONES ANTERIORES:</span>
+            <span class="dc-val">{{v('hijosUnionesAnteriores')}}</span>
+          </div>
+          <div class="doc-area-box">
+            <span class="dc-lbl">CARACTERISTICAS DE VIVIENDA:</span>
+            <div class="dc-area-val">{{v('caracteristicasVivienda')}}</div>
+          </div>
+          <div class="doc-campo-full">
+            <span class="dc-lbl">EL TRANSPORTE ESTA CERCA DE SU VIVIENDA O TIENE QUE CAMINAR PARA TOMARLO:</span>
+            <span class="dc-val">{{v('transporteCercaVivienda')}}</span>
+          </div>
+          <div class="doc-area-box">
+            <span class="dc-lbl">MOBILIARIO Y ENSERES DOMESTICOS:</span>
+            <div class="dc-area-val">{{v('mobiliarioEnseres')}}</div>
+          </div>
+          <div class="doc-campo-full">
+            <span class="dc-lbl">* ZONA:</span>
+            <span class="dc-val">{{radioView(v('zonaFamiliaSecundaria'),['URBANA','SUB-URBANA','RURAL','CRIMINOGENA'])}}</span>
+          </div>
+          <div class="doc-area-box">
+            <span class="dc-lbl">RELACION CON EL MEDIO EXTERNO:</span>
+            <div class="dc-area-val">{{v('relacionMedioExterno')}}</div>
+          </div>
+          <div class="doc-area-box">
+            <span class="dc-lbl">ALGUN MIEMBRO DE LA FAMILIA PRESENTA PROBLEMAS DE CONDUCTA PARA O ANTISOCIAL. ESPECIFIQUE:</span>
+            <div class="dc-area-val">{{v('problemasCondutaFamiliar')}}</div>
+          </div>
+          <div class="doc-campo-full">
+            <span class="dc-lbl">NUMERO DE PAREJAS CON LAS QUE HA VIVIDO DE MANERA ESTABLE:</span>
+            <span class="dc-val">{{v('numeroParejas')}}</span>
+          </div>
+
+          <!-- ── 17. DATOS DEL INDICIADO ─────────────────────── -->
+          <div class="doc-sec">17.- DATOS DEL INDICIADO</div>
+
+          <div class="doc-campo-full">
+            <span class="dc-lbl">TRABAJO DESEMPENADO ANTERIORMENTE:</span>
+            <span class="dc-val">{{v('trabajoAnterior')}}</span>
+          </div>
+          <div class="doc-campo-fila">
+            <div class="doc-campo-bloque">
+              <span class="dc-lbl">TIEMPO DE LABORAR:</span>
+              <span class="dc-val">{{v('tiempoLaborar')}}</span>
+            </div>
+            <div class="doc-campo-bloque">
+              <span class="dc-lbl">SUELDO PERCIBIDO:</span>
+              <span class="dc-val">{{v('sueldoPercibido')}}</span>
+            </div>
+          </div>
+          <div class="doc-area-box">
+            <span class="dc-lbl">APARTE DEL INDICIADO, SENALE OTRAS APORTACIONES ECONOMICAS DE LA FAMILIA, QUIEN LAS REALIZA Y A CUANTO ASCIENDEN:</span>
+            <div class="dc-area-val">{{v('otrasAportaciones')}}</div>
+          </div>
+          <div class="doc-area-box">
+            <span class="dc-lbl">DISTRIBUCION DEL GASTO FAMILIAR:</span>
+            <div class="dc-area-val">{{v('distribucionGasto')}}</div>
+          </div>
+          <div class="doc-campo-full">
+            <span class="dc-lbl">LA ALIMENTACION EN QUE CONSISTE:</span>
+            <span class="dc-val">{{v('alimentacion')}}</span>
+          </div>
+          <div class="doc-campo-full">
+            <span class="dc-lbl">CON QUE SERVICIOS PUBLICOS CUENTA ACTUALMENTE (LUZ, AGUA, DRENAJE, ETC):</span>
+            <span class="dc-val">{{v('serviciosPublicos')}}</span>
+          </div>
+          <div class="doc-campo-full">
+            <span class="dc-lbl">CUENTA CON OFERTA DE TRABAJO:</span>
+            <span class="dc-val">{{chkView(v('cuentaOfertaTrabajo'))}}
+            @if(v('enQueConsisteOferta')){ &nbsp;— EN QUE CONSISTE: {{v('enQueConsisteOferta')}} }
+            </span>
+          </div>
+          <div class="doc-campo-full">
+            <span class="dc-lbl">CUENTA CON EL APOYO DE LA FAMILIA O DE ALGUNA PERSONA:</span>
+            <span class="dc-val">{{chkView(v('apoyoFamiliaPersona'))}}</span>
+          </div>
+
+          <!-- ── 9. GRUPOS DE AUTOAYUDA ─────────────────────── -->
+          <div class="doc-sec">9.- GRUPOS DE AUTOAYUDA</div>
+
+          <div class="doc-area-box">
+            <span class="dc-lbl">GRUPOS DE AUTOAYUDA:</span>
+            <div class="dc-area-val">{{v('gruposAutoayuda')}}</div>
+          </div>
+          <div class="doc-campo-full">
+            <span class="dc-lbl">CONSUME BEBIDAS EMBRIAGANTES O ADICTO A ALGUN PSICOTROPICO:</span>
+            <span class="dc-val">{{chkView(v('consomeBebidas'))}}
+            @if(v('bebidaEspecifique')){ &nbsp;ESPECIFIQUE: {{v('bebidaEspecifique')}} }
+            </span>
+          </div>
+          <div class="doc-campo-full">
+            <span class="dc-lbl">HA RECIBIDO TERAPIAS PSICOLOGICAS O DE OTRA INDOLE:</span>
+            <span class="dc-val">{{chkView(v('recibitTerapias'))}}
+            @if(v('terapiasDonde')){ &nbsp;EN DONDE: {{v('terapiasDonde')}} }
+            @if(v('terapiasPeriodo')){ &nbsp;PERIODO: {{v('terapiasPeriodo')}} }
+            </span>
+          </div>
+          <div class="doc-campo-full">
+            <span class="dc-lbl">ACUDE A SESIONES DE GRUPOS (AA, NEUROTICOS ANONIMOS, ETC.):</span>
+            <span class="dc-val">{{chkView(v('acudeAA'))}}
+            @if(v('aaDonde')){ &nbsp;EN DONDE: {{v('aaDonde')}} }
+            @if(v('aaPeriodo')){ &nbsp;PERIODO: {{v('aaPeriodo')}} }
+            </span>
+          </div>
+          <div class="doc-campo-full">
+            <span class="dc-lbl">HA ESTADO EN REHABILITACION O ANEXADO EN ALGUN GRUPO DE AUTOAYUDA:</span>
+            <span class="dc-val">{{chkView(v('estuvoCentroRehabilitacion'))}}
+            @if(v('centroRehabDonde')){ &nbsp;EN DONDE: {{v('centroRehabDonde')}} }
+            @if(v('centroRehabPeriodo')){ &nbsp;PERIODO: {{v('centroRehabPeriodo')}} }
+            </span>
+          </div>
+          <div class="doc-campo-full">
+            <span class="dc-lbl">PERTENECE A ALGUN GRUPO CULTURAL, RELIGIOSO, DEPORTIVO, CLUB, ETC.:</span>
+            <span class="dc-val">{{chkView(v('perteneceGrupoCultural'))}}
+            @if(v('grupoCulturalEspecifique')){ &nbsp;ESPECIFIQUE: {{v('grupoCulturalEspecifique')}} }
+            </span>
+          </div>
+
+          <!-- ── 10. OPINIÓN Y DIAGNÓSTICO ──────────────────── -->
+          <div class="doc-sec">10.- OPINION Y DIAGNOSTICO SOCIAL</div>
+
+          <div class="doc-area-box">
+            <span class="dc-lbl">CUAL ES SU OPINION ACERCA DEL PROGRAMA RECONECTA CON LA PAZ:</span>
+            <div class="dc-area-val">{{v('opinionPrograma')}}</div>
+          </div>
+          <div class="doc-area-box">
+            <span class="dc-lbl">OBSERVACIONES:</span>
+            <div class="dc-area-val">{{v('observaciones')}}</div>
+          </div>
+
+          <div class="doc-diagnostico">
+            <span class="dc-lbl">DIAGNOSTICO SOCIAL:</span>
+            <span class="dc-diag-val">{{v('diagnosticoSocial')||'FAVORABLE'}}</span>
+          </div>
+
+          <!-- ── AVISO DE PRIVACIDAD ─────────────────────────── -->
+          <div class="doc-aviso">
+            <p>Los datos personales recabados seran protegidos, incorporados y tratados en el Sistema de Datos Personales
+            de la Direccion General de Prevencion del Delito y Participacion Ciudadana (DGPDyPC) de la Secretaria de
+            Seguridad Publica y Proteccion Ciudadana del Estado, de conformidad con lo dispuesto por el articulo 12 de
+            la Ley de Transparencia y Acceso a la Informacion Publica del Estado de Oaxaca y 9,10,11,12,13,14,15 de la
+            Ley de Proteccion de Datos Personales del Estado de Oaxaca. A si mismo, se le informa que sus datos no
+            podran ser difundidos sin su consentimiento expreso, salvo las excepciones previstas en la Ley, a su vez
+            podra ejercer los derechos de acceso, rectificacion, cancelacion y oposicion, asi como la revocacion del
+            consentimiento en la DGPDyPC ubicada en la calle de las Aguilas num. 124. Col. Universidad, hacienda de
+            Candiani.</p>
+          </div>
+
+          <!-- ── FECHA Y FIRMAS ──────────────────────────────── -->
+          <div class="doc-fecha">
+            {{v('ciudadFecha')||'OAXACA DE JUAREZ'}}, {{v('diaFecha')||'__'}} DE
+            {{v('mesFecha')||'ENERO'}} DEL {{v('anioFecha')||'2026'}}.
+          </div>
+
+          <div class="doc-firmas-grid">
+            <div class="doc-firma-col">
+              <div class="doc-firma-line-h"></div>
+              <p class="doc-firma-cargo">ENC. DEL DEPTO. DE TRAB. SOC.</p>
+              <p class="doc-firma-nombre">{{v('nombreResponsable')||'C. ESVEL LAGUNAS RODRIGUEZ'}}</p>
+            </div>
+            <div class="doc-firma-col">
+              <div class="doc-firma-line-h"></div>
+              <p class="doc-firma-cargo">Vo. Bo.</p>
+              <p class="doc-firma-nombre">{{v('nombreDirectora')||'MTRA. LII YIO PEREZ ZARATE'}}</p>
+              <p class="doc-firma-cargo">DIRECTORA DE PREVENCION DEL DELITO</p>
+              <p class="doc-firma-cargo">Y PARTICIPACION CIUDADANA</p>
+            </div>
+          </div>
+
+        </div><!-- /.doc-page -->
+      </div><!-- /.preview-scroll -->
+    </div><!-- /.preview-overlay -->
+  }
+
+  <!-- ══ BARRA DE PROGRESO ESTÁTICA ════════════════════════════════ -->
+  @if(tabActivo()==='formulario'){
+    <div class="progress-strip">
+      <div class="progress-strip-inner">
+        <div class="ps-left">
+          <span class="ps-label">Progreso del formulario</span>
+          <span class="ps-pct">{{porcentajeCompletitud()}}%</span>
+        </div>
+        <div class="ps-track">
+          <div class="ps-fill" [style.width.%]="porcentajeCompletitud()">
+            <span class="ps-glow"></span>
+          </div>
+        </div>
+        <div class="ps-right">
+          <span class="ps-step">Paso {{pasoActual()+1}} / {{totalPasos()}}</span>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ══ CONTENIDO PRINCIPAL ═══════════════════════════════════════ -->
+  <div class="main-content">
+
+    <!-- ═══════════════════════════════════════════════════════════
+         TAB: FORMULARIO
+    ════════════════════════════════════════════════════════════════ -->
+    @if(tabActivo()==='formulario'){
+      <div class="wizard-layout">
+
+        <!-- SIDEBAR DE PASOS -->
+        <aside class="wizard-sidebar">
+          <div class="sidebar-title">Secciones</div>
+          @for(paso of pasos; track paso.titulo; let i=$index){
+            <button class="step-btn" [class.step-active]="pasoActual()===i"
+                    [class.step-done]="pasoCompleto(i)" (click)="irAlPaso(i)">
+              <span class="step-icon">{{paso.icono}}</span>
+              <span class="step-txt">
+                <span class="step-num">{{i+1}}</span>
+                <span class="step-name">{{paso.titulo}}</span>
+              </span>
+              @if(pasoCompleto(i)){ <span class="step-check">✓</span> }
+            </button>
+          }
+        </aside>
+
+        <!-- CUERPO DEL WIZARD -->
+        <div class="wizard-body" [formGroup]="formGroup">
+
+          <!-- Encabezado del paso activo -->
+          <div class="paso-header">
+            <div class="paso-icono">{{pasos[pasoActual()].icono}}</div>
+            <div>
+              <h2 class="paso-titulo">{{pasos[pasoActual()].titulo}}</h2>
+              <p class="paso-desc">{{pasos[pasoActual()].descripcion}}</p>
+            </div>
+            <div class="paso-badge">Paso {{pasoActual()+1}} de {{totalPasos()}}</div>
+          </div>
+
+          <!-- ════ PASO 0: Datos Personales ════════════════════ -->
+          @if(pasoActual()===0){
+            <div class="section-block">
+              <div class="section-body">
+                <div class="field-grid g2">
+
+                  <div class="field-col">
+                    <label class="lbl">1.- Nombre del Imputado <span class="req">✦</span></label>
+                    <input class="inp req-field" formControlName="nombre" placeholder="Nombre completo"/>
+                    @if(!v('nombre')){ <span class="field-hint">Obligatorio</span> }
+                  </div>
+
+                  <div class="field-col">
+                    <label class="lbl">2.- Edad <span class="req">✦</span></label>
+                    <input class="inp req-field" formControlName="edad" placeholder="Ej: 34"/>
+                    @if(!v('edad')){ <span class="field-hint">Obligatorio</span> }
+                  </div>
+
+                  <div class="field-col">
+                    <label class="lbl">3.- Sobrenombre</label>
+                    <input class="inp" formControlName="sobreNombre"/>
+                  </div>
+
+                  <div class="field-col">
+                    <label class="lbl">4.- Fecha de Nacimiento <span class="req">✦</span></label>
+                    <input class="inp req-field" type="date" formControlName="fechaNacimiento"/>
+                    @if(!v('fechaNacimiento')){ <span class="field-hint">Obligatorio</span> }
+                  </div>
+
+                  <div class="field-col">
+                    <label class="lbl">5.- Originario <span class="req">✦</span></label>
+                    <input class="inp req-field" formControlName="originario" placeholder="Ciudad, Estado"/>
+                    @if(!v('originario')){ <span class="field-hint">Obligatorio</span> }
+                  </div>
+
+                  <div class="field-col">
+                    <label class="lbl">6.- Telefono</label>
+                    <input class="inp" formControlName="telefono" placeholder="10 digitos"/>
+                  </div>
+
+                  <div class="field-col">
+                    <label class="lbl">7.- Escolaridad Actual</label>
+                    <input class="inp" formControlName="escolaridad"/>
+                  </div>
+
+                  <div class="field-col">
+                    <label class="lbl">8.- Estado Civil</label>
+                    <select class="inp" formControlName="estadoCivil">
+                      <option value="">— Seleccionar —</option>
+                      @for(op of estadosCiviles; track op){ <option [value]="op">{{op}}</option> }
+                    </select>
+                  </div>
+
+                  <div class="field-col">
+                    <label class="lbl">9.- Nacionalidad / Dialecto o Idioma</label>
+                    <input class="inp" formControlName="nacionalidad"/>
+                  </div>
+
+                  <div class="field-col">
+                    <label class="lbl">10.- Religion</label>
+                    <input class="inp" formControlName="religion"/>
+                  </div>
+
+                  <div class="field-col">
+                    <label class="lbl">11.- Ocupacion</label>
+                    <input class="inp" formControlName="ocupacion"/>
+                  </div>
+
+                  <div class="field-col">
+                    <label class="lbl">12.- Domicilio Actual</label>
+                    <input class="inp" formControlName="domicilioActual" placeholder="Calle, num, colonia, ciudad"/>
+                  </div>
+
+                </div>
+              </div>
+            </div>
+          }
+
+          <!-- ════ PASO 1: Situación Jurídica ═══════════════════ -->
+          @if(pasoActual()===1){
+            <div class="section-block">
+              <div class="section-body">
+                <div class="field-grid g2">
+
+                  <div class="field-col">
+                    <label class="lbl">Fecha de Detencion</label>
+                    <input class="inp" type="date" formControlName="fechaDetencion"/>
+                  </div>
+
+                  <div class="field-col">
+                    <label class="lbl">Expediente Penal / Proceso <span class="req">✦</span></label>
+                    <input class="inp req-field" formControlName="expedientePenal" placeholder="No. de expediente"/>
+                    @if(!v('expedientePenal')){ <span class="field-hint">Obligatorio</span> }
+                  </div>
+
+                  <div class="field-col gs-span-2">
+                    <label class="lbl">Delito(s) <span class="req">✦</span></label>
+                    <input class="inp req-field" formControlName="delito" placeholder="Delito(s) imputado(s)"/>
+                    @if(!v('delito')){ <span class="field-hint">Obligatorio</span> }
+                  </div>
+
+                  <div class="field-col gs-span-2">
+                    <label class="lbl">Juzgado</label>
+                    <input class="inp" formControlName="juzgado"/>
+                  </div>
+
+                </div>
+              </div>
+            </div>
+          }
+
+          <!-- ════ PASO 2: Núcleo Familiar Primario ════════════ -->
+          @if(pasoActual()===2){
+            <div class="section-block">
+              <div class="section-body">
+
+                <!-- Tabla de miembros -->
+                <label class="lbl dsp-block mb-8">14.- Composicion del Nucleo Familiar Primario</label>
+                <div class="tabla-familiar-wrap">
+                  <table class="tabla-familiar" formArrayName="familiarPrimario">
+                    <thead>
+                      <tr>
+                        <th>NOMBRE</th><th>PARENTESCO</th><th>EDAD</th>
+                        <th>EDO. CIVIL</th><th>ESCOLARIDAD</th><th>OCUPACION</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @for(_ of [0,1,2,3]; track $index){
+                        <tr [formGroupName]="$index">
+                          <td><input class="inp-tabla" formControlName="nombre"/></td>
+                          <td><input class="inp-tabla" formControlName="parentesco"/></td>
+                          <td><input class="inp-tabla w-50" formControlName="edad"/></td>
+                          <td><input class="inp-tabla" formControlName="edoCivil"/></td>
+                          <td><input class="inp-tabla" formControlName="escolaridad"/></td>
+                          <td><input class="inp-tabla" formControlName="ocupacion"/></td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                </div>
+
+                <!-- 15. Situación económica -->
+                <div class="subsection-title mt-16">15.- Situacion Economica de la Familia Primaria</div>
+
+                <div class="field-col mb-12">
+                  <label class="lbl">* Zona</label>
+                  <div class="radio-group">
+                    @for(op of opcionesZona; track op){
+                      <label class="radio-item" [class.sel]="v('zonaFamiliaPrimaria')===op">
+                        <input type="radio" formControlName="zonaFamiliaPrimaria" [value]="op"/>{{op}}
+                      </label>
+                    }
+                  </div>
+                  <small class="form-hint">(Existencia de bandas, sobrepoblacion, prostibulos, cantinas, etc.)</small>
+                </div>
+
+                <div class="field-grid g2">
+                  <div class="field-col">
+                    <label class="lbl">* Responsable(s) de la Manutension del Hogar</label>
+                    <input class="inp" formControlName="responsableManutension"/>
+                  </div>
+                  <div class="field-col">
+                    <label class="lbl">* Actualmente coopera el beneficiario con la familia</label>
+                    <input class="inp" formControlName="beneficiarioCoopera"/>
+                  </div>
+                  <div class="field-col">
+                    <label class="lbl">* Ingresos Economicos Mensuales</label>
+                    <input class="inp" formControlName="ingresosMensuales" placeholder="Ej: $5,000"/>
+                  </div>
+                  <div class="field-col">
+                    <label class="lbl">* Egresos Economicos Mensuales</label>
+                    <input class="inp" formControlName="egresosMensuales" placeholder="Ej: $4,500"/>
+                  </div>
+                </div>
+
+                <!-- Características del núcleo -->
+                <div class="subsection-title mt-14">Caracteristicas del Nucleo Familiar Primario</div>
+
+                <div class="field-grid g2">
+                  <div class="field-col">
+                    <label class="lbl">Grupo Familiar</label>
+                    <div class="radio-group">
+                      @for(op of opcionesGrupo; track op){
+                        <label class="radio-item" [class.sel]="v('grupoFamiliarPrimario')===op">
+                          <input type="radio" formControlName="grupoFamiliarPrimario" [value]="op"/>{{op}}
+                        </label>
+                      }
+                    </div>
+                  </div>
+                  <div class="field-col">
+                    <label class="lbl">Relaciones Interfamiliares</label>
+                    <div class="radio-group">
+                      @for(op of opcionesRelac; track op){
+                        <label class="radio-item" [class.sel]="v('relacionesInterfamiliares')===op">
+                          <input type="radio" formControlName="relacionesInterfamiliares" [value]="op"/>{{op}}
+                        </label>
+                      }
+                    </div>
+                  </div>
+                  <div class="field-col">
+                    <label class="lbl">Nivel Socio-Economico y Cultural</label>
+                    <div class="radio-group">
+                      @for(op of opcionesNivel; track op){
+                        <label class="radio-item" [class.sel]="v('nivelSocioeconomico')===op">
+                          <input type="radio" formControlName="nivelSocioeconomico" [value]="op"/>{{op}}
+                        </label>
+                      }
+                    </div>
+                  </div>
+                  <div class="field-col">
+                    <label class="lbl">Hubo Violencia Intrafamiliar</label>
+                    <input class="inp" formControlName="huboViolenciaIntrafamiliar" placeholder="Especifique si/no y detalles"/>
+                  </div>
+                  <div class="field-col">
+                    <label class="lbl">En caso afirmativo, especificar</label>
+                    <input class="inp" formControlName="violenciaEspecifique"/>
+                  </div>
+                </div>
+
+                <div class="field-col" style="margin-top:10px">
+                  <label class="lbl">Algun integrante de la familia tiene antecedentes penales o de adiccion. Especifique</label>
+                  <textarea class="inp" formControlName="antecedentesIntegrante" rows="3"></textarea>
+                </div>
+                <div class="field-col" style="margin-top:10px">
+                  <label class="lbl">Concepto que tiene la familia del indiciado</label>
+                  <textarea class="inp" formControlName="conceptoFamiliaDelIndiciado" rows="3"></textarea>
+                </div>
+
+              </div>
+            </div>
+          }
+
+          <!-- ════ PASO 3: Núcleo Familiar Secundario ══════════ -->
+          @if(pasoActual()===3){
+            <div class="section-block">
+              <div class="section-body">
+                <p class="section-note">Conteste si el indiciado es casado o vive en union libre.</p>
+
+                <div class="tabla-familiar-wrap">
+                  <table class="tabla-familiar" formArrayName="familiarSecundario">
+                    <thead>
+                      <tr>
+                        <th>NOMBRE</th><th>PARENTESCO</th><th>EDAD</th>
+                        <th>EDO. CIVIL</th><th>ESCOLARIDAD</th><th>OCUPACION</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @for(_ of [0,1,2,3,4]; track $index){
+                        <tr [formGroupName]="$index">
+                          <td><input class="inp-tabla" formControlName="nombre"/></td>
+                          <td><input class="inp-tabla" formControlName="parentesco"/></td>
+                          <td><input class="inp-tabla" formControlName="edad" style="width:50px"/></td>
+                          <td><input class="inp-tabla" formControlName="edoCivil"/></td>
+                          <td><input class="inp-tabla" formControlName="escolaridad"/></td>
+                          <td><input class="inp-tabla" formControlName="ocupacion"/></td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                </div>
+
+                <div class="field-grid g2 mt-14">
+                  <div class="field-col">
+                    <label class="lbl">Hijos de uniones anteriores</label>
+                    <input class="inp" formControlName="hijosUnionesAnteriores"/>
+                  </div>
+                  <div class="field-col">
+                    <label class="lbl">Numero de parejas estables</label>
+                    <input class="inp" formControlName="numeroParejas"/>
+                  </div>
+                </div>
+
+                <div class="field-col" style="margin-top:10px">
+                  <label class="lbl">Caracteristicas de Vivienda</label>
+                  <textarea class="inp" formControlName="caracteristicasVivienda" rows="3" placeholder="Tipo, estado, servicios..."></textarea>
+                </div>
+                <div class="field-col" style="margin-top:10px">
+                  <label class="lbl">El transporte esta cerca de su vivienda o tiene que caminar para tomarlo</label>
+                  <input class="inp" formControlName="transporteCercaVivienda"/>
+                </div>
+                <div class="field-col" style="margin-top:10px">
+                  <label class="lbl">Mobiliario y Enseres Domesticos</label>
+                  <textarea class="inp" formControlName="mobiliarioEnseres" rows="3"></textarea>
+                </div>
+
+                <div class="field-col" style="margin-top:12px">
+                  <label class="lbl">* Zona</label>
+                  <div class="radio-group">
+                    @for(op of opcionesZona; track op){
+                      <label class="radio-item" [class.sel]="v('zonaFamiliaSecundaria')===op">
+                        <input type="radio" formControlName="zonaFamiliaSecundaria" [value]="op"/>{{op}}
+                      </label>
+                    }
+                  </div>
+                </div>
+
+                <div class="field-col" style="margin-top:10px">
+                  <label class="lbl">Relacion con el Medio Externo</label>
+                  <textarea class="inp" formControlName="relacionMedioExterno" rows="3"></textarea>
+                </div>
+                <div class="field-col" style="margin-top:10px">
+                  <label class="lbl">Algun miembro de la familia presenta problemas de conducta para o antisocial. Especifique</label>
+                  <textarea class="inp" formControlName="problemasCondutaFamiliar" rows="3"></textarea>
+                </div>
+              </div>
+            </div>
+          }
+
+          <!-- ════ PASO 4: Datos del Indiciado ════════════════ -->
+          @if(pasoActual()===4){
+            <div class="section-block">
+              <div class="section-body">
+                <div class="field-grid g2">
+
+                  <div class="field-col" style="grid-column:span 2">
+                    <label class="lbl">Trabajo desempenado anteriormente</label>
+                    <input class="inp" formControlName="trabajoAnterior"/>
+                  </div>
+                  <div class="field-col">
+                    <label class="lbl">Tiempo de laborar</label>
+                    <input class="inp" formControlName="tiempoLaborar"/>
+                  </div>
+                  <div class="field-col">
+                    <label class="lbl">Sueldo percibido</label>
+                    <input class="inp" formControlName="sueldoPercibido" placeholder="Ej: $300/dia"/>
+                  </div>
+
+                  <div class="field-col" style="grid-column:span 2">
+                    <label class="lbl">Aparte del indiciado, otras aportaciones economicas de la familia</label>
+                    <textarea class="inp" formControlName="otrasAportaciones" rows="3"></textarea>
+                  </div>
+                  <div class="field-col" style="grid-column:span 2">
+                    <label class="lbl">Distribucion del gasto familiar</label>
+                    <textarea class="inp" formControlName="distribucionGasto" rows="3"></textarea>
+                  </div>
+                  <div class="field-col" style="grid-column:span 2">
+                    <label class="lbl">La alimentacion en que consiste</label>
+                    <input class="inp" formControlName="alimentacion"/>
+                  </div>
+                  <div class="field-col" style="grid-column:span 2">
+                    <label class="lbl">Con que servicios publicos cuenta actualmente (luz, agua, drenaje, etc)</label>
+                    <input class="inp" formControlName="serviciosPublicos"/>
+                  </div>
+                  <div class="field-col">
+                    <label class="lbl">Cuenta con oferta de trabajo</label>
+                    <div class="radio-group">
+                      @for(op of opcionesSiNo; track op){
+                        <label class="radio-item" [class.sel]="v('cuentaOfertaTrabajo')===op">
+                          <input type="radio" formControlName="cuentaOfertaTrabajo" [value]="op"/>{{op}}
+                        </label>
+                      }
+                    </div>
+                  </div>
+                  <div class="field-col">
+                    <label class="lbl">En que consiste la oferta</label>
+                    <input class="inp" formControlName="enQueConsisteOferta"/>
+                  </div>
+                  <div class="field-col">
+                    <label class="lbl">Cuenta con el apoyo de la familia o de alguna persona</label>
+                    <div class="radio-group">
+                      @for(op of opcionesSiNo; track op){
+                        <label class="radio-item" [class.sel]="v('apoyoFamiliaPersona')===op">
+                          <input type="radio" formControlName="apoyoFamiliaPersona" [value]="op"/>{{op}}
+                        </label>
+                      }
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          }
+
+          <!-- ════ PASO 5: Grupos de Autoayuda ════════════════ -->
+          @if(pasoActual()===5){
+            <div class="section-block">
+              <div class="section-body">
+                <div class="field-col" style="margin-bottom:12px">
+                  <label class="lbl">Grupos de Autoayuda (describe grupos a los que pertenece)</label>
+                  <textarea class="inp" formControlName="gruposAutoayuda" rows="3"></textarea>
+                </div>
+
+                @for(item of [
+                  {lbl:'Consume bebidas embriagantes o adicto a algun psicotropico', ctrl:'consomeBebidas', especCtrl:'bebidaEspecifique', especLbl:'Especifique'},
+                  {lbl:'Ha recibido terapias psicologicas o de otra indole', ctrl:'recibitTerapias', especCtrl:'terapiasDonde', especLbl:'En donde'},
+                  {lbl:'Acude a sesiones de grupos (AA, Neuroticos Anonimos, etc.)', ctrl:'acudeAA', especCtrl:'aaDonde', especLbl:'En donde'},
+                  {lbl:'Ha estado en rehabilitacion o anexado en algun grupo de autoayuda social', ctrl:'estuvoCentroRehabilitacion', especCtrl:'centroRehabDonde', especLbl:'En donde'},
+                  {lbl:'Pertenece a algun grupo cultural, religioso, deportivo, club, etc.', ctrl:'perteneceGrupoCultural', especCtrl:'grupoCulturalEspecifique', especLbl:'Especifique en donde'}
+                ]; track item.ctrl){
+                  <div class="autoayuda-item">
+                    <div class="field-col">
+                      <label class="lbl">{{item.lbl}}</label>
+                      <div class="radio-group">
+                        @for(op of opcionesSiNo; track op){
+                          <label class="radio-item" [class.sel]="v(item.ctrl)===op">
+                            <input type="radio" [formControlName]="item.ctrl" [value]="op"/>{{op}}
+                          </label>
+                        }
+                      </div>
+                    </div>
+                    <div class="field-col">
+                      <label class="lbl">{{item.especLbl}}</label>
+                      <input class="inp" [formControlName]="item.especCtrl"/>
+                    </div>
+                    @if(item.ctrl==='recibitTerapias' || item.ctrl==='acudeAA' || item.ctrl==='estuvoCentroRehabilitacion'){
+                      <div class="field-col">
+                        <label class="lbl">Periodo</label>
+                        <input class="inp" [formControlName]="item.ctrl==='recibitTerapias'?'terapiasPeriodo':item.ctrl==='acudeAA'?'aaPeriodo':'centroRehabPeriodo'"/>
+                      </div>
+                    }
+                  </div>
+                }
+
+              </div>
+            </div>
+          }
+
+          <!-- ════ PASO 6: Opinión y Diagnóstico ══════════════ -->
+          @if(pasoActual()===6){
+            <div class="section-block">
+              <div class="section-body">
+                <div class="field-col" style="margin-bottom:14px">
+                  <label class="lbl">10.- Cual es su opinion acerca del Programa Reconecta con la Paz</label>
+                  <textarea class="inp" formControlName="opinionPrograma" rows="5" placeholder="Opinion del evaluado sobre el programa..."></textarea>
+                </div>
+                <div class="field-col" style="margin-bottom:14px">
+                  <label class="lbl">Observaciones</label>
+                  <textarea class="inp" formControlName="observaciones" rows="4"></textarea>
+                </div>
+                <div class="field-col">
+                  <label class="lbl">Diagnostico Social</label>
+                  <div class="radio-group">
+                    @for(op of ['FAVORABLE','NO FAVORABLE','CONDICIONADO']; track op){
+                      <label class="radio-item" [class.sel]="v('diagnosticoSocial')===op">
+                        <input type="radio" formControlName="diagnosticoSocial" [value]="op"/>{{op}}
+                      </label>
+                    }
+                  </div>
+                </div>
+              </div>
+            </div>
+          }
+
+          <!-- ════ PASO 7: Firmas ═══════════════════════════════ -->
+          @if(pasoActual()===7){
+            <div class="section-block">
+              <div class="section-body">
+
+                <!-- Datos de fecha -->
+                <div class="subsection-title" style="margin-bottom:12px">Fecha del documento</div>
+                <div class="field-grid g4" style="margin-bottom:16px">
+                  <div class="field-col">
+                    <label class="lbl">Ciudad</label>
+                    <input class="inp" formControlName="ciudadFecha"/>
+                  </div>
+                  <div class="field-col">
+                    <label class="lbl">Dia</label>
+                    <input class="inp" formControlName="diaFecha" placeholder="Ej: 15"/>
+                  </div>
+                  <div class="field-col">
+                    <label class="lbl">Mes</label>
+                    <input class="inp" formControlName="mesFecha" placeholder="Ej: MARZO"/>
+                  </div>
+                  <div class="field-col">
+                    <label class="lbl">Año</label>
+                    <input class="inp" formControlName="anioFecha" placeholder="Ej: 2026"/>
+                  </div>
+                </div>
+
+                <!-- Nombres de firmantes -->
+                <div class="subsection-title" style="margin-bottom:12px">Responsables</div>
+                <div class="field-grid g2">
+                  <div class="field-col">
+                    <label class="lbl">Enc. del Depto. de Trabajo Social</label>
+                    <input class="inp" formControlName="nombreResponsable"/>
+                  </div>
+                  <div class="field-col">
+                    <label class="lbl">Vo. Bo. — Directora</label>
+                    <input class="inp" formControlName="nombreDirectora"/>
+                  </div>
+                </div>
+
+                <!-- Zona de adjuntos -->
+                <div class="subsection-title" style="margin-top:16px; margin-bottom:12px">📎 Documentos Adjuntos</div>
+                <div class="upload-zone" [class.dragging]="arrastrandoArchivo()"
+                     (dragover)="$event.preventDefault();arrastrandoArchivo.set(true)"
+                     (dragleave)="arrastrandoArchivo.set(false)"
+                     (drop)="$event.preventDefault();arrastrandoArchivo.set(false);procesarArchivos($any($event.dataTransfer?.files))"
+                     (click)="fInput.click()">
+                  <div class="upload-ico">📎</div>
+                  <div class="upload-main">Arrastra documentos aqui</div>
+                  <div class="upload-sub">PDF, JPG, PNG, DOCX — Haz clic para seleccionar</div>
+                  <input #fInput type="file" multiple accept=".pdf,.jpg,.jpeg,.png,.docx" style="display:none"
+                         (change)="procesarArchivos($any($event.target.files))"/>
+                </div>
+                @for(a of archivosAdjuntos(); track a.id){
+                  <div class="uploaded-file">
+                    <span class="file-ico">{{iconoArchivo(a.tipo)}}</span>
+                    <div>
+                      <div class="file-name">{{a.nombre}}</div>
+                      <div class="file-size">{{(a.tamano/1024).toFixed(1)}} KB</div>
+                    </div>
+                    <button class="file-rm" (click)="eliminarArchivo(a.id)">✕</button>
+                  </div>
+                }
+
+                <!-- CTA Vista Previa -->
+                <div class="cta-zone">
+                  @if(formularioCompleto()){
+                    <button class="btn-main" (click)="mostrarVistaPrevia.set(true)">
+                      <span>👁️</span> Vista Previa y Descargar PDF
+                    </button>
+                  } @else {
+                    <div class="cta-pending">
+                      <p>Completa los campos obligatorios <span class="req">✦</span> para continuar</p>
+                      <p class="cta-count">{{camposPendientes().length}} campo(s) pendiente(s):</p>
+                      <div class="pending-chips">
+                        @for(c of camposPendientes(); track c){ <span class="pending-chip">{{c}}</span> }
+                      </div>
+                    </div>
+                  }
+                </div>
+
+              </div>
+            </div>
+          }
+
+          <!-- ══ NAVEGACIÓN INFERIOR ════════════════════════════ -->
+          <div class="wizard-nav">
+            <button class="wn-btn wn-back" [disabled]="pasoActual()===0" (click)="anteriorPaso()">← Anterior</button>
+            <div class="wn-dots">
+              @for(p of pasos; track p.titulo; let i=$index){
+                <button class="wn-dot" [class.dot-active]="pasoActual()===i"
+                        [class.dot-done]="pasoCompleto(i)"
+                        (click)="irAlPaso(i)" [title]="p.titulo"></button>
+              }
+            </div>
+            @if(pasoActual()<totalPasos()-1){
+              <button class="wn-btn wn-next" (click)="siguientePaso()">Siguiente →</button>
+            } @else {
+              @if(formularioCompleto()){
+                <button class="wn-btn wn-preview" (click)="mostrarVistaPrevia.set(true)">👁️ Vista Previa</button>
+              } @else {
+                <button class="wn-btn wn-next" disabled>Campos pendientes ({{camposPendientes().length}})</button>
+              }
+            }
+          </div>
+
+        </div><!-- /.wizard-body -->
+      </div><!-- /.wizard-layout -->
+    }
+
+    <!-- ═══════════════════════════════════════════════════════════
+         TAB: HISTORIAL
+    ════════════════════════════════════════════════════════════════ -->
+    @if(tabActivo()==='historial'){
+      <div class="historial-wrap">
+        <div class="historial-head">
+          <div>
+            <h2 class="hist-titulo">Historial de Estudios</h2>
+            <p class="hist-sub">{{contadorHistorial()}} estudio(s) guardado(s) en esta sesion</p>
+          </div>
+        </div>
+
+        @if(historial().length===0){
+          <div class="empty-state">
+            <div class="empty-ico">🗂️</div>
+            <div class="empty-txt">No hay estudios guardados aun</div>
+            <div class="empty-sub">Completa el formulario y guardalo para verlo aqui</div>
+          </div>
+        } @else {
+          <div class="hist-grid">
+            @for(e of historial(); track e.id){
+              <div class="hcard">
+                <div class="hcard-hdr">
+                  <div class="hcard-exp">📁 EXP: {{e.expediente}}</div>
+                  <div class="hcard-name">{{e.nombre||'Sin nombre'}}</div>
+                </div>
+                <div class="hcard-body">
+                  <div class="hcard-meta">📅 {{e.fecha}}</div>
+                  @if(e.delito){ <div class="hcard-meta">⚖️ {{e.delito}}</div> }
+                  <div class="hcard-files">
+                    <div class="hfile" (click)="descargarPdfHistorial(e)">📄 {{truncar(e.pdf.nombre)}}</div>
+                    @for(a of e.archivos; track a.id){
+                      <div class="hfile" (click)="descargarArchivo(a)">{{iconoArchivo(a.tipo)}} {{truncar(a.nombre)}}</div>
+                    }
+                  </div>
+                  <div class="hcard-actions">
+                    <button class="hbtn" (click)="descargarPdfHistorial(e)">⬇️ Solo PDF</button>
+                    <button class="hbtn hbtn-folder" (click)="descargarExpedienteCompleto(e)" title="Descargar carpeta ZIP organizada">
+                      📁 Carpeta ZIP
+                    </button>
+                    <button class="hbtn hbtn-del" (click)="eliminarExpediente(e.id)">🗑️ Eliminar</button>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
+
+  </div><!-- /.main-content -->
+</div><!-- /.app-shell -->

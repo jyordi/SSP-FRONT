@@ -1,0 +1,341 @@
+<div class="form-header">
+  <div class="form-header-brand">
+    <span class="form-header-icon">🕊️</span>
+    <div>
+      <div class="form-header-title">SEGURIDAD</div>
+      <div class="form-header-sub">Secretaría de Seguridad y Protección Ciudadana</div>
+    </div>
+  </div>
+</div>
+
+<div class="form-center-title">
+  CENTRO DE REHABILITACIÓN CAMINO HACIA LA FE: LA FORTALEZA, SAN MARTÍN MEXICAPAM
+</div>
+
+<h2>{{ editando ? 'Editar' : 'Registrar' }} Persona</h2>
+
+<form [formGroup]="form" (ngSubmit)="guardar()" class="form-card">
+
+  <!-- Folio -->
+  <div class="folio-section">
+    <label>FOLIO:</label>
+    <input formControlName="folio" placeholder="101" class="folio-input-inline">
+  </div>
+
+  <!-- I. GENERALES -->
+  <div class="section-title">I. Generales</div>
+
+  <div class="form-row col-3">
+    <div class="field col-span-2">
+      <label>Nombre *</label>
+      <input formControlName="nombre" placeholder="Nombre completo">
+      @if (f['nombre'].invalid && f['nombre'].touched) {
+        <span class="error">El nombre es requerido</span>
+      }
+    </div>
+    <div class="field">
+      <label>Sobrenombre</label>
+      <input formControlName="sobrenombre" placeholder="Apodo o alias">
+    </div>
+    <div class="field">
+      <label>Edad</label>
+      <input formControlName="edad" type="number" placeholder="25">
+    </div>
+  </div>
+
+  <div class="form-row col-3">
+    <div class="field">
+      <label>Fecha de nacimiento</label>
+      <input formControlName="fechaNacimiento" type="date">
+    </div>
+    <div class="field">
+      <label>CURP</label>
+      <input formControlName="curp" placeholder="XXXX000000XXXXXXXX">
+    </div>
+    <div class="field">
+      <label>Lugar de origen</label>
+      <input formControlName="lugarOrigen" placeholder="Ciudad, Estado">
+    </div>
+  </div>
+
+  <div class="form-row col-3">
+    <div class="field">
+      <label>Motivo de ingreso al centro</label>
+      <input formControlName="motivoIngreso" placeholder="Motivo...">
+    </div>
+    <div class="field">
+      <label>Fecha de inicio del tratamiento</label>
+      <input formControlName="fechaInicioTratamiento" type="date">
+    </div>
+    <div class="field">
+      <label>Fecha de término del tratamiento</label>
+      <input formControlName="fechaTerminoTratamiento" type="date">
+    </div>
+  </div>
+
+  <div class="form-row col-3">
+    <div class="field">
+      <label>Religión</label>
+      <input formControlName="religion" placeholder="Católica, Cristiana...">
+    </div>
+    <div class="field">
+      <label>¿Usted practica algún deporte?</label>
+      <select formControlName="practicaDeporte">
+        <option value="">-- Seleccionar --</option>
+        <option value="Si">Sí</option>
+        <option value="No">No</option>
+      </select>
+    </div>
+    @if (deporteSi) {
+      <div class="field">
+        <label>Si es afirmativo, ¿cuál?</label>
+        <input formControlName="cualDeporte" placeholder="Fútbol, Básquet...">
+      </div>
+    }
+  </div>
+
+  <div class="form-row col-2">
+    <div class="field">
+      <label>¿Tiene algún pasatiempo?</label>
+      <input formControlName="pasatiempo" placeholder="Leer, dibujar...">
+    </div>
+    <div class="field">
+      <label>¿Cuenta con su acta de nacimiento en físico?</label>
+      <select formControlName="tieneActaNacimiento">
+        <option value="">-- Seleccionar --</option>
+        <option value="Si">Sí</option>
+        <option value="No">No</option>
+      </select>
+    </div>
+  </div>
+
+  @if (sinActa) {
+    <div class="conditional-block">
+      <p class="conditional-label">
+        Sin acta — proporcionar los siguientes datos:
+      </p>
+      <div class="form-row col-2">
+        <div class="field">
+          <label>Lugar de nacimiento</label>
+          <input formControlName="lugarNacimientoRegistro" placeholder="Municipio, Estado">
+        </div>
+        <div class="field">
+          <label>Personas que realizaron el registro</label>
+          <input formControlName="personasRegistraron" placeholder="Nombre(s)">
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- II. ESCOLARIDAD -->
+  <div class="section-title">II. Escolaridad</div>
+
+  <div class="form-row col-2">
+    <div class="field">
+      <label>¿Usted sabe leer y escribir?</label>
+      <select formControlName="sabeLeerEscribir">
+        <option value="">-- Seleccionar --</option>
+        <option value="Si">Sí</option>
+        <option value="No">No</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>¿Cuál es su grado máximo de estudios?</label>
+      <input formControlName="gradoMaximoEstudios" placeholder="Primaria, Secundaria...">
+    </div>
+  </div>
+
+  <div class="form-row col-2">
+    <div class="field">
+      <label>¿Le gustaría seguir estudiando?</label>
+      <select formControlName="leGustariaEstudiar">
+        <option value="">-- Seleccionar --</option>
+        <option value="Si">Sí</option>
+        <option value="No">No</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Cuenta con certificado de:</label>
+      <div class="checkboxes">
+        <label class="check-label">
+          <input type="checkbox" formControlName="certificadoPrimaria"> Primaria
+        </label>
+        <label class="check-label">
+          <input type="checkbox" formControlName="certificadoSecundaria"> Secundaria
+        </label>
+        <label class="check-label">
+          <input type="checkbox" formControlName="certificadoBachillerato"> Bachillerato
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <div class="conditional-block">
+    <p class="conditional-label">Si no cuenta con alguno, mencione los datos del plantel:</p>
+    <div class="form-row col-3">
+      <div class="field">
+        <label>Nombre del plantel educativo</label>
+        <input formControlName="nombrePlantel" placeholder="Escuela Secundaria...">
+      </div>
+      <div class="field">
+        <label>Dirección</label>
+        <input formControlName="direccionPlantel" placeholder="Calle, Colonia...">
+      </div>
+      <div class="field">
+        <label>Fecha de término</label>
+        <input formControlName="fechaTerminoPlantel" type="date">
+      </div>
+    </div>
+  </div>
+
+  <!-- III. LABORAL -->
+  <div class="section-title">III. Laboral</div>
+
+  <div class="form-row col-2">
+    <div class="field">
+      <label>¿Actualmente trabaja de manera formal?</label>
+      <select formControlName="trabajaFormal">
+        <option value="">-- Seleccionar --</option>
+        <option value="Si">Sí</option>
+        <option value="No">No</option>
+      </select>
+    </div>
+    @if (trabajaSi) {
+      <div class="field">
+        <label>¿Cuáles son sus funciones?</label>
+        <input formControlName="funcionesTrabajo" placeholder="Describe sus funciones">
+      </div>
+    }
+  </div>
+
+  <div class="form-row col-3">
+    <div class="field">
+      <label>¿Le gustaría cambiar de centro de trabajo?</label>
+      <select formControlName="leGustariaCambiarTrabajo">
+        <option value="">-- Seleccionar --</option>
+        <option value="Si">Sí</option>
+        <option value="No">No</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>¿Sabe algún oficio?</label>
+      <input formControlName="sabeOficio" placeholder="Carpintería, Electricidad...">
+    </div>
+    <div class="field">
+      <label>¿Le gustaría aprender alguno?</label>
+      <input formControlName="leGustariaAprenderOficio" placeholder="Plomería, Costura...">
+    </div>
+  </div>
+
+  <!-- IV. SALUD -->
+  <div class="section-title">IV. Salud</div>
+
+  <div class="form-row col-2">
+    <div class="field">
+      <label>¿Padece de alguna enfermedad? Indicar cuál</label>
+      <input formControlName="padecimientoEnfermedad" placeholder="Diabetes, Hipertensión...">
+    </div>
+    <div class="field">
+      <label>¿Está afiliado a algún servicio de salud?</label>
+      <input formControlName="servicioSalud" placeholder="IMSS, ISSSTE, Ninguno...">
+    </div>
+  </div>
+
+  <div class="form-row col-2">
+    <div class="field">
+      <label>¿Cuenta con tratamiento? Indicar cuál</label>
+      <input formControlName="cuentaTratamiento" placeholder="Nombre del tratamiento...">
+    </div>
+    <div class="field">
+      <label>¿Padece de alguna enfermedad de transmisión sexual?</label>
+      <div class="radio-group">
+        <label class="radio-label">
+          <input type="radio" formControlName="enfermedadTransmisionSexual" value="Si"> Sí
+        </label>
+        <label class="radio-label">
+          <input type="radio" formControlName="enfermedadTransmisionSexual" value="No"> No
+        </label>
+        <label class="radio-label">
+          <input type="radio" formControlName="enfermedadTransmisionSexual" value="No sé"> No sé
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-row col-2">
+    <div class="field">
+      <label>¿Usted necesita lentes de aumento?</label>
+      <select formControlName="necesitaLentes">
+        <option value="">-- Seleccionar --</option>
+        <option value="Si">Sí</option>
+        <option value="No">No</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>¿Ha recibido atención psicológica recientemente?</label>
+      <select formControlName="atencionPsicologica">
+        <option value="">-- Seleccionar --</option>
+        <option value="Si">Sí</option>
+        <option value="No">No</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- CONTACTOS DE REFERENCIA -->
+  <div class="section-title">Contactos de referencia</div>
+  <p class="section-hint">Proporcionar dos contactos (familiar, amigo, vecino o alguien cercano)</p>
+
+  <div class="form-row col-3">
+    <div class="field">
+      <label>Nombre — Contacto 1</label>
+      <input formControlName="contacto1Nombre" placeholder="Nombre completo">
+    </div>
+    <div class="field">
+      <label>Relación</label>
+      <input formControlName="contacto1Relacion" placeholder="Familiar, Amigo...">
+    </div>
+    <div class="field">
+      <label>Teléfono</label>
+      <input formControlName="contacto1Telefono" placeholder="(951)000-0000">
+    </div>
+  </div>
+
+  <div class="form-row col-3">
+    <div class="field">
+      <label>Nombre — Contacto 2</label>
+      <input formControlName="contacto2Nombre" placeholder="Nombre completo">
+    </div>
+    <div class="field">
+      <label>Relación</label>
+      <input formControlName="contacto2Relacion" placeholder="Familiar, Amigo...">
+    </div>
+    <div class="field">
+      <label>Teléfono</label>
+      <input formControlName="contacto2Telefono" placeholder="(951)000-0000">
+    </div>
+  </div>
+
+  <!-- Estado -->
+  <div class="form-row col-2">
+    <div class="field">
+      <label>Estado del registro</label>
+      <select formControlName="estado">
+        <option>Activo</option>
+        <option>Inactivo</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="form-actions">
+    <a routerLink="/voluntarios/personas" class="btn-cancel">Cancelar</a>
+    @if (editando) {
+      <button type="button" (click)="descargarPDF()" class="btn-download">
+        📄 Descargar PDF
+      </button>
+    }
+    <button type="submit" class="btn-primary">
+      {{ editando ? 'Actualizar' : 'Guardar' }} Persona
+    </button>
+  </div>
+
+</form>

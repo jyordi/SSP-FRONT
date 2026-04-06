@@ -1,0 +1,53 @@
+
+<div class="page">
+
+  <!-- 🔥 NAV SUPERIOR -->
+  <div class="top-bar">
+    <div>
+      <strong>{{userName}}</strong>
+      <span class="role">({{role}})</span>
+    </div>
+  </div>
+
+
+
+  <!-- FORM -->
+  <div class="card">
+    <h2>Nuevo Expediente Cívico</h2>
+
+    <form [formGroup]="form">
+
+      <div class="grid">
+
+        <input placeholder="Beneficiario ID *" formControlName="beneficiarioId">
+        <input placeholder="Folio *" formControlName="folioExpediente">
+        <input placeholder="Causa Penal *" formControlName="causaPenal">
+        <input placeholder="Juez Cívico *" formControlName="juezCivico">
+        <input type="date" formControlName="fechaInicioSentencia" title="fecha">
+        <input placeholder="Horas *" formControlName="horasSentencia">
+
+        <input placeholder="Nombre Madre *" formControlName="madreNombre" class="full">
+        <input placeholder="Teléfono Madre *" formControlName="madreTelefono" class="full">
+
+      </div>
+
+      <button (click)="submit()" [disabled]="loading">
+        Guardar Expediente
+      </button>
+
+    </form>
+  </div>
+
+  <!-- LOADING -->
+  <div *ngIf="loading" class="overlay">
+    <div class="spinner"></div>
+    <p>Guardando...</p>
+  </div>
+
+  <!-- SUCCESS -->
+  <div *ngIf="success" class="overlay success">
+    ✔ Expediente creado
+  </div>
+
+</div>
+
