@@ -78,6 +78,8 @@ export class Civico {
       headers: this._headers(),
     });
   }
+  // penal.service.ts o civico.service.ts
+
 
   // ================= Obtener sesión por UUID =================
   obtenerPorId(id: string): Observable<any> {

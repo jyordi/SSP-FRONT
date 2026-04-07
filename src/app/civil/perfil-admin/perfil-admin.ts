@@ -63,7 +63,7 @@ export class PerfilAdmin {
         entrevistaCompletada: true, 
         motivoConsulta: 'Canalizado por juez cívico por faltas administrativas (alteración del orden público).',
         diagnostico: 'Dificultad en el control de impulsos. Red de apoyo familiar intermitente.',
-        notasEvolucion: [
+        notasEvaluacion: [
           { fecha: '10/02/2026', nota: 'Se presenta a la primera sesión con actitud defensiva. Se establecen reglas y encuadre.' },
           { fecha: '15/02/2026', nota: 'Muestra mayor apertura. Trabajamos técnicas de respiración para manejo de ira.' }
         ]
@@ -98,7 +98,7 @@ export class PerfilAdmin {
     { 
       id: 2, nombre: 'Miguel Ángel Torres', expediente: 'EXP-2026-005', estadoGeneral: 'Finalizado',
       datosGenerales: { edad: 21, curp: 'TOMM050110HDFR08', telefono: '951-555-0987' },
-      psicologia: { entrevistaCompletada: true, motivoConsulta: 'Falta menor.', diagnostico: 'Estable.', notasEvolucion: [{ fecha: '28/02/2026', nota: 'Alta psicológica.' }] },
+      psicologia: { entrevistaCompletada: true, motivoConsulta: 'Falta menor.', diagnostico: 'Estable.', notasEvaluacion: [{ fecha: '28/02/2026', nota: 'Alta psicológica.' }] },
       guias: { horasTotales: 25, horasCubiertas: 25, registrosHoras: [{ fecha: '20/02/2026', actividad: 'Tequio y conclusión', horas: 25 }], inasistencias: [] },
       trabajoSocial: { estudioRealizado: true, estudioWord: 'Estudio completado favorablemente.', planTrabajo: { observaciones: 'Ninguna', actividadesSeguimiento: [] } }
     }

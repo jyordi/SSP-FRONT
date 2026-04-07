@@ -13,8 +13,8 @@ import Swal from 'sweetalert2';
   styleUrls: ['./seguimiento-psi.css'],
 })
 export class SeguimientoPsi {
-
-  notaEvolucionForm!: FormGroup;
+  
+   notaEvolucionForm!: FormGroup;
   expedienteId!: string;
   loading = false;
 
@@ -50,7 +50,8 @@ export class SeguimientoPsi {
       planTerapeutico: [''],
       actividadesAsignadas: [''],
       observaciones: [''],
-      avancePercibido: ['INICIAL', Validators.required]
+      avancePercibido: ['INICIAL', Validators.required],
+      esCierre: [false] 
     });
   }
 
@@ -58,12 +59,6 @@ export class SeguimientoPsi {
     return this.notaEvolucionForm.controls;
   }
 
-  //  detectar sesión avanzada
-  esSesionAvanzada(): boolean {
-    return this.notaEvolucionForm?.value?.numSesion >= 3;
-  }
-
-  //  confirmar + guardar
   onSubmit() {
 
     Swal.fire({
@@ -91,6 +86,11 @@ export class SeguimientoPsi {
 
     const form = this.notaEvolucionForm.value;
 
+    //  auto avance si es cierre
+    if (form.esCierre) {
+      form.avancePercibido = 'EXCELENTE';
+    }
+
     const payload = this.construirPayload(form);
 
     console.log(" PAYLOAD:", payload);
@@ -103,7 +103,8 @@ export class SeguimientoPsi {
 
         this.notaEvolucionForm.reset({
           avancePercibido: 'INICIAL',
-          numSesion: form.numSesion + 1
+          numSesion: form.numSesion + 1,
+          esCierre: false
         });
       },
       error: (err) => {
@@ -131,12 +132,10 @@ export class SeguimientoPsi {
       observaciones: form.observaciones
     };
 
-    //  sesión 3+
-    if (form.numSesion >= 3) {
-      return base;
+    if (form.esCierre) {
+      return base; //  cierre = menos campos
     }
 
-    //  sesiones iniciales
     return {
       ...base,
       fechaProximaSesion: form.fechaProximaSesion,

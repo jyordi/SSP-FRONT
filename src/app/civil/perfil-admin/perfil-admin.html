@@ -160,7 +160,7 @@
 
                 <div class="form-card" style="grid-column: 1 / -1;">
                   <h3 style="color: var(--brand-primary); border-bottom: 1px solid var(--border-input); padding-bottom: 0.5rem;">Historial de Notas de Evolución</h3>
-                  @for (nota of personaSeleccionada.psicologia.notasEvolucion; track nota.fecha) {
+                  @for (nota of personaSeleccionada.psicologia.notasEvaluacion; track nota.fecha) {
                     <div style="background: white; padding: 1rem; border-left: 3px solid #3b82f6; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-top: 1rem;">
                       <p style="font-size: 0.85rem; color: var(--text-tertiary); margin: 0 0 0.5rem 0;">Fecha de sesión: <strong>{{ nota.fecha }}</strong></p>
                       <p style="margin: 0;">{{ nota.nota }}</p>

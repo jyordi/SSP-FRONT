@@ -1,0 +1,27 @@
+<div class="acciones">
+
+  <button (click)="tab='entrevista'">➕ Entrevista</button>
+  <button (click)="tab='notas'">📄 Notas de Evaluación</button>
+  <button (click)="tab='ficha'">🧾 Ficha</button>
+
+</div>
+<app-ficha-psi
+*ngIf="tab==='ficha'" 
+  [expediente]="expediente"
+></app-ficha-psi>
+
+<app-entrevista-psi 
+  *ngIf="tab==='entrevista'" 
+  [expediente]="expediente">
+</app-entrevista-psi>
+
+<!-- NOTAS -->
+<app-notas-psi 
+  *ngIf="tab==='notas'" 
+  [expediente]="expediente">
+</app-notas-psi>
+
+<!-- FICHA -->
+
+
+ 

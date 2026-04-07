@@ -1,0 +1,68 @@
+<h3>Notas de Evaluación</h3>
+
+<p class="total">
+  Total de sesiones: <strong>{{ total }}</strong>
+</p>
+
+<!--  BUSCADOR -->
+<div class="buscador">
+  <input 
+    [(ngModel)]="buscador" 
+    (input)="buscar()"
+    placeholder="Buscar sesión #">
+
+  <button (click)="buscar()">🔍</button>
+</div>
+
+<!--  NO ENCONTRADO -->
+<div *ngIf="noEncontrado" class="no-result">
+   No existe esa sesión
+</div>
+
+<!--  RESULTADO -->
+<div *ngIf="resultado" class="card-nota">
+
+  <div class="card-header">
+    <h4>Sesión #{{ resultado.numSesion }}</h4>
+    <span>{{ resultado.fechaSesion }}</span>
+  </div>
+
+  <p>{{ resultado.temaSesion }}</p>
+
+  <button (click)="verDetalle(resultado)">
+    Ver detalles
+  </button>
+
+</div>
+
+<!--  LISTA NORMAL -->
+<div *ngIf="!resultado && !noEncontrado">
+
+  <div *ngFor="let nota of notas" class="card-nota">
+
+    <div class="card-header">
+      <h4>Sesión #{{ nota.numSesion }}</h4>
+      <span>{{ nota.fechaSesion }}</span>
+    </div>
+
+    <p>{{ nota.temaSesion }}</p>
+
+    <button (click)="verDetalle(nota)">
+      Ver detalles
+    </button>
+
+  </div>
+
+</div>
+
+<!--  CREAR -->
+<button (click)="nuevaNota()" class="btn-action">
+  ➕ Nueva Nota
+</button>
+
+<!--  MODAL -->
+<app-session-detalle-c
+  [visible]="mostrarModal"
+  [nota]="notaSeleccionada"
+  (cerrarModal)="mostrarModal = false">
+</app-session-detalle-c>

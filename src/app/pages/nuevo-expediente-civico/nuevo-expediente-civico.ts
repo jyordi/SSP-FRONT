@@ -87,7 +87,7 @@ export class NuevoExpedienteCivicoComponent {
     });
   }
 
-  // 🔥 LIMPIAR + VALIDAR CURP
+  // LIMPIAR + VALIDAR CURP
   onCurpChange() {
     let curp = this.civicoForm.value.curp || '';
 
@@ -100,7 +100,7 @@ export class NuevoExpedienteCivicoComponent {
     }
   }
 
-  // 🔥 AUTOCOMPLETAR DESDE CURP
+  //  AUTOCOMPLETAR DESDE CURP
   autocompletarDesdeCURP(curp: string) {
 
     const fecha = curp.substring(4, 10); // YYMMDD
@@ -120,7 +120,7 @@ export class NuevoExpedienteCivicoComponent {
     });
   }
 
-  // 📸 COMPRESIÓN
+  //  COMPRESIÓN
   onFileChange(event: any) {
     const file = event.target.files[0];
     if (!file) return;
@@ -155,7 +155,7 @@ export class NuevoExpedienteCivicoComponent {
     reader.readAsDataURL(file);
   }
 
-  // 🔥 PASO 1
+  //  PASO 1
   crearBeneficiario() {
 
     if (this.beneficiarioForm.invalid) {
@@ -174,7 +174,7 @@ export class NuevoExpedienteCivicoComponent {
       next: (res) => {
         this.beneficiarioId = res.id;
 
-        // 🔥 AUTORELLENO
+        //  AUTORELLENO
         this.civicoForm.patchValue({
           horasSentencia: this.beneficiarioForm.value.tiempoAsignado
         });
@@ -189,7 +189,7 @@ export class NuevoExpedienteCivicoComponent {
     });
   }
 
-  // 🔥 CREAR EXPEDIENTE (LIMPIO PARA BACKEND)
+  //  CREAR EXPEDIENTE (LIMPIO PARA BACKEND)
   crearExpediente() {
 
     this.loading = true;
@@ -222,7 +222,7 @@ export class NuevoExpedienteCivicoComponent {
 
     this.service.crearCivico(data).subscribe({
       next: () => {
-        this.mensaje = 'Expediente creado ✅';
+        this.mensaje = 'Expediente creado ';
 
         setTimeout(() => {
           this.router.navigate(['/expedientes']);

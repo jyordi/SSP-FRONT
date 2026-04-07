@@ -21,7 +21,16 @@
         <input type="time" formControlName="hora">
       </div>
 
-      <div class="form-group" *ngIf="!esSesionAvanzada()">
+      <!--  CHECKBOX -->
+      <div class="form-group full-width">
+        <label>
+          <input type="checkbox" formControlName="esCierre">
+          ¿Es sesión de cierre?
+        </label>
+      </div>
+
+      <!-- 🔥 SOLO SI NO ES CIERRE -->
+      <div class="form-group" *ngIf="!notaEvolucionForm.value.esCierre">
         <label>Próxima sesión</label>
         <input type="date" formControlName="fechaProximaSesion">
       </div>
@@ -41,7 +50,7 @@
         <input type="text" formControlName="tema">
       </div>
 
-      <div class="form-group" *ngIf="!esSesionAvanzada()">
+      <div class="form-group" *ngIf="!notaEvolucionForm.value.esCierre">
         <label>Estrategia</label>
         <input type="text" formControlName="estrategia">
       </div>
@@ -51,12 +60,12 @@
         <textarea formControlName="resumenSesion"></textarea>
       </div>
 
-      <div class="form-group full-width" *ngIf="!esSesionAvanzada()">
+      <div class="form-group full-width" *ngIf="!notaEvolucionForm.value.esCierre">
         <label>Plan</label>
         <textarea formControlName="planTerapeutico"></textarea>
       </div>
 
-      <div class="form-group full-width" *ngIf="!esSesionAvanzada()">
+      <div class="form-group full-width" *ngIf="!notaEvolucionForm.value.esCierre">
         <label>Actividades</label>
         <textarea formControlName="actividadesAsignadas"></textarea>
       </div>

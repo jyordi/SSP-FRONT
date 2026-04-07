@@ -1,51 +1,135 @@
-<div *ngIf="visible" class="modal">
+  <div *ngIf="visible" class="modal">
 
-  <div class="modal-card">
+    <div class="modal-card">
 
-    <div class="modal-header">
-      <h2> Sesión #{{ nota?.numSesion }}</h2>
-      <button (click)="cerrar()">✖</button>
-    </div>
-
-    <div class="modal-body">
-
-      <div class="item">
-        <span> Fecha</span>
-        <p>{{ nota?.fechaSesion }} - {{ nota?.horaSesion }}</p>
+      <div class="modal-header">
+        <h3>Sesión #{{ nota?.numSesion }}</h3>
+        <button class="close-btn" (click)="cerrar()">✕</button>
       </div>
 
-      <div class="item">
-        <span>Objetivo</span>
-        <p>{{ nota?.objetivoSesion }}</p>
-      </div>
+      <div class="modal-body">
 
-      <div class="item">
-        <span> Conducta</span>
-        <p>{{ nota?.conductaDisposicion }}</p>
-      </div>
+        <div class="item">
+          <span>Fecha</span>
+          <p>{{ nota?.fechaSesion }} - {{ nota?.horaSesion }}</p>
+        </div>
 
-      <div class="item">
-        <span> Intervención</span>
-        <p>{{ nota?.descripcionIntervencion }}</p>
-      </div>
+        <div class="item">
+          <span>Objetivo</span>
+          <p>{{ nota?.objetivoSesion }}</p>
+        </div>
 
-      <div class="item">
-        <span>Tema</span>
-        <p>{{ nota?.temaSesion }}</p>
-      </div>
+        <div class="item">
+          <span>Conducta</span>
+          <p>{{ nota?.conductaDisposicion }}</p>
+        </div>
 
-      <div class="item">
-        <span>Avance</span>
-        <p class="avance">{{ nota?.avancePercibido }}</p>
-      </div>
+        <div class="item">
+          <span>Intervención</span>
+          <p>{{ nota?.descripcionIntervencion }}</p>
+          <button class="edit-btn" (click)="abrirModal('intervencion')">Editar</button>
+        </div>
 
-      <div class="item">
-        <span>Observaciones</span>
-        <p>{{ nota?.observaciones }}</p>
+        <div class="item">
+          <span>Estrategia aplicada</span>
+          <p>{{ nota?.estrategiaAplicada }}</p>
+        </div>
+
+        <div class="item">
+          <span>Plan terapéutico</span>
+          <p>{{ nota?.planTerapeutico }}</p>
+          <button class="edit-btn" (click)="abrirModal('seguimiento')">Editar</button>
+        </div>
+
+        <div class="item">
+          <span>Actividades asignadas</span>
+          <p>{{ nota?.actividadesAsignadasUsuario }}</p>
+        </div>
+
+        <div class="item">
+          <span>Tema</span>
+          <p>{{ nota?.temaSesion }}</p>
+        </div>
+
+        <div class="item">
+          <span>Avance</span>
+          <p class="avance">{{ nota?.avancePercibido }}</p>
+        </div>
+
+        <div class="item">
+          <span>Observaciones</span>
+          <p>{{ nota?.observaciones }}</p>
+        </div>
+
+        <div class="item">
+          <span>Próxima sesión</span>
+          <p>{{ nota?.fechaProximaSesion }}</p>
+          <button class="edit-btn" (click)="abrirModal('fecha')">Editar</button>
+        </div>
+
       </div>
 
     </div>
 
   </div>
 
-</div>
+  <!-- MODAL EDITOR -->
+  <div class="modal-backdrop" *ngIf="modalAbierto">
+    <div class="modal-edit">
+
+      <div class="modal-edit-header">
+        <h4>Editar {{ tipo }}</h4>
+        <span class="modal-edit-subtitle">Sesión #{{ nota?.numSesion }}</span>
+      </div>
+
+      <div class="modal-edit-body">
+
+        <!-- SEGUIMIENTO -->
+        <div *ngIf="tipo === 'seguimiento'">
+          <div class="field">
+            <label>Plan terapéutico</label>
+            <input [(ngModel)]="seguimiento.planTerapeutico" placeholder="Plan">
+          </div>
+          <div class="field">
+            <label>Avance percibido</label>
+            <input [(ngModel)]="seguimiento.avancePercibido" placeholder="Avance">
+          </div>
+          <div class="field">
+            <label>Observaciones</label>
+            <textarea [(ngModel)]="seguimiento.observaciones"></textarea>
+          </div>
+        </div>
+
+        <!-- INTERVENCIÓN -->
+        <div *ngIf="tipo === 'intervencion'">
+          <div class="field">
+            <label>Descripción</label>
+            <input [(ngModel)]="intervencion.descripcionIntervencion" placeholder="Descripción">
+          </div>
+          <div class="field">
+            <label>Estrategia</label>
+            <input [(ngModel)]="intervencion.estrategiaAplicada" placeholder="Estrategia">
+          </div>
+          <div class="field">
+            <label>Actividades asignadas</label>
+            <textarea [(ngModel)]="intervencion.actividadesAsignadasUsuario"></textarea>
+          </div>
+        </div>
+
+        <!-- FECHA -->
+        <div *ngIf="tipo === 'fecha'">
+          <div class="field">
+            <label>Próxima sesión</label>
+            <input type="date" [(ngModel)]="proximaSesion.fechaProximaSesion">
+          </div>
+        </div>
+
+      </div>
+
+      <div class="modal-edit-footer">
+        <button class="btn-cancel" (click)="cerrarModal()">Cancelar</button>
+        <button class="btn-save" (click)="guardar()">Guardar cambios</button>
+      </div>
+
+    </div>
+  </div>

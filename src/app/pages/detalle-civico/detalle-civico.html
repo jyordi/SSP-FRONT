@@ -62,56 +62,11 @@
   </div>
 
   <!-- ================= PSICOLOGÍA ================= -->
-  <div class="card" *ngIf="tabActual === 'psicologia'">
+  <app-psico-tabs [expediente]="expediente"></app-psico-tabs>
 
-  <h3>Área de Psicología</h3>
 
-  <!--  LISTA DE NOTAS -->
-  <div class="notas-container">
 
-    <div *ngIf="notas.length === 0" class="empty-box">
-      Aún no hay notas psicológicas registradas
-    </div>
 
-    <div class="card-nota" *ngFor="let nota of notas">
-
-      <div class="card-header">
-        <h4>Sesión #{{ nota.numSesion }}</h4>
-        <span>{{ nota.fechaSesion }}</span>
-      </div>
-
-      <p class="tema">{{ nota.temaSesion }}</p>
-
-      <p class="avance">
-        Avance: <strong>{{ nota.avancePercibido }}</strong>
-      </p>
-
-      <button class="btn-ver" (click)="verDetalle(nota)">
-        Ver detalles
-      </button>
-
-    </div>
-
-  </div>
-
-  <!--  BOTONES -->
-  <div class="acciones" *ngIf="esPsicologo()">
-
-    <button class="btn-action" (click)="irPsico('formu-psico')">
-      ➕ Crear Entrevista
-    </button>
-
-    <button class="btn-action" (click)="irPsico('segui-psi')">
-      📄 Nota de evolución
-    </button>
-
-    <button class="btn-action">
-      🧾 Ficha Técnica
-    </button>
-
-  </div>
-
-</div>
   <!-- ================= GUÍAS ================= -->
   <div class="card" *ngIf="tabActual === 'guias'">
 
@@ -197,13 +152,6 @@
     </button>
 
   </div>
-<app-session-detalle-c
-  [nota]="notaSeleccionada"
-  [visible]="mostrarModal"
-  (cerrarModal)="mostrarModal = false">
-</app-session-detalle-c>
-</div>
-
 
 
  

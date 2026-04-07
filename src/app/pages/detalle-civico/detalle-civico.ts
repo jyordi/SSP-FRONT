@@ -8,15 +8,16 @@ import { FormsModule } from '@angular/forms';
 import { Civico } from '../../services/civico';
 import { HttpClient } from '@angular/common/http';
 import { SessionDetalleC } from '../../civil/session-detalle-c/session-detalle-c';
+import { PsicoTabs } from "../../civil/psico-tabs/psico-tabs";
 @Component({
   standalone: true,
-  imports: [CommonModule, FormsModule,SessionDetalleC],
+  imports: [CommonModule, FormsModule, PsicoTabs],
   templateUrl: './detalle-civico.html',
   styleUrls: ['./detalle-civico.css']  
 })
 export class DetalleCivicoComponent implements OnInit {
 notaSeleccionada: any = null;
-mostrarModal = false;
+
 
   tabActual: string = 'psicologia';
   expediente: any;
@@ -69,22 +70,14 @@ mostrarModal = false;
 
     this.civico.listarSesiones(id).subscribe({
       next: (res) => {
-        console.log("📋 NOTAS:", res);
+        console.log(" NOTAS:", res);
         this.notas = res;
       },
       error: (err) => console.error(err)
     });
   }
 
-  //  DETALLE
- verDetalle(nota: any) {
-  this.mostrarModal = false; //  reset
-
-  setTimeout(() => {
-    this.notaSeleccionada = nota;
-    this.mostrarModal = true;
-  }, 0);
-}
+  
 
   guardarCambios() {
     this.guardando = true;
