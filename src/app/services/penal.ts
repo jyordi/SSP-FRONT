@@ -194,4 +194,24 @@ deleteActividad(id: number) {
       headers: this._headers() 
     });
   }
+
+
+  // ─── CARÁTULA DE EXPEDIENTE ──────────────────────────
+  saveCaratula(data: any): Observable<any> {
+    return this.http.post(`${this.BASE}/penal/expediente-caratula`, data, { headers: this._headers() });
+  }
+  getCaratulaByExpediente(expedienteId: number): Observable<any> {
+    return this.http.get(`${this.BASE}/penal/expediente-caratula/expediente/${expedienteId}`, { headers: this._headers() });
+  }
+  updateCaratula(id: number, data: any): Observable<any> {
+    return this.http.patch(`${this.BASE}/penal/expediente-caratula/${id}`, data, { headers: this._headers() });
+  }
+  getCaratulaPdf(id: number): Observable<Blob> {
+    const headers = this._headers().delete('Content-Type');
+    // 👇 Endpoint solicitado
+    return this.http.get(`${this.BASE}/penal/documentos/caratula/${id}/pdf`, { 
+      headers, 
+      responseType: 'blob' 
+    });
+  }
 }
