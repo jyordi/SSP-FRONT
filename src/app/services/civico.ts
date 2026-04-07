@@ -42,4 +42,56 @@ export class Civico {
       headers: this._headers(),
     });
   }
+
+  //Crear nota de evolución psicológica
+  crearnota(data: any): Observable<any> {
+    console.log('DATA NOTA DE EVOLUCIÓN:', data);
+    return this.http.post(`${this.BASE}/civico/f5`, data, {
+      headers: this._headers(),
+    });
+  }
+
+   // Ejemplo para listar todas las sesiones de un expediente
+  listarSesiones(expedienteId: string): Observable<any> {
+    return this.http.get(`${this.BASE}/civico/f5/expediente/${expedienteId}`, {
+      headers: this._headers(),
+    });
+  }
+
+  // ================= Contar total de sesiones =================
+  contarSesiones(expedienteId: string): Observable<any> {
+    return this.http.get(`${this.BASE}/civico/f5/expediente/${expedienteId}/total`, {
+      headers: this._headers(),
+    });
+  }
+
+  // ================= Obtener sesión específica por número =================
+  obtenerSesion(expedienteId: string, num: number): Observable<any> {
+    return this.http.get(`${this.BASE}/civico/f5/expediente/${expedienteId}/sesion/${num}`, {
+      headers: this._headers(),
+    });
+  }
+
+  // ================= Actualizar sesión por UUID =================
+  actualizarSesion(id: string, data: any): Observable<any> {
+    return this.http.patch(`${this.BASE}/civico/f5/${id}`, data, {
+      headers: this._headers(),
+    });
+  }
+
+  // ================= Obtener sesión por UUID =================
+  obtenerPorId(id: string): Observable<any> {
+    return this.http.get(`${this.BASE}/civico/f5/${id}`, {
+      headers: this._headers(),
+    });
+  }
+
+
+  getResumenCivico(id: number) {
+  return this.http.get(`${this.BASE}/civico/expedientes/${id}`);
+}
+
+updateCivico(id: number, data: any) {
+  return this.http.patch(`${this.BASE}/civico/expedientes/${id}`, data);
+}
 }

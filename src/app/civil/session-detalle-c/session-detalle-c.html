@@ -1,0 +1,51 @@
+<div *ngIf="visible" class="modal">
+
+  <div class="modal-card">
+
+    <div class="modal-header">
+      <h2> Sesión #{{ nota?.numSesion }}</h2>
+      <button (click)="cerrar()">✖</button>
+    </div>
+
+    <div class="modal-body">
+
+      <div class="item">
+        <span> Fecha</span>
+        <p>{{ nota?.fechaSesion }} - {{ nota?.horaSesion }}</p>
+      </div>
+
+      <div class="item">
+        <span>Objetivo</span>
+        <p>{{ nota?.objetivoSesion }}</p>
+      </div>
+
+      <div class="item">
+        <span> Conducta</span>
+        <p>{{ nota?.conductaDisposicion }}</p>
+      </div>
+
+      <div class="item">
+        <span> Intervención</span>
+        <p>{{ nota?.descripcionIntervencion }}</p>
+      </div>
+
+      <div class="item">
+        <span>Tema</span>
+        <p>{{ nota?.temaSesion }}</p>
+      </div>
+
+      <div class="item">
+        <span>Avance</span>
+        <p class="avance">{{ nota?.avancePercibido }}</p>
+      </div>
+
+      <div class="item">
+        <span>Observaciones</span>
+        <p>{{ nota?.observaciones }}</p>
+      </div>
+
+    </div>
+
+  </div>
+
+</div>

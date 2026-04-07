@@ -1,11 +1,209 @@
-<div *ngIf="loading">Cargando...</div>
+<div *ngIf="loading" class="overlay">
+  <div class="loader"></div>
+  <p>Cargando expediente...</p>
+</div>
 
-<div *ngIf="expediente" class="card">
 
-  <h2>Expediente Cívico</h2>
+<div *ngIf="expediente" class="container fade">
 
-  <p><b>Nombre:</b> {{ expediente.nombre }}</p>
-  <p><b>Folio:</b> {{ expediente.folio }}</p>
-  <p><b>Fecha:</b> {{ expediente.fecha }}</p>
+  <!-- HEADER -->
+  <div class="header">
+    <button class="btn-back" (click)="volver()">←</button>
+    <div>
+      <h2>Expediente Cívico</h2>
+      <p class="sub">Gestión integral del expediente</p>
+    </div>
+  </div>
+
+  <!-- PERFIL -->
+  <div class="foto-card">
+    <img class="avatar"
+      [src]="expediente?.beneficiario?.urlFoto || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'">
+
+    <h3>{{ expediente?.beneficiario?.nombre }}</h3>
+    <span class="folio">Folio: {{ expediente?.folioExpediente }}</span>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs-container">
+
+    <!-- PSICO -->
+<button class="tab"
+  *ngIf="esAdmin() || esPsicologo()"
+  [class.active]="tabActual === 'psicologia'"
+  (click)="cambiarTab('psicologia')">
+  Psicología
+</button>
+
+<!-- GUIAS -->
+<button class="tab"
+  *ngIf="esAdmin()"
+  [class.active]="tabActual === 'guias'"
+  (click)="cambiarTab('guias')">
+   Guías
+</button>
+
+<!-- TS -->
+<button class="tab"
+  *ngIf="esAdmin()"
+  [class.active]="tabActual === 'tsocial'"
+  (click)="cambiarTab('tsocial')">
+   Trabajo Social
+</button>
+
+<!-- OFICIO -->
+<button class="tab"
+  *ngIf="esAdmin()"
+  [class.active]="tabActual === 'oficio'"
+  (click)="cambiarTab('oficio')">
+   Oficio
+</button>
+
+  </div>
+
+  <!-- ================= PSICOLOGÍA ================= -->
+  <div class="card" *ngIf="tabActual === 'psicologia'">
+
+  <h3>Área de Psicología</h3>
+
+  <!--  LISTA DE NOTAS -->
+  <div class="notas-container">
+
+    <div *ngIf="notas.length === 0" class="empty-box">
+      Aún no hay notas psicológicas registradas
+    </div>
+
+    <div class="card-nota" *ngFor="let nota of notas">
+
+      <div class="card-header">
+        <h4>Sesión #{{ nota.numSesion }}</h4>
+        <span>{{ nota.fechaSesion }}</span>
+      </div>
+
+      <p class="tema">{{ nota.temaSesion }}</p>
+
+      <p class="avance">
+        Avance: <strong>{{ nota.avancePercibido }}</strong>
+      </p>
+
+      <button class="btn-ver" (click)="verDetalle(nota)">
+        Ver detalles
+      </button>
+
+    </div>
+
+  </div>
+
+  <!--  BOTONES -->
+  <div class="acciones" *ngIf="esPsicologo()">
+
+    <button class="btn-action" (click)="irPsico('formu-psico')">
+      ➕ Crear Entrevista
+    </button>
+
+    <button class="btn-action" (click)="irPsico('segui-psi')">
+      📄 Nota de evolución
+    </button>
+
+    <button class="btn-action">
+      🧾 Ficha Técnica
+    </button>
+
+  </div>
 
 </div>
+  <!-- ================= GUÍAS ================= -->
+  <div class="card" *ngIf="tabActual === 'guias'">
+
+    <h3>⏱️ Control de Horas</h3>
+
+    <div class="stats">
+      <div>
+        <span class="label">Horas cubiertas</span>
+        <strong>{{ expediente.horasCubiertas || 0 }}</strong>
+      </div>
+
+      <div>
+        <span class="label">Horas totales</span>
+        <strong>{{ expediente.horasSentencia }}</strong>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ================= TRABAJO SOCIAL ================= -->
+  <div class="card" *ngIf="tabActual === 'tsocial'">
+
+    <h3>👥 Trabajo Social</h3>
+
+    <div *ngIf="!expediente.trabajoSocial" class="empty-box">
+      Aún no hay estudio de trabajo social
+    </div>
+
+    <div *ngIf="expediente.trabajoSocial">
+      {{ expediente.trabajoSocial?.estudioWord }}
+    </div>
+
+  </div>
+
+  <!-- ================= OFICIO ================= -->
+  <div class="card" *ngIf="tabActual === 'oficio'">
+
+    <h3>📄 Resolución</h3>
+
+    <div class="estado">
+      {{ expediente.horasCubiertas >= expediente.horasSentencia 
+        ? 'Apto para oficio'
+        : 'En proceso' }}
+    </div>
+
+  </div>
+
+  <!-- ================= INFO GENERAL (ADMIN) ================= -->
+  <div class="card">
+
+    <h3>📋 Información General</h3>
+
+    <div class="grid">
+
+      <div class="form-group">
+        <label>CURP</label>
+        <input [(ngModel)]="expediente.curp">
+      </div>
+
+      <div class="form-group">
+        <label>Municipio</label>
+        <input [(ngModel)]="expediente.municipio">
+      </div>
+
+      <div class="form-group">
+        <label>Delito</label>
+        <input [(ngModel)]="expediente.delitoImputado">
+      </div>
+
+      <div class="form-group">
+        <label>Agraviado</label>
+        <input [(ngModel)]="expediente.agraviado">
+      </div>
+
+    </div>
+
+    <button class="btn-guardar"
+      (click)="guardarCambios()"
+      [disabled]="guardando">
+
+      {{ guardando ? 'Guardando...' : 'Guardar cambios' }}
+
+    </button>
+
+  </div>
+<app-session-detalle-c
+  [nota]="notaSeleccionada"
+  [visible]="mostrarModal"
+  (cerrarModal)="mostrarModal = false">
+</app-session-detalle-c>
+</div>
+
+
+
+ 

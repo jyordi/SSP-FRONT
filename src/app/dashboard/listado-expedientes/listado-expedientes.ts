@@ -109,7 +109,7 @@ export class ListadoExpedientesComponent implements OnInit {
     this.expedientesService.getCivico().subscribe({
       next: (res) => {
         this.expedientes = res.map((e: any) => ({
-          id: e.id,
+          id: e.id|| e.idUUID,
           nombre: e.nombre || e.beneficiario?.nombre || 'Sin nombre',
           tipo: 'Civico',
           folio: e.folio || 'N/A',
@@ -136,6 +136,14 @@ export class ListadoExpedientesComponent implements OnInit {
     if (expediente.tipo === 'Civico') {
       this.router.navigate(['/detalle-civico', expediente.id]);
     }
+
+    if (!expediente.id) {
+    console.error('ID inválido:', expediente);
+    alert('Este expediente no tiene ID válido');
+    return;
+  }
+
+  
   }
 }
 

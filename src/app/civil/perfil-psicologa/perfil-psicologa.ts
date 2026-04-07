@@ -7,6 +7,7 @@ import { Busqueda } from '../busqueda/busqueda';
 
 import { Router } from '@angular/router';
 @Component({
+  standalone: true,
   selector: 'app-perfil-psicologa',
   imports: [CommonModule, FormuPsico, SeguimientoPsi, FormsModule, Busqueda],
   templateUrl: './perfil-psicologa.html',
