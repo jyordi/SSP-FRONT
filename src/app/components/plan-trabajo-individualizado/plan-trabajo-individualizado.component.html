@@ -1,120 +1,48 @@
-<!--
-  plan-trabajo-individualizado.component.html  v2.0.0
-  ══════════════════════════════════════════════════════════════════
-  ESTRUCTURA DEL TEMPLATE:
-    [1] Navbar institucional (sticky)
-    [2] Tab bar  Formulario / Historial
-    [3] Toast  animado
-    [4] Overlay  de progreso PDF/ZIP
-    [5] Vista previa  overlay — réplica exacta del Word
-    [6] Barra de progreso  global sticky
-    [7] Wizard  6 pasos con sidebar
-         Paso 0 — Datos Personales
-         Paso 1 — Proceso de Ingreso a PREVENCIÓN
-         Paso 2 — Proceso de Seguimiento (Tabla 3)
-         Paso 3 — Proyecto de Vida (Tabla 3, sub-sección)
-         Paso 4 — Actividades del Programa (Tabla 4)
-         Paso 5 — Adjuntos y Firma
-    [8] Historial  de expedientes
-  ══════════════════════════════════════════════════════════════════
--->
+<app-navbar-reconecta></app-navbar-reconecta>
+<br><br><br>
+
 <div class="shell">
 
-  <!-- ═══════ [1] NAVBAR ════════════════════════════════════════ -->
-  <nav class="nav">
-    <div class="nav-brand">
-      <div class="nav-logo-ring">
-        <span class="nav-logo-ico">📋</span>
-      </div>
-      <div>
-        <div class="nav-title">Reconecta con la Paz</div>
-        <div class="nav-sub">Plan de Trabajo Individualizado — DGPD y PC</div>
-      </div>
-    </div>
-    <div class="nav-end">
-      <div class="nav-pct-pill">
-        <div class="nav-pct-fill" [style.width.%]="pct()"></div>
-        <span class="nav-pct-lbl">{{pct()}}%</span>
-      </div>
-      <button class="nav-btn nav-back" (click)="regresarPantallaAnterior()" title="Regresar">
-        ← Atrás
-      </button>
-      @if(totalHistorial() > 0) {
-        <button class="nav-btn nav-next" (click)="irACaraturaExpediente()" title="Ir a Carátula del Expediente">
-          Carátula →
-        </button>
-      }
-    </div>
-  </nav>
-
-  <!-- ═══════ [2] TAB BAR ═══════════════════════════════════════ -->
   <div class="tabs">
-    <button class="tab" [class.on]="tabActivo()==='form'"
-            (click)="tabActivo.set('form')">
+    <button class="tab" [class.on]="tabActivo()==='form'" (click)="tabActivo.set('form')">
       <span>📋</span> Formulario
+      @if(planEditandoId()){
+        <span class="tab-badge tab-badge-edit">✏️</span>
+      }
     </button>
-    <button class="tab" [class.on]="tabActivo()==='hist'"
-            (click)="tabActivo.set('hist')">
+    <button class="tab" [class.on]="tabActivo()==='hist'" (click)="tabActivo.set('hist')">
       <span>🗂️</span> Historial
-      @if(totalHistorial()>0){
-        <span class="tab-badge">{{totalHistorial()}}</span>
+      @if(totalPlanes() > 0){
+        <span class="tab-badge">{{totalPlanes()}}</span>
       }
     </button>
   </div>
 
-  <!-- ═══════ [3] TOAST ════════════════════════════════════════ -->
-  <div class="toast" [class.show]="!!toast().msg"
-       [class.ok]="toast().tipo==='ok'" [class.er]="toast().tipo==='err'">
+  <div class="toast" [class.show]="!!toast().msg" [class.ok]="toast().tipo==='ok'" [class.er]="toast().tipo==='err'">
     <span class="toast-ico">{{toast().tipo==='ok' ? '✓' : '✕'}}</span>
     {{toast().msg}}
   </div>
 
-  <!-- ═══════ [4] OVERLAY PROGRESO ════════════════════════════ -->
   @if(estado().activo){
     <div class="ov-bg">
-      <div class="ov-card"
-           [class.ov-ok]="estado().exito"
-           [class.ov-err]="!!estado().error">
-
-        <!-- Ícono animado -->
-        <div class="ov-ico" [class.ico-spin]="!estado().exito&&!estado().error"
-                            [class.ico-ok]="estado().exito"
-                            [class.ico-err]="!!estado().error">
+      <div class="ov-card" [class.ov-ok]="estado().exito" [class.ov-err]="!!estado().error">
+        <div class="ov-ico" [class.ico-spin]="!estado().exito && !estado().error" [class.ico-ok]="estado().exito" [class.ico-err]="!!estado().error">
           @if(estado().exito){
-            <svg viewBox="0 0 48 48">
-              <circle cx="24" cy="24" r="20" stroke="currentColor" stroke-width="2.5" fill="none"/>
-              <path d="M14 24l8 8 12-14" stroke="currentColor" stroke-width="2.5"
-                    stroke-linecap="round" fill="none" class="check-anim"/>
-            </svg>
+            <svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="20" stroke="currentColor" stroke-width="2.5" fill="none"/><path d="M14 24l8 8 12-14" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" fill="none" class="check-anim"/></svg>
           } @else if(estado().error){
-            <svg viewBox="0 0 48 48">
-              <circle cx="24" cy="24" r="20" stroke="currentColor" stroke-width="2.5" fill="none"/>
-              <path d="M16 16l16 16M32 16L16 32" stroke="currentColor" stroke-width="2.5"
-                    stroke-linecap="round" fill="none"/>
-            </svg>
+            <svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="20" stroke="currentColor" stroke-width="2.5" fill="none"/><path d="M16 16l16 16M32 16L16 32" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" fill="none"/></svg>
           } @else {
-            <svg viewBox="0 0 48 48" class="spin-ico">
-              <circle cx="24" cy="24" r="18" stroke="currentColor" stroke-width="3" fill="none"
-                      stroke-dasharray="80 40" stroke-linecap="round"/>
-            </svg>
+            <svg viewBox="0 0 48 48" class="spin-ico"><circle cx="24" cy="24" r="18" stroke="currentColor" stroke-width="3" fill="none" stroke-dasharray="80 40" stroke-linecap="round"/></svg>
           }
         </div>
-
         <div class="ov-titulo">
-          @if(estado().exito){¡Listo!} @else if(estado().error){Error}
-          @else {Procesando…}
+          @if(estado().exito){¡Listo!} @else if(estado().error){Error} @else {Procesando…}
         </div>
-
-        <div class="ov-fase" [class.fase-ok]="estado().exito"
-                              [class.fase-er]="!!estado().error">
+        <div class="ov-fase" [class.fase-ok]="estado().exito" [class.fase-er]="!!estado().error">
           {{estado().fase}}
         </div>
-
         <div class="ov-bar">
-          <div class="ov-fill"
-               [class.fill-ok]="estado().exito"
-               [class.fill-er]="!!estado().error"
-               [style.width.%]="estado().pct">
+          <div class="ov-fill" [class.fill-ok]="estado().exito" [class.fill-er]="!!estado().error" [style.width.%]="estado().pct">
             <span class="ov-shine"></span>
           </div>
         </div>
@@ -123,38 +51,24 @@
     </div>
   }
 
-  <!-- ═══════ [5] VISTA PREVIA ════════════════════════════════ -->
   @if(verPrevia()){
     <div class="pv-ov">
-
-      <!-- Toolbar superior -->
+      <br><br><br><br><br>
       <div class="pv-bar">
-        <div class="pv-bar-title">
-          <span>👁️</span>
-          Vista Previa — Plan de Trabajo Individualizado
-        </div>
+        <div class="pv-bar-title"><span>👁️</span> Vista Previa — Plan de Trabajo Individualizado</div>
         <div class="pv-bar-btns">
-          <button class="pvb pvb-edit" (click)="verPrevia.set(false)">
-            ✏️ Editar
+          <button class="pvb pvb-edit" (click)="verPrevia.set(false)">✏️ Editar</button>
+          <button class="pvb pvb-dl" (click)="descargarPdf()" [disabled]="generando() || guardando()">
+            @if(generando()){<span class="spin-sm"></span> Generando…} @else {⬇️ Descargar PDF (local)}
           </button>
-          <button class="pvb pvb-dl" (click)="descargarPdf()"
-                  [disabled]="generando()||guardando()">
-            @if(generando()){<span class="spin-sm"></span> Generando…}
-            @else {⬇️ Descargar PDF}
-          </button>
-          <button class="pvb pvb-save" (click)="guardar()"
-                  [disabled]="guardando()||generando()">
-            @if(guardando()){<span class="spin-sm"></span> Guardando…}
-            @else {💾 Guardar en Historial (ZIP)}
+          <button class="pvb pvb-save" (click)="guardarEnBackend()" [disabled]="guardando() || generando()">
+            @if(guardando()){<span class="spin-sm"></span> Guardando…} @else {💾 {{planEditandoId() ? 'Actualizar en servidor' : 'Guardar en servidor'}}}
           </button>
         </div>
       </div>
 
-      <!-- Documento -->
       <div class="pv-scroll">
         <div class="doc">
-
-          <!-- Encabezado institucional -->
           <table class="doc-hdr">
             <tr>
               <td class="doc-logo-td">
@@ -172,37 +86,16 @@
           <div class="doc-rline"></div>
           <div class="doc-ficha">FICHA TECNICA DE SEGUIMIENTO</div>
 
-          <!-- Tabla 1: Datos Personales + Foto -->
           <div class="dt1-layout">
             <table class="dt dt1-tabla">
               <tr><td colspan="2" class="dt-cab-d9">DATOS PERSONALES</td></tr>
-              <tr>
-                <td class="dt-lbl-cc" style="width:34%">Nombre</td>
-                <td class="dt-val">{{gv('nombre')}}</td>
-              </tr>
-              <tr>
-                <td class="dt-lbl-cc">Edad</td>
-                <td class="dt-val">{{gv('edad')}}</td>
-              </tr>
-              <tr>
-                <td class="dt-lbl-cc">Municipio</td>
-                <td class="dt-val">{{gv('municipio')}}</td>
-              </tr>
-              <tr>
-                <td class="dt-lbl-cc">Ocupación</td>
-                <td class="dt-val">{{gv('ocupacion')}}</td>
-              </tr>
-              <tr>
-                <td class="dt-lbl-cc">Fecha de Ingreso</td>
-                <td class="dt-val">{{gv('fechaIngreso')}}</td>
-              </tr>
-              <tr>
-                <td class="dt-lbl-cc">Teléfono</td>
-                <td class="dt-val">{{gv('telefono')}}</td>
-              </tr>
+              <tr><td class="dt-lbl-cc" style="width:34%">Nombre</td><td class="dt-val">{{gv('nombre')}}</td></tr>
+              <tr><td class="dt-lbl-cc">Edad</td><td class="dt-val">{{gv('edad')}}</td></tr>
+              <tr><td class="dt-lbl-cc">Municipio</td><td class="dt-val">{{gv('municipio')}}</td></tr>
+              <tr><td class="dt-lbl-cc">Ocupación</td><td class="dt-val">{{gv('ocupacion')}}</td></tr>
+              <tr><td class="dt-lbl-cc">Fecha de Ingreso</td><td class="dt-val">{{gv('fechaIngreso')}}</td></tr>
+              <tr><td class="dt-lbl-cc">Teléfono</td><td class="dt-val">{{gv('telefono')}}</td></tr>
             </table>
-
-            <!-- Recuadro de foto (igual que el Word) -->
             <div class="dt1-foto">
               @if(fotoUrl()){
                 <img class="dt1-foto-img" [src]="fotoUrl()" alt="Foto beneficiario"/>
@@ -212,45 +105,43 @@
             </div>
           </div>
 
-          <!-- Tabla 2: Proceso de Ingreso -->
+          @if(gv('periodo') || gv('fechaInicio') || gv('fechaFin')){
+            <table class="dt" style="margin-top:3px">
+              <tr>
+                <td class="dt-lbl-cc" style="width:23%">Período</td>
+                <td class="dt-val">
+                  {{gv('periodo')}}
+                  @if(gv('fechaInicio')){ &nbsp;|&nbsp; Inicio: {{gv('fechaInicio')}} }
+                  @if(gv('fechaFin')){ &nbsp;|&nbsp; Fin: {{gv('fechaFin')}} }
+                </td>
+              </tr>
+            </table>
+          }
+
           <table class="dt" style="margin-top:3px">
             <tr>
-              <td class="dt-lbl-cc" style="width:23%;vertical-align:top">
-                Proceso de ingreso a PREVENCIÓN
-              </td>
+              <td class="dt-lbl-cc" style="width:23%;vertical-align:top">Proceso de ingreso a PREVENCIÓN</td>
               <td class="dt-val dt-area">{{gv('procesoIngreso')}}</td>
             </tr>
           </table>
 
-          <!-- Tabla 3: Proceso de Seguimiento -->
           <table class="dt" style="margin-top:3px">
             <tr><td colspan="2" class="dt-cab-d9">PROCESO DE SEGUIMIENTO</td></tr>
-            <tr>
-              <td class="dt-sub-d9" style="width:21%">ACTIVIDADES</td>
-              <td class="dt-sub-d9">OBSERVACIONES</td>
-            </tr>
+            <tr><td class="dt-sub-d9" style="width:21%">ACTIVIDADES</td><td class="dt-sub-d9">OBSERVACIONES</td></tr>
             @for(a of ASEG; track a.key){
-              <tr>
-                <td class="dt-act">{{a.label}}</td>
-                <td class="dt-val dt-area-sm">{{gv(a.key+'Obs')}}</td>
-              </tr>
+              <tr><td class="dt-act">{{a.label}}</td><td class="dt-val dt-area-sm">{{gv(a.key + 'Obs')}}</td></tr>
             }
             <tr><td colspan="2" class="dt-cab-cc">PROYECTO DE VIDA</td></tr>
             @for(a of AVIDA; track a.key){
               <tr>
                 <td class="dt-act">{{a.label}}</td>
-                <td class="dt-val dt-area-sm">{{gv('vida'+a.key.charAt(0).toUpperCase()+a.key.slice(1)+'Obs')}}</td>
+                <td class="dt-val dt-area-sm">{{gv('vida' + a.key.charAt(0).toUpperCase() + a.key.slice(1) + 'Obs')}}</td>
               </tr>
             }
           </table>
 
-          <!-- Tabla 4: Actividades del Programa -->
           <table class="dt dt4" style="margin-top:3px">
-            <tr>
-              <td colspan="4" class="dt-cab-d9 dt-italic">
-                Proceso de seguimiento de actividades del programa "RECONECTA CON LA PAZ."
-              </td>
-            </tr>
+            <tr><td colspan="4" class="dt-cab-d9 dt-italic">Proceso de seguimiento de actividades del programa "RECONECTA CON LA PAZ."</td></tr>
             <tr>
               <td class="dt-sub-d9" style="width:20%">ACTIVIDAD</td>
               <td class="dt-sub-d9" style="width:27%">STATUS</td>
@@ -260,25 +151,22 @@
             @for(a of APROG; track a.key){
               <tr>
                 <td class="dt-act4">{{a.label}}</td>
-                <td class="dt-val dt-area-sm">{{gv(a.key+'Status')}}</td>
-                <td class="dt-val dt-area-sm">{{gv(a.key+'Objetivo')}}</td>
-                <td class="dt-val dt-area-sm">{{gv(a.key+'Cumplimiento')}}</td>
+                <td class="dt-val dt-area-sm">{{gv(a.key + 'Status')}}</td>
+                <td class="dt-val dt-area-sm">{{gv(a.key + 'Objetivo')}}</td>
+                <td class="dt-val dt-area-sm">{{gv(a.key + 'Cumplimiento')}}</td>
               </tr>
             }
             <tr>
               <td class="dt-act4">OBSERVACIONES</td>
-              <td class="dt-val dt-area-sm" colspan="3">
-                {{filterJoin([gv('obsStatus'),gv('obsObjetivo'),gv('obsCumplimiento')])}}
-              </td>
+              <td class="dt-val dt-area-sm" colspan="3">{{filterJoin([gv('obsStatus'), gv('obsObjetivo'), gv('obsCumplimiento')])}}</td>
             </tr>
           </table>
 
-          <!-- Firmas -->
           <div class="doc-firmas">
             <div class="doc-firma">
               <div class="doc-fline"></div>
-              <div class="doc-fnom">{{gv('firmaNombre')||'________________________________'}}</div>
-              <div class="doc-fcargo">{{gv('firmaCargo')||'RESPONSABLE DEL PROGRAMA'}}</div>
+              <div class="doc-fnom">{{gv('firmaNombre') || '________________________________'}}</div>
+              <div class="doc-fcargo">{{gv('firmaCargo') || 'RESPONSABLE DEL PROGRAMA'}}</div>
               @if(gv('firmaFecha')){ <div class="doc-ffecha">Fecha: {{gv('firmaFecha')}}</div> }
             </div>
             <div class="doc-firma">
@@ -288,227 +176,133 @@
               <div class="doc-fcargo">Y PARTICIPACION CIUDADANA</div>
             </div>
           </div>
-
-        </div><!-- /.doc -->
-      </div><!-- /.pv-scroll -->
-    </div><!-- /.pv-ov -->
-  }
-
-  <!-- ═══════ [6] BARRA DE PROGRESO STICKY ═════════════════════ -->
-  @if(tabActivo()==='form'){
-    <div class="pg-strip">
-      <div class="pg-inner">
-        <span class="pg-lbl">Progreso</span>
-        <div class="pg-track">
-          <div class="pg-fill" [style.width.%]="pct()">
-            <span class="pg-shine"></span>
-          </div>
         </div>
-        <span class="pg-num">{{pct()}}%</span>
-        <span class="pg-step">Paso {{paso()+1}}/{{PASOS.length}}</span>
       </div>
     </div>
   }
 
-  <!-- ═══════ CONTENIDO ════════════════════════════════════════ -->
+  @if(tabActivo()==='form'){
+    <div class="pg-strip">
+      <div class="pg-inner">
+        <span class="pg-lbl">Progreso</span>
+        <div class="pg-track"><div class="pg-fill" [style.width.%]="pct()"><span class="pg-shine"></span></div></div>
+        <span class="pg-num">{{pct()}}%</span>
+        <span class="pg-step">Paso {{paso() + 1}}/{{PASOS.length}}</span>
+        @if(planEditandoId()){ <span class="pg-edit-badge">✏️ Editando plan #{{planEditandoId()}}</span> }
+      </div>
+    </div>
+  }
+
   <div class="main">
 
-    <!-- ═══ [7] WIZARD ════════════════════════════════════════ -->
     @if(tabActivo()==='form'){
       <div class="wiz">
-
-        <!-- SIDEBAR de pasos -->
         <aside class="wiz-side">
           <p class="wiz-side-tit">Secciones</p>
-          @for(p of PASOS; track p.titulo; let i=$index){
-            <button class="wiz-step"
-                    [class.wiz-step-on]="paso()===i"
-                    [class.wiz-step-done]="pasoDone(i)"
-                    [style.--c]="p.color"
-                    (click)="irA(i)">
+          @for(p of PASOS; track p.titulo; let i = $index){
+            <button class="wiz-step" [class.wiz-step-on]="paso() === i" [class.wiz-step-done]="pasoDone(i)" [style.--c]="p.color" (click)="irA(i)">
               <span class="ws-ico">{{p.icono}}</span>
-              <span class="ws-info">
-                <small>{{i+1}}</small>
-                <span>{{p.titulo}}</span>
-              </span>
+              <span class="ws-info"><small>{{i + 1}}</small><span>{{p.titulo}}</span></span>
               @if(pasoDone(i)){ <span class="ws-ck">✓</span> }
             </button>
           }
         </aside>
 
-        <!-- CUERPO del wizard -->
-        <div class="wiz-body" [formGroup]="fg"
-             [class.slide-out]="slideOut()">
-
-          <!-- Header del paso actual -->
+        <div class="wiz-body" [formGroup]="fg" [class.slide-out]="slideOut()">
           <div class="paso-hdr" [style.--c]="PASOS[paso()].color">
             <span class="ph-ico">{{PASOS[paso()].icono}}</span>
-            <div class="ph-info">
-              <h2>{{PASOS[paso()].titulo}}</h2>
-              <p>{{PASOS[paso()].desc}}</p>
-            </div>
-            <span class="ph-badge">{{paso()+1}}/{{PASOS.length}}</span>
+            <div class="ph-info"><h2>{{PASOS[paso()].titulo}}</h2><p>{{PASOS[paso()].desc}}</p></div>
+            <span class="ph-badge">{{paso() + 1}}/{{PASOS.length}}</span>
           </div>
 
-          <!-- ── PASO 0: DATOS PERSONALES ──────────────────── -->
-          @if(paso()===0){
+          @if(paso() === 0){
             <div class="blk anim-in">
+              @if(beneficiario){
+                <div class="info-box info-box-ok" style="margin-bottom:12px">✅ Datos cargados automáticamente del beneficiario.</div>
+              }
               <div class="blk-body">
-
-                <!-- Layout: campos izquierda + foto derecha -->
                 <div class="p0-layout">
-
-                  <!-- Columna campos -->
                   <div class="p0-fields">
                     <div class="g2">
                       <div class="fc span2">
                         <label class="lbl">Nombre completo <span class="req">✦</span></label>
-                        <input class="inp" formControlName="nombre"
-                               placeholder="Nombre completo del beneficiario"/>
-                        @if(!gv('nombre')){
-                          <span class="hint">Campo obligatorio para generar el PDF</span>
-                        }
+                        <input class="inp" formControlName="nombre" placeholder="Nombre completo"/>
                       </div>
-                      <div class="fc">
-                        <label class="lbl">Edad</label>
-                        <input class="inp" formControlName="edad" placeholder="Ej: 28 años"/>
-                      </div>
-                      <div class="fc">
-                        <label class="lbl">Municipio</label>
-                        <input class="inp" formControlName="municipio"
-                               placeholder="Municipio de residencia"/>
-                      </div>
-                      <div class="fc">
-                        <label class="lbl">Ocupación</label>
-                        <input class="inp" formControlName="ocupacion"
-                               placeholder="Actividad u ocupación"/>
-                      </div>
-                      <div class="fc">
-                        <label class="lbl">Fecha de Ingreso</label>
-                        <input class="inp" type="date" formControlName="fechaIngreso"/>
-                      </div>
-                      <div class="fc span2">
-                        <label class="lbl">Teléfono</label>
-                        <input class="inp" formControlName="telefono"
-                               placeholder="10 dígitos"/>
-                      </div>
+                      <div class="fc"><label class="lbl">Edad</label><input class="inp" formControlName="edad" placeholder="Ej: 28 años"/></div>
+                      <div class="fc"><label class="lbl">Municipio</label><input class="inp" formControlName="municipio" placeholder="Municipio de residencia"/></div>
+                      <div class="fc"><label class="lbl">Ocupación</label><input class="inp" formControlName="ocupacion" placeholder="Actividad u ocupación"/></div>
+                      <div class="fc"><label class="lbl">Fecha de Ingreso</label><input class="inp" type="date" formControlName="fechaIngreso"/></div>
+                      <div class="fc span2"><label class="lbl">Teléfono</label><input class="inp" formControlName="telefono" placeholder="10 dígitos"/></div>
                     </div>
                   </div>
-
-                  <!-- Columna foto -->
                   <div class="p0-foto-col">
-                    <label class="lbl" style="margin-bottom:8px;display:block">
-                      Foto del beneficiario
-                    </label>
-
-                    <!-- Zona de carga / preview -->
-                    <div class="foto-zone" [class.foto-loaded]="!!fotoUrl()"
-                         (click)="fotoInput.click()"
-                         (dragover)="$event.preventDefault()"
-                         (drop)="$event.preventDefault(); cargarFoto($any($event.dataTransfer?.files?.[0]))">
-
+                    <label class="lbl" style="margin-bottom:8px;display:block">Foto</label>
+                    <div class="foto-zone" [class.foto-loaded]="!!fotoUrl()" (click)="fotoInput.click()" (dragover)="$event.preventDefault()" (drop)="$event.preventDefault(); cargarFoto($any($event.dataTransfer?.files?.[0]))">
                       @if(fotoUrl()){
-                        <!-- Foto cargada: mostrar imagen -->
                         <img class="foto-img" [src]="fotoUrl()" alt="Foto beneficiario"/>
                         <div class="foto-overlay">
-                          <button class="foto-cambiar" (click)="$event.stopPropagation(); fotoInput.click()">
-                            🔄 Cambiar
-                          </button>
-                          <button class="foto-quitar" (click)="$event.stopPropagation(); quitarFoto()">
-                            ✕ Quitar
-                          </button>
+                          <button class="foto-cambiar" (click)="$event.stopPropagation(); fotoInput.click()">🔄 Cambiar</button>
+                          <button class="foto-quitar" (click)="$event.stopPropagation(); quitarFoto()">✕ Quitar</button>
                         </div>
                       } @else {
-                        <!-- Sin foto: placeholder -->
-                        <div class="foto-placeholder">
-                          <span class="foto-pl-ico">📷</span>
-                          <span class="foto-pl-txt">Subir foto</span>
-                          <span class="foto-pl-sub">JPG · PNG — clic o arrastra</span>
-                        </div>
+                        <div class="foto-placeholder"><span class="foto-pl-ico">📷</span><span class="foto-pl-txt">Subir foto</span></div>
                       }
                     </div>
-
-                    <input #fotoInput type="file" accept="image/jpeg,image/png,image/webp"
-                           style="display:none"
-                           (change)="cargarFoto($any($event.target.files?.[0]))"/>
-
-                    <p class="foto-nota">
-                      Opcional. Si no se sube, el PDF incluirá
-                      un recuadro en blanco para pegar la foto después.
-                    </p>
+                    <input #fotoInput type="file" accept="image/jpeg,image/png,image/webp" style="display:none" (change)="cargarFoto($any($event.target.files?.[0]))"/>
                   </div>
-
-                </div><!-- /.p0-layout -->
-
-                <!-- Mini tarjeta de previsualización -->
-                @if(gv('nombre')){
-                  <div class="mini-card">
-                    <div class="mc-row"><span class="mc-k">Nombre</span>
-                      <span class="mc-v">{{gv('nombre')}}</span></div>
-                    @if(gv('municipio')){
-                      <div class="mc-row"><span class="mc-k">Municipio</span>
-                        <span class="mc-v">{{gv('municipio')}}</span></div>
-                    }
-                    @if(gv('fechaIngreso')){
-                      <div class="mc-row"><span class="mc-k">Fecha Ingreso</span>
-                        <span class="mc-v">{{gv('fechaIngreso')}}</span></div>
-                    }
-                  </div>
-                }
-
+                </div>
               </div>
             </div>
           }
 
-          <!-- ── PASO 1: PROCESO DE INGRESO ────────────────── -->
-          @if(paso()===1){
+          @if(paso() === 1){
             <div class="blk anim-in">
               <div class="blk-body">
-                <div class="info-box">
-                  ℹ️ Describe cómo fue el proceso de ingreso del beneficiario
-                  al programa de prevención — circunstancias, motivos y contexto.
+                <div class="info-box">📅 Define el período, las fechas y el guía responsable del plan de trabajo.</div>
+                <div class="g2" style="margin-top:16px">
+                  <div class="fc span2">
+                    <label class="lbl">Período <span class="req">✦</span></label>
+                    <input class="inp" formControlName="periodo" placeholder="Ej: MARZO-2026" style="text-transform:uppercase"/>
+                  </div>
+                  <div class="fc"><label class="lbl">Fecha de inicio <span class="req">✦</span></label><input class="inp" type="date" formControlName="fechaInicio"/></div>
+                  <div class="fc"><label class="lbl">Fecha de fin <span class="req">✦</span></label><input class="inp" type="date" formControlName="fechaFin"/></div>
+                  
+                  <div class="fc span2">
+                    <label class="lbl">Guía Asignado <span class="req">✦</span></label>
+                    <select class="inp select-field" formControlName="guiaId">
+                      <option [ngValue]="null" disabled selected>Seleccione el guía responsable...</option>
+                      @for(g of guias(); track g.id){
+                        <option [ngValue]="g.id">{{g.nombre}}</option>
+                      }
+                    </select>
+                  </div>
                 </div>
-                <div class="fc">
+              </div>
+            </div>
+          }
+
+          @if(paso() === 2){
+            <div class="blk anim-in">
+              <div class="blk-body">
+                <div class="info-box">ℹ️ Describe cómo fue el proceso de ingreso del beneficiario.</div>
+                <div class="fc" style="margin-top:12px">
                   <label class="lbl">Proceso de ingreso a PREVENCIÓN</label>
-                  <textarea class="inp ta-xl" formControlName="procesoIngreso"
-                            rows="8"
-                            placeholder="Describe el proceso de ingreso a PREVENCIÓN…"></textarea>
-                  <span class="char-c">{{(gv('procesoIngreso')||'').length}} caracteres</span>
+                  <textarea class="inp ta-xl" formControlName="procesoIngreso" rows="8"></textarea>
                 </div>
               </div>
             </div>
           }
 
-          <!-- ── PASO 2: PROCESO DE SEGUIMIENTO ───────────── -->
-          @if(paso()===2){
+          @if(paso() === 3){
             <div class="blk anim-in">
               <div class="blk-body">
-                <div class="info-box">
-                  📊 Registra las observaciones de seguimiento para cada área de actividad.
-                  Estos datos corresponden a la <strong>Tabla 3</strong> del documento Word.
-                </div>
+                <div class="info-box">📊 Registra las observaciones de seguimiento para cada área de actividad.</div>
                 <div class="seg-grid">
-                  <div class="sg-hdr">
-                    <div class="sg-col-a">ACTIVIDAD</div>
-                    <div class="sg-col-o">OBSERVACIONES</div>
-                  </div>
+                  <div class="sg-hdr"><div class="sg-col-a">ACTIVIDAD</div><div class="sg-col-o">OBSERVACIONES</div></div>
                   @for(a of ASEG; track a.key){
                     <div class="sg-row">
-                      <div class="sg-act">
-                        <span class="sg-ico">
-                          @switch(a.key){
-                            @case('educativa'){📚} @case('laboral'){💼}
-                            @case('familiar'){👨‍👩‍👧} @case('deportivo'){🏃}
-                            @case('cultural'){🎭}
-                          }
-                        </span>
-                        {{a.label}}
-                      </div>
-                      <div class="sg-obs">
-                        <textarea class="inp inp-sm" [formControlName]="a.key+'Obs'"
-                                  rows="2" [placeholder]="'Observaciones '+a.label.toLowerCase()+'…'">
-                        </textarea>
-                      </div>
+                      <div class="sg-act">{{a.label}}</div>
+                      <div class="sg-obs"><textarea class="inp inp-sm" [formControlName]="a.key + 'Obs'" rows="2"></textarea></div>
                     </div>
                   }
                 </div>
@@ -516,38 +310,16 @@
             </div>
           }
 
-          <!-- ── PASO 3: PROYECTO DE VIDA ──────────────────── -->
-          @if(paso()===3){
+          @if(paso() === 4){
             <div class="blk anim-in">
               <div class="blk-body">
-                <div class="vida-banner">
-                  <span class="vb-ico">🎯</span>
-                  <div>
-                    <div class="vb-title">Proyecto de Vida</div>
-                    <div class="vb-sub">Sub-sección de la Tabla 3 del documento</div>
-                  </div>
-                </div>
+                <div class="vida-banner"><span class="vb-ico">🎯</span><div><div class="vb-title">Proyecto de Vida</div><div class="vb-sub">Sub-sección de la Tabla 3</div></div></div>
                 <div class="seg-grid" style="margin-top:14px">
-                  <div class="sg-hdr">
-                    <div class="sg-col-a">ÁREA</div>
-                    <div class="sg-col-o">OBSERVACIONES Y METAS</div>
-                  </div>
+                  <div class="sg-hdr"><div class="sg-col-a">ÁREA</div><div class="sg-col-o">OBSERVACIONES Y METAS</div></div>
                   @for(a of AVIDA; track a.key){
                     <div class="sg-row">
-                      <div class="sg-act">
-                        <span class="sg-ico">
-                          @switch(a.key){
-                            @case('personal'){🧠} @case('familiar'){🏠} @case('social'){🤝}
-                          }
-                        </span>
-                        {{a.label}}
-                      </div>
-                      <div class="sg-obs">
-                        <textarea class="inp inp-sm"
-                                  [formControlName]="'vida'+a.key.charAt(0).toUpperCase()+a.key.slice(1)+'Obs'"
-                                  rows="2" [placeholder]="'Metas '+a.label.toLowerCase()+'…'">
-                        </textarea>
-                      </div>
+                      <div class="sg-act">{{a.label}}</div>
+                      <div class="sg-obs"><textarea class="inp inp-sm" [formControlName]="'vida' + a.key.charAt(0).toUpperCase() + a.key.slice(1) + 'Obs'" rows="2"></textarea></div>
                     </div>
                   }
                 </div>
@@ -555,63 +327,27 @@
             </div>
           }
 
-          <!-- ── PASO 4: ACTIVIDADES DEL PROGRAMA ─────────── -->
-          @if(paso()===4){
+          @if(paso() === 5){
             <div class="blk anim-in">
               <div class="blk-body">
-                <div class="prog-banner">
-                  <span class="pb-tag">RECONECTA CON LA PAZ</span>
-                  <p>Tabla 4 — Status, objetivo y cumplimiento por actividad del programa</p>
-                </div>
-
+                <div class="prog-banner"><span class="pb-tag">RECONECTA CON LA PAZ</span><p>Tabla 4 — Status, objetivo y cumplimiento</p></div>
                 <div class="prog-grid">
-                  <!-- Cabecera -->
-                  <div class="pg-hdr">
-                    <div class="pg-col-a">ACTIVIDAD</div>
-                    <div class="pg-col-s">STATUS</div>
-                    <div class="pg-col-o">OBJETIVO</div>
-                    <div class="pg-col-c">CUMPLIMIENTO</div>
-                  </div>
-
-                  <!-- Filas -->
+                  <div class="pg-hdr"><div class="pg-col-a">ACTIVIDAD</div><div class="pg-col-s">STATUS</div><div class="pg-col-o">OBJETIVO</div><div class="pg-col-c">CUMPLIMIENTO</div></div>
                   @for(a of APROG; track a.key){
                     <div class="pg-row">
                       <div class="pg-act">{{a.label}}</div>
-                      <div class="pg-col-s">
-                        <input class="inp inp-sm" [formControlName]="a.key+'Status'"
-                               placeholder="Status…"/>
-                      </div>
-                      <div class="pg-col-o">
-                        <textarea class="inp inp-sm" [formControlName]="a.key+'Objetivo'"
-                                  rows="2" placeholder="Objetivo…"></textarea>
-                      </div>
-                      <div class="pg-col-c">
-                        <input class="inp inp-sm" [formControlName]="a.key+'Cumplimiento'"
-                               placeholder="Cumplimiento…"/>
-                      </div>
+                      <div class="pg-col-s"><input class="inp inp-sm" [formControlName]="a.key + 'Status'"/></div>
+                      <div class="pg-col-o"><textarea class="inp inp-sm" [formControlName]="a.key + 'Objetivo'" rows="2"></textarea></div>
+                      <div class="pg-col-c"><input class="inp inp-sm" [formControlName]="a.key + 'Cumplimiento'"/></div>
                     </div>
                   }
-
-                  <!-- Fila OBSERVACIONES -->
                   <div class="pg-row pg-obs-row">
                     <div class="pg-act">OBSERVACIONES</div>
                     <div class="pg-obs-cols">
                       <div class="g3">
-                        <div class="fc">
-                          <label class="lbl-sm">Status</label>
-                          <textarea class="inp inp-sm" formControlName="obsStatus"
-                                    rows="2" placeholder="Obs. status…"></textarea>
-                        </div>
-                        <div class="fc">
-                          <label class="lbl-sm">Objetivo</label>
-                          <textarea class="inp inp-sm" formControlName="obsObjetivo"
-                                    rows="2" placeholder="Obs. objetivo…"></textarea>
-                        </div>
-                        <div class="fc">
-                          <label class="lbl-sm">Cumplimiento</label>
-                          <textarea class="inp inp-sm" formControlName="obsCumplimiento"
-                                    rows="2" placeholder="Obs. cumpl…"></textarea>
-                        </div>
+                        <div class="fc"><label class="lbl-sm">Status</label><textarea class="inp inp-sm" formControlName="obsStatus" rows="2"></textarea></div>
+                        <div class="fc"><label class="lbl-sm">Objetivo</label><textarea class="inp inp-sm" formControlName="obsObjetivo" rows="2"></textarea></div>
+                        <div class="fc"><label class="lbl-sm">Cumplimiento</label><textarea class="inp inp-sm" formControlName="obsCumplimiento" rows="2"></textarea></div>
                       </div>
                     </div>
                   </div>
@@ -620,161 +356,123 @@
             </div>
           }
 
-          <!-- ── PASO 5: ADJUNTOS Y FIRMA ──────────────────── -->
-          @if(paso()===5){
+          @if(paso() === 6){
             <div class="blk anim-in">
               <div class="blk-body">
-
-                <!-- Datos del firmante -->
                 <div class="sec-sub">✍️ Datos del Firmante</div>
                 <div class="g3" style="margin-bottom:20px">
-                  <div class="fc">
-                    <label class="lbl">Nombre del Firmante</label>
-                    <input class="inp" formControlName="firmaNombre"
-                           placeholder="Nombre completo"/>
-                  </div>
-                  <div class="fc">
-                    <label class="lbl">Cargo</label>
-                    <input class="inp" formControlName="firmaCargo"
-                           placeholder="Cargo o función"/>
-                  </div>
-                  <div class="fc">
-                    <label class="lbl">Fecha</label>
-                    <input class="inp" type="date" formControlName="firmaFecha"/>
-                  </div>
+                  <div class="fc"><label class="lbl">Nombre del Firmante</label><input class="inp" formControlName="firmaNombre"/></div>
+                  <div class="fc"><label class="lbl">Cargo</label><input class="inp" formControlName="firmaCargo"/></div>
+                  <div class="fc"><label class="lbl">Fecha</label><input class="inp" type="date" formControlName="firmaFecha"/></div>
                 </div>
 
-                <!-- Zona de adjuntos -->
                 <div class="sec-sub">📎 Documentos Adjuntos</div>
-                <div class="drop-zone"
-                     [class.drop-drag]="dragging()"
-                     (dragover)="$event.preventDefault(); dragging.set(true)"
-                     (dragleave)="dragging.set(false)"
-                     (drop)="$event.preventDefault(); dragging.set(false); onFiles($any($event.dataTransfer?.files))"
-                     (click)="fi.click()">
+                <div class="drop-zone" [class.drop-drag]="dragging()" (dragover)="$event.preventDefault(); dragging.set(true)" (dragleave)="dragging.set(false)" (drop)="$event.preventDefault(); dragging.set(false); onFiles($any($event.dataTransfer?.files))" (click)="fi.click()">
                   <div class="dz-ico">📎</div>
                   <div class="dz-main">Arrastra documentos aquí</div>
-                  <div class="dz-sub">PDF · JPG · PNG · DOCX — o clic para seleccionar</div>
-                  <input #fi type="file" multiple
-                         accept=".pdf,.jpg,.jpeg,.png,.docx"
-                         style="display:none"
-                         (change)="onFiles($any($event.target.files))"/>
+                  <input #fi type="file" multiple accept=".pdf,.jpg,.jpeg,.png,.docx" style="display:none" (change)="onFiles($any($event.target.files))"/>
                 </div>
 
                 @for(a of adjuntos(); track a.id){
                   <div class="adj-item">
                     <span class="adj-ico">{{icoAdj(a.tipo)}}</span>
-                    <div class="adj-info">
-                      <div class="adj-nom">{{a.nombre}}</div>
-                      <div class="adj-sz">{{(a.tamano/1024).toFixed(1)}} KB</div>
-                    </div>
-                    <button class="adj-del" (click)="quitarAdj(a.id)" title="Quitar">✕</button>
+                    <div class="adj-info"><div class="adj-nom">{{a.nombre}}</div><div class="adj-sz">{{(a.tamano / 1024).toFixed(1)}} KB</div></div>
+                    <button class="adj-del" (click)="quitarAdj(a.id)">✕</button>
                   </div>
                 }
 
-                <!-- CTA Vista Previa -->
                 <div class="cta">
                   @if(completo()){
-                    <button class="btn-cta" (click)="verPrevia.set(true)">
-                      <span>👁️</span> Ver Vista Previa y Generar PDF
-                    </button>
+                    <div class="cta-btns">
+                      <button class="btn-cta btn-cta-save" (click)="guardarEnBackend()" [disabled]="guardando()">
+                        @if(guardando()){ <span class="spin-sm"></span> Guardando… } @else { <span>💾</span> {{planEditandoId() ? 'Actualizar en servidor' : 'Guardar en servidor'}} }
+                      </button>
+                    </div>
                   } @else {
                     <div class="cta-pend">
-                      <p>Completa los campos <span class="req">✦</span> obligatorios para continuar:</p>
-                      <div class="pend-chips">
-                        @for(c of pendientes(); track c){
-                          <span class="pend-chip">{{c}}</span>
-                        }
-                      </div>
+                      <p>Completa los campos <span class="req">✦</span> obligatorios:</p>
                     </div>
                   }
                 </div>
 
+                @if(planEditandoId()){
+                  <div style="text-align:center;margin-top:12px">
+                    <button class="btn-cancelar-edit" (click)="planEditandoId.set(null); fg.reset(); paso.set(0)">✕ Cancelar edición</button>
+                  </div>
+                }
               </div>
             </div>
           }
 
-          <!-- NAVEGACIÓN INFERIOR -->
           <div class="wiz-nav">
-            <button class="wn-btn wn-prev" [disabled]="paso()===0"
-                    (click)="anterior()">← Anterior</button>
+            <button class="wn-btn wn-prev" [disabled]="paso() === 0" (click)="anterior()">← Anterior</button>
             <div class="wn-dots">
-              @for(p of PASOS; track p.titulo; let i=$index){
-                <button class="wn-dot"
-                        [class.wnd-on]="paso()===i"
-                        [class.wnd-done]="pasoDone(i)"
-                        [style.--c]="p.color"
-                        (click)="irA(i)"
-                        [title]="p.titulo"></button>
+              @for(p of PASOS; track p.titulo; let i = $index){
+                <button class="wn-dot" [class.wnd-on]="paso() === i" [class.wnd-done]="pasoDone(i)" [style.--c]="p.color" (click)="irA(i)" [title]="p.titulo"></button>
               }
             </div>
-            @if(paso()<PASOS.length-1){
-              <button class="wn-btn wn-next" (click)="siguiente()">
-                Siguiente →
-              </button>
+            @if(paso() < PASOS.length - 1){
+              <button class="wn-btn wn-next" (click)="siguiente()">Siguiente →</button>
             } @else {
               @if(completo()){
-                <button class="wn-btn wn-pv" (click)="verPrevia.set(true)">
-                  👁️ Vista Previa
-                </button>
+                <button class="wn-btn wn-pv" (click)="verPrevia.set(true)">👁️ Vista Previa</button>
               } @else {
-                <button class="wn-btn wn-next" disabled>
-                  Pendientes ({{pendientes().length}})
-                </button>
+                <button class="wn-btn wn-next" disabled>Pendientes ({{pendientes().length}})</button>
               }
             }
           </div>
 
-        </div><!-- /.wiz-body -->
-      </div><!-- /.wiz -->
+        </div>
+      </div>
     }
 
-    <!-- ═══ [8] HISTORIAL ════════════════════════════════════ -->
-    @if(tabActivo()==='hist'){
+    @if(tabActivo() === 'hist'){
       <div class="hist">
         <div class="hist-hdr">
-          <h2>Historial de Planes</h2>
-          <p>{{totalHistorial()}} plan(es) en sesión</p>
+          <h2>Historial de Planes de Trabajo</h2>
+          <p>@if(cargandoPlanes()){ <span class="spin-sm"></span> Cargando… } @else { {{totalPlanes()}} plan(es) registrado(s) }</p>
         </div>
 
-        @if(!historial().length){
+        @if(cargandoPlanes()){
+          <div class="empty"><div class="empty-ico">⏳</div><div>Consultando servidor…</div></div>
+        } @else if(!planesBackend().length){
           <div class="empty">
-            <div class="empty-ico">📋</div>
-            <div>No hay planes guardados aún</div>
-            <small>Completa el formulario y guárdalo para verlo aquí</small>
+            <div class="empty-ico">📋</div><div>No hay planes registrados aún</div>
+            <button class="btn-nuevo" style="margin-top:14px" (click)="tabActivo.set('form'); paso.set(0)">➕ Crear primer plan</button>
           </div>
         } @else {
           <div class="hist-grid">
-            @for(e of historial(); track e.id){
-              <div class="hcard">
+            @for(plan of planesBackend(); track plan.id){
+              <div class="hcard" [class.hcard-editing]="planEditandoId() === plan.id">
+                @if(planEditandoId() === plan.id){ <div class="hcard-badge-editing">✏️ Editando ahora</div> }
                 <div class="hcard-top">
-                  <div class="hc-nom">👤 {{e.nombre}}</div>
-                  @if(e.municipio){ <div class="hc-mun">📍 {{e.municipio}}</div> }
+                  <div class="hc-nom">📅 {{plan.periodo}}</div>
+                  <div class="hc-mun">🗓️ {{formatFecha(plan.fechaInicio)}} @if(plan.fechaFin){ — {{formatFecha(plan.fechaFin)}} }</div>
                 </div>
                 <div class="hcard-body">
-                  <div class="hc-fecha">📅 {{e.fecha}}</div>
-                  <div class="hc-files">
-                    <span class="hf" (click)="dlExp(e)">📄 {{trunc(e.pdf.nombre)}}</span>
-                    @for(a of e.archivos; track a.id){
-                      <span class="hf" (click)="dlAdj(a)">
-                        {{icoAdj(a.tipo)}} {{trunc(a.nombre)}}
-                      </span>
-                    }
+                  @if(plan.datosJsonb?.proceso_ingreso?.situacion_actual){
+                    <div class="hc-resumen">
+                      <span class="hc-resumen-lbl">Ingreso:</span> {{plan.datosJsonb.proceso_ingreso.situacion_actual | slice:0:90}}
+                    </div>
+                  }
+                  <div class="hc-fecha">
+                    @if(plan.createdAt){ 🕐 Creado: {{formatFecha(plan.createdAt)}} }
                   </div>
                   <div class="hc-btns">
-                    <button class="hb" (click)="dlExp(e)">⬇️ PDF</button>
-                    <button class="hb hb-zip" (click)="dlZip(e)" title="Descargar carpeta ZIP">
-                      📁 ZIP
+                    <button class="hb hb-edit" [disabled]="eliminandoId() === plan.id" (click)="cargarPlanEnFormulario(plan)">✏️ Editar</button>
+                    <button class="hb hb-del" [disabled]="eliminandoId() === plan.id" (click)="eliminarPlan(plan)">
+                      @if(eliminandoId() === plan.id){ <span class="spin-sm"></span> } @else { 🗑️ }
                     </button>
-                    <button class="hb hb-del" (click)="borrar(e.id)">🗑️</button>
                   </div>
                 </div>
               </div>
             }
           </div>
+          <div style="margin-top:18px;text-align:center">
+            <button class="btn-nuevo" (click)="planEditandoId.set(null); fg.reset(); tabActivo.set('form'); paso.set(0)">➕ Crear nuevo plan</button>
+          </div>
         }
       </div>
     }
-
-  </div><!-- /.main -->
-</div><!-- /.shell -->
+  </div>
+</div>

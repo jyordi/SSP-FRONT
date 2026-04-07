@@ -20,6 +20,8 @@ import { ListadoExpedientesComponent } from './dashboard/listado-expedientes/lis
 import { PenalForm } from './components/penal-form/penal-form';
 import { ValoracionPenalComponent } from './components/valoracion-penal/valoracion-penal';
 import { NuevoUsuarioComponent } from './pages/nuevo-usuario/nuevo-usuario';
+import { PlanDetalleAdminComponent } from './components/plan-detalle-admin/plan-detalle-admin';
+
 
 
 
@@ -37,7 +39,7 @@ export const routes: Routes = [
   { path: 'nuevo-usuario', component: NuevoUsuarioComponent, canActivate: [authGuard] },
   { path: 'nuevo-usuario-penal', component: PenalForm, canActivate: [authGuard] },
   
-  
+  {path: 'plan-detalle-admin/:id', component: PlanDetalleAdminComponent, canActivate: [authGuard]},
 
   { path: 'vp', component: ValoracionPenalComponent, canActivate: [authGuard] },
   { path: 'valoracion-psicologica', component: ValoracionPenalComponent, canActivate: [authGuard] },

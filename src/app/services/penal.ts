@@ -85,9 +85,9 @@ export class PenalService {
     return this.http.post(this.API_PLAN, data, { headers: this._headers() });
   }
   /** GET /penal/plan-trabajo/expediente/{expedienteId} */
-  getPlanTrabajoByExpediente(expedienteId: number): Observable<any> {
-    return this.http.get(`${this.API_PLAN}/expediente/${expedienteId}`, { headers: this._headers() });
-  }
+  // 🔥 TRAER TODOS LOS PLANES
+// ✅ GET /penal/plan-trabajo/{id}
+
   /** GET /penal/plan-trabajo/{id} */
   getPlanTrabajoById(id: number): Observable<any> {
     return this.http.get(`${this.API_PLAN}/${id}`, { headers: this._headers() });
@@ -100,12 +100,98 @@ export class PenalService {
   deletePlanTrabajo(id: number): Observable<any> {
     return this.http.delete(`${this.API_PLAN}/${id}`, { headers: this._headers() });
   }
-  /** GET /penal/documentos/plan-trabajo/{id}/pdf */
-  getPlanTrabajoPdf(id: number): Observable<Blob> {
-    const headers = this._headers().delete('Content-Type');
-    return this.http.get(`${this.API_DOCS}/plan-trabajo/${id}/pdf`, {
-      headers,
-      responseType: 'blob',
+ 
+
+    
+  
+
+
+  getPlanTrabajoByExpediente(expedienteId: number) {
+  return this.http.get(`${this.API_PLAN}/expediente/${expedienteId}`, {
+    headers: this._headers()
+  });
+}
+
+getPlanTrabajoPdf(id: number): Observable<Blob> {
+  const headers = this._headers().delete('Content-Type');
+
+  return this.http.get(`${this.API_DOCS}/plan-trabajo/${id}/pdf`, {
+    headers,
+    responseType: 'blob'
+  });
+}
+
+  // 🔥 GUARDAR DETALLE
+savePlanDetalle(data: any) {
+  return this.http.post(`${this.BASE}/penal/plan-trabajo-detalle`, data, {
+    headers: this._headers()
+  });
+}
+
+// 🔥 OBTENER DETALLE POR PLAN
+getPlanDetalle(planId: number) {
+  return this.http.get(
+    `${this.BASE}/penal/plan-trabajo-detalle/plan/${planId}`,
+    { headers: this._headers() }
+  );
+}
+
+
+
+// 🔥 OBTENER TODAS LAS ACTIVIDADES
+getActividades() {
+  return this.http.get(`${this.BASE}/actividades/todas`, {
+    headers: this._headers()
+  });
+}
+
+// 🔥 CREAR ACTIVIDAD
+crearActividad(data: any) {
+  return this.http.post(`${this.BASE}/actividades`, data, {
+    headers: this._headers()
+  });
+}
+
+// 🔥 ACTUALIZAR ACTIVIDAD
+updateActividad(id: number, data: any) {
+  return this.http.patch(`${this.BASE}/actividades/${id}`, data, {
+    headers: this._headers()
+  });
+}
+
+// 🔥 ELIMINAR ACTIVIDAD
+deleteActividad(id: number) {
+  return this.http.delete(`${this.BASE}/actividades/${id}`, {
+    headers: this._headers()
+  });
+}
+
+
+// 🔥 ACTUALIZAR DETALLE DEL PLAN (Cambio de estatus, avances, observaciones)
+  updatePlanDetalle(id: number, data: any): Observable<any> {
+    return this.http.patch(
+      `${this.BASE}/penal/plan-trabajo-detalle/${id}`, 
+      data, 
+      { headers: this._headers() }
+    );
+  }
+
+  // 🔥 ELIMINAR DETALLE DEL PLAN (Por si asignaste una actividad por error)
+  deletePlanDetalle(id: number): Observable<any> {
+    return this.http.delete(
+      `${this.BASE}/penal/plan-trabajo-detalle/${id}`, 
+      { headers: this._headers() }
+    );
+  }
+
+
+  // ─── USUARIOS / GUÍAS ────────────────────────────────────────
+  // 🔥 NUEVO MÉTODO PARA OBTENER A LOS GUÍAS
+  getGuias(): Observable<any> {
+    // ⚠️ ATENCIÓN: Cambia '/usuarios/guias' por el endpoint real de tu backend
+    // Por ejemplo, podría ser '/users?rol=GUIA' o '/auth/guias'
+    return this.http.get(`${this.BASE}/usuarios/guias`, { 
+      headers: this._headers() 
     });
   }
 }

@@ -35,12 +35,19 @@
 
   <!-- BOTONES -->
   <div class="modulos-top">
-    <button *ngIf="esAdmin() || esPsicologo()" (click)="irModulo('/vp')">🧠 Psicología</button>
-    <button *ngIf="esAdmin() || esTrabajoSocial()" (click)="irModulo('/trabajo-social')">👥 Trabajo Social</button>
-    <button *ngIf="esAdmin()" (click)="irModulo('/plan-individualizado')">📋 Plan</button>
-    <button *ngIf="esAdmin()" (click)="irModulo('/caratura-expediente')">📄 Carátula</button>
-    <button *ngIf="esAdmin() || esPsicologo()" (click)="irModulo('/proyecto-vida')">🌱 Proyecto</button>
-  </div>
+
+  <button *ngIf="esAdmin() || esPsicologo()" (click)="irModulo('/vp')">🧠 Psicología</button>
+  <button *ngIf="esAdmin() || esTrabajoSocial()" (click)="irModulo('/trabajo-social')">👥 Trabajo Social</button>
+  <button *ngIf=" esAdmin()" (click)="irModulo('/plan-individualizado')">📋 Plan</button>
+  <button *ngIf="esAdmin()" (click)="irModulo('/caratura-expediente')">📄 Carátula</button>
+  <button *ngIf="esAdmin() || esPsicologo()" (click)="irModulo('/proyecto-vida')">🌱 Proyecto</button>
+
+  <!-- 🔥 NUEVO -->
+  <button *ngIf=" esGuia() || esAdmin()" class="btn-admin" (click)="irDetalleAdmin()">
+    🧾 Detalle Plan
+  </button>
+
+</div>
 
   <!-- FORM -->
   <div class="card">

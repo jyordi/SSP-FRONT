@@ -19,6 +19,7 @@ export class DetallePenalComponent implements OnInit {
   loading = true;
   guardando = false;
   role = '';
+  planes: any[] = [];
 
   previewUrl: string | ArrayBuffer | null = null;
   selectedFile!: File;
@@ -53,6 +54,18 @@ export class DetallePenalComponent implements OnInit {
         alert('Error al cargar expediente');
       }
     });
+
+
+    this.penalService.getPlanTrabajoByExpediente(id).subscribe({
+  next: (res: any) => {
+    this.planes = Array.isArray(res) ? res : [res];
+    console.log('📋 PLANES:', this.planes);
+  },
+  error: () => {
+    this.planes = [];
+  }
+});
+    
   }
 
   // 🔥 TRAER VALORACIÓN
@@ -122,4 +135,23 @@ export class DetallePenalComponent implements OnInit {
   volver() {
     this.router.navigate(['/expedientes']);
   }
+
+  
+irDetalleAdmin(): void {
+
+  const plan = this.planes[0];
+
+  if (!plan) {
+    alert('No hay plan disponible');
+    return;
+  }
+
+  this.router.navigate(['/plan-detalle-admin', plan.id], {
+    state: {
+      expediente: this.expediente,
+      beneficiario: this.expediente?.beneficiario
+    }
+  });
+}
+  
 }
