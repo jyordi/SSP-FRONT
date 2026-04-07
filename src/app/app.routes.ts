@@ -21,6 +21,8 @@ import { PenalForm } from './components/penal-form/penal-form';
 import { ValoracionPenalComponent } from './components/valoracion-penal/valoracion-penal';
 import { NuevoUsuarioComponent } from './pages/nuevo-usuario/nuevo-usuario';
 
+
+
 export const routes: Routes = [
 
   // 🔴 DEFAULT
@@ -34,6 +36,8 @@ export const routes: Routes = [
   { path: 'expedientes', component: ListadoExpedientesComponent, canActivate: [authGuard] },
   { path: 'nuevo-usuario', component: NuevoUsuarioComponent, canActivate: [authGuard] },
   { path: 'nuevo-usuario-penal', component: PenalForm, canActivate: [authGuard] },
+  
+  
 
   { path: 'vp', component: ValoracionPenalComponent, canActivate: [authGuard] },
   { path: 'valoracion-psicologica', component: ValoracionPenalComponent, canActivate: [authGuard] },
