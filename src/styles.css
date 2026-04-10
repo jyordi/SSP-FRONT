@@ -1,7 +1,10 @@
 /* You can add global styles to this file, and also import other style files */
-body {
+
+
+html, body {
   margin: 0;
   padding: 0;
-  box-sizing: border-box;
+  overflow-x: hidden; /* 🔥 ESTO ELIMINA LOS ESPACIOS */
+   box-sizing: border-box;
   background-color: #f3f4f6;
 }

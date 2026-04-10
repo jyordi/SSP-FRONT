@@ -1,675 +1,151 @@
-<!--
-  caratura-expediente.html  v2.0.0
-  ════════════════════════════════════════════════════════════════════
-  CAMBIOS v2.0.0:
-  – CTA "Ver Vista Previa" siempre visible:
-      • Si completo()=true  → botón activo con animación glow
-      • Si completo()=false → botón deshabilitado + chips de pendientes
-  – Vista Previa: 3 botones claros — Seguir Editando | Descargar | Guardar
-  – Navbar: botón "Regresar" (history.back)
-  – Navbar: botón "Siguiente módulo" cuando totalHistorial() > 0
-    (TODO: conectar ruta real en app.routes.ts)
-  ════════════════════════════════════════════════════════════════════
--->
-<div class="shell">
+<app-navbar-reconecta></app-navbar-reconecta>
 
-  <!-- ═══ NAVBAR ═══════════════════════════════════════════════ -->
-  <nav class="navbar">
-    <div class="nav-brand">
-      <!-- Botón Regresar -->
-      <button class="btn-regresar" (click)="regresar()" title="Regresar a la pantalla anterior">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-             stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M19 12H5M12 5l-7 7 7 7"/>
-        </svg>
-        Regresar
-      </button>
+<!-- TOAST -->
+<div class="toast-wrap" *ngIf="toast">
+  <div class="toast" [class.toast-ok]="toast.tipo === 'ok'" [class.toast-err]="toast.tipo === 'error'">
+    {{ toast.msg }}
+  </div>
+</div>
 
-      <div class="nav-logo-ring"><span>📁</span></div>
-      <div>
-        <div class="nav-title">Reconecta con la Paz</div>
-        <div class="nav-sub">Carátula del Expediente / Orden Penal</div>
-      </div>
-    </div>
+<div class="page-container">
+  <main class="content-wrapper">
 
-    <div class="nav-end">
-      <!-- Botón Siguiente módulo — solo visible cuando hay expedientes guardados -->
-      @if(totalHistorial() > 0){
-        <button class="btn-siguiente" (click)="irSiguienteModulo()" title="Ir al siguiente módulo">
-          Siguiente módulo
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-               stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M5 12h14M12 5l7 7-7 7"/>
-          </svg>
+    <!-- HEADER Y ACCIONES -->
+    <header class="page-header slide-up">
+      <div class="header-info">
+        <button class="btn-back" (click)="regresar()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+          Volver al Expediente
         </button>
-      }
-
-      <!-- Indicador de progreso -->
-      <div class="nav-pct-pill">
-        <div class="nav-pct-fill" [style.width.%]="pct()"></div>
-        <span class="nav-pct-lbl">{{pct()}}%</span>
+        <div class="header-titles">
+          <h1>Carátula de Expediente</h1>
+          <p *ngIf="caratulaExistente">Esta carátula ya ha sido validada y asociada al expediente.</p>
+          <p *ngIf="!caratulaExistente">Generación oficial de la carátula integrada.</p>
+        </div>
       </div>
+      <div class="header-actions" *ngIf="caratulaExistente">
+        <button class="btn-pdf" (click)="descargarPdf()" [disabled]="loading">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+          Descargar PDF
+        </button>
+      </div>
+    </header>
+
+    <!-- LOADING OVERLAY -->
+    <div class="loading-overlay" *ngIf="loading">
+      <div class="spinner"></div>
+      <p>Cargando información...</p>
     </div>
-  </nav>
 
-  <!-- ═══ TABS ══════════════════════════════════════════════════ -->
-  <div class="tabs">
-    <button class="tab" [class.on]="tabActivo()==='form'"
-            (click)="tabActivo.set('form')">📋 Formulario</button>
-    <button class="tab" [class.on]="tabActivo()==='hist'"
-            (click)="tabActivo.set('hist')">
-      🗂️ Historial
-      @if(totalHistorial()>0){
-        <span class="tab-badge">{{totalHistorial()}}</span>
-      }
-    </button>
-  </div>
+    <!-- MAIN GRID DE VISTA Y MODO FORMATO -->
+    <div class="grid-main slide-up d1">
+      
+      <!-- LADO IZQUIERDO: RESUMEN NO EDITABLE (Datos Nativos) -->
+      <aside class="sidebar-datos">
+        <div class="sidebar-header">
+          <h3>Expediente Tecnico</h3>
+          <span class="badge-verde" *ngIf="caratulaExistente">Asociado</span>
+        </div>
+        
+        <div class="info-group">
+          <label>Beneficiario</label>
+          <p class="txt-resaltado">{{ nombreBeneficiario }}</p>
+        </div>
 
-  <!-- ═══ TOAST ════════════════════════════════════════════════ -->
-  <div class="toast" [class.show]="!!toast().msg"
-       [class.ok]="toast().tipo==='ok'" [class.er]="toast().tipo==='err'">
-    <span class="toast-ico">{{toast().tipo==='ok'?'✓':'✕'}}</span>
-    {{toast().msg}}
-  </div>
-
-  <!-- ═══ OVERLAY PROGRESO ════════════════════════════════════ -->
-  @if(estado().activo){
-    <div class="ov-bg">
-      <div class="ov-card"
-           [class.ov-ok]="estado().exito"
-           [class.ov-err]="!!estado().error">
-        <div class="ov-ico"
-             [class.ico-ok]="estado().exito"
-             [class.ico-err]="!!estado().error">
-          @if(estado().exito){
-            <svg viewBox="0 0 48 48">
-              <circle cx="24" cy="24" r="20" stroke="currentColor" stroke-width="2.5" fill="none"/>
-              <path d="M14 24l8 8 12-14" stroke="currentColor" stroke-width="2.5"
-                    stroke-linecap="round" fill="none" class="check-anim"/>
-            </svg>
-          } @else if(estado().error){
-            <svg viewBox="0 0 48 48">
-              <circle cx="24" cy="24" r="20" stroke="currentColor" stroke-width="2.5" fill="none"/>
-              <path d="M16 16l16 16M32 16L16 32" stroke="currentColor" stroke-width="2.5"
-                    stroke-linecap="round" fill="none"/>
-            </svg>
-          } @else {
-            <svg viewBox="0 0 48 48" class="spin-ico">
-              <circle cx="24" cy="24" r="18" stroke="currentColor" stroke-width="3" fill="none"
-                      stroke-dasharray="80 40" stroke-linecap="round"/>
-            </svg>
-          }
-        </div>
-        <div class="ov-titulo">
-          @if(estado().exito){¡Listo!}
-          @else if(estado().error){Error}
-          @else {Procesando…}
-        </div>
-        <div class="ov-fase" [class.fase-ok]="estado().exito" [class.fase-er]="!!estado().error">
-          {{estado().fase}}
-        </div>
-        <div class="ov-bar">
-          <div class="ov-fill"
-               [class.fill-ok]="estado().exito"
-               [class.fill-er]="!!estado().error"
-               [style.width.%]="estado().pct">
-            <span class="ov-shine"></span>
+        <div class="info-cols">
+          <div class="info-group">
+            <label>C. Penal</label>
+            <p>{{ cPenal }}</p>
           </div>
-        </div>
-        <div class="ov-pct">{{estado().pct}}%</div>
-      </div>
-    </div>
-  }
-
-  <!-- ═══════════════════════════════════════════════════════════
-       VISTA PREVIA — Réplica HTML exacta del docx (Legal)
-       ═══════════════════════════════════════════════════════ -->
-  @if(verPrevia()){
-    <div class="pv-ov">
-
-      <!-- Toolbar con los 3 botones principales -->
-      <div class="pv-bar">
-        <div class="pv-title">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-               stroke-width="2" stroke-linecap="round">
-            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-            <circle cx="12" cy="12" r="3"/>
-          </svg>
-          Vista Previa — Carátula del Expediente
-        </div>
-        <div class="pv-btns">
-          <!-- Botón 1: Seguir editando -->
-          <button class="pvb pvb-edit" (click)="verPrevia.set(false)">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                 stroke-width="2.5" stroke-linecap="round">
-              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-              <path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4Z"/>
-            </svg>
-            Seguir Editando
-          </button>
-
-          <!-- Botón 2: Descargar PDF -->
-          <button class="pvb pvb-dl" (click)="descargarPdf()"
-                  [disabled]="generando()||guardando()">
-            @if(generando()){
-              <span class="spin-sm"></span> Generando…
-            } @else {
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                   stroke-width="2.5" stroke-linecap="round">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                <polyline points="7 10 12 15 17 10"/>
-                <line x1="12" y1="15" x2="12" y2="3"/>
-              </svg>
-              Descargar PDF
-            }
-          </button>
-
-          <!-- Botón 3: Guardar en historial -->
-          <button class="pvb pvb-save" (click)="guardar()"
-                  [disabled]="guardando()||generando()">
-            @if(guardando()){
-              <span class="spin-sm"></span> Guardando…
-            } @else {
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                   stroke-width="2.5" stroke-linecap="round">
-                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
-                <polyline points="17 21 17 13 7 13 7 21"/>
-                <polyline points="7 3 7 8 15 8"/>
-              </svg>
-              Guardar en Historial (ZIP)
-            }
-          </button>
-        </div>
-      </div>
-
-      <!-- Documento — réplica HTML fiel al docx -->
-      <div class="pv-scroll">
-        <div class="doc-legal">
-
-          <!-- Marca de agua detrás del contenido -->
-          @if(marcaUrl()){
-            <img class="doc-marca" [src]="marcaUrl()" alt="Marca de agua"/>
-          }
-
-          <!-- Banda vino superior -->
-          <div class="doc-banda"></div>
-
-          <!-- Encabezado institucional -->
-          <div class="doc-hdr">
-            <p class="doc-h1">SECRETARÍA DE SEGURIDAD Y PROTECCION CIUDADANA</p>
-            <p class="doc-h2">SUBSECRETARÍA DE PREVENCION DEL DELITO Y REINSERCION SOCIAL</p>
-            <p class="doc-h2">DIRECCION GENERAL DE PREVENCION DEL DELITO Y PARTICIPACION CIUDADANA</p>
-            <p class="doc-h3">"RECONECTA CON LA PAZ"</p>
-          </div>
-
-          <!-- Segunda banda vino -->
-          <div class="doc-banda"></div>
-
-          <!-- C. Penal / Expediente (alineados derecha) -->
-          <div class="doc-meta">
-            <p><b>C. PENAL:</b>&nbsp;&nbsp;{{gv('cPenal')||'__________________________'}}</p>
-            <p><b>EXPEDIENTE TÉCNICO:</b>&nbsp;&nbsp;{{gv('expedienteTecnico')||'__________________'}}</p>
-          </div>
-
-          <!-- ════════════════════════════════════════════════════
-               TABLA PRINCIPAL — 7 cols × 19 filas
-               Proporciones exactas del XML del docx
-               Col 0: 14.92%  |  Cols 1-6: 14.18% cada una
-          ════════════════════════════════════════════════════ -->
-          <table class="doc-tabla">
-
-            <!-- F1: NOMBRE(S) | valor cols 1-6 -->
-            <tr class="tr-lh">
-              <td class="td-lbl">NOMBRE (S):</td>
-              <td class="td-val" colspan="6">{{gv('nombre')}}</td>
-            </tr>
-
-            <!-- F2: spacer -->
-            <tr class="tr-sh">
-              <td class="td-lbl-e"></td>
-              <td class="td-val" colspan="6"></td>
-            </tr>
-
-            <!-- F3: ALIAS | valor cols 1-6 -->
-            <tr class="tr-lh">
-              <td class="td-lbl">ALIAS:</td>
-              <td class="td-val" colspan="6">{{gv('alias')}}</td>
-            </tr>
-
-            <!-- F4: spacer -->
-            <tr class="tr-sh">
-              <td class="td-lbl-e"></td>
-              <td class="td-val" colspan="6"></td>
-            </tr>
-
-            <!-- F5: JUZGADO | valor cols 1-6 -->
-            <tr class="tr-lh">
-              <td class="td-lbl">JUZGADO:</td>
-              <td class="td-val" colspan="6">{{gv('juzgado')}}</td>
-            </tr>
-
-            <!-- F6: spacer -->
-            <tr class="tr-sh">
-              <td class="td-lbl-e"></td>
-              <td class="td-val" colspan="6"></td>
-            </tr>
-
-            <!-- F7: DELITO(S) ancho completo -->
-            <tr class="tr-lh tr-tall">
-              <td class="td-lbl">DELITO (S):</td>
-              <td class="td-val" colspan="6">{{gv('delito')}}</td>
-            </tr>
-
-            <!-- F8: spacer -->
-            <tr class="tr-sh">
-              <td class="td-lbl-e"></td>
-              <td colspan="6"></td>
-            </tr>
-
-            <!-- F9: AGRAVIADO(S) ancho completo -->
-            <tr class="tr-lh">
-              <td class="td-lbl">AGRAVIADO (S):</td>
-              <td class="td-val" colspan="6">{{gv('agraviado')}}</td>
-            </tr>
-
-            <!-- F10: spacer -->
-            <tr class="tr-sh"><td colspan="7"></td></tr>
-
-            <!-- F11: FECHA INGRESO cols 0-2 | cols 3-6 -->
-            <tr class="tr-fh">
-              <td class="td-lbl td-c012" colspan="3">FECHA DE INGRESO AL PROGRAMA:</td>
-              <td class="td-val td-c36" colspan="4">{{gv('fechaIngreso')}}</td>
-            </tr>
-
-            <!-- F12: spacer -->
-            <tr class="tr-sh"><td colspan="7"></td></tr>
-
-            <!-- F13: FECHA SUSPENSIÓN cols 0-2 | cols 3-6 -->
-            <tr class="tr-fh">
-              <td class="td-lbl td-c012" colspan="3">FECHA DE SUSPENSIÓN DEL PROCESO:</td>
-              <td class="td-val td-c36" colspan="4">{{gv('fechaSuspension')}}</td>
-            </tr>
-
-            <!-- F14: spacer -->
-            <tr class="tr-sh"><td colspan="7"></td></tr>
-
-            <!-- F15: FECHA FENECE cols 0-1 | cols 2-6 -->
-            <tr class="tr-fh">
-              <td class="td-lbl td-c01" colspan="2">FECHA QUE FENECE LA SUPERVISIÓN:</td>
-              <td class="td-val td-c26" colspan="5">{{gv('fechaFenece')}}</td>
-            </tr>
-
-            <!-- F16: spacer -->
-            <tr class="tr-sh"><td colspan="7"></td></tr>
-
-            <!-- F17: MEDIDA CAUTELAR cols 0-2 | cols 3-6 -->
-            <tr class="tr-lh">
-              <td class="td-lbl td-c012" colspan="3">MEDIDA CAUTELAR:</td>
-              <td class="td-val" colspan="4">{{gv('medidaCautelar')}}</td>
-            </tr>
-
-            <!-- F18: spacer -->
-            <tr class="tr-sh"><td colspan="7"></td></tr>
-
-            <!-- F19: OBSERVACION ancho completo -->
-            <tr class="tr-oh">
-              <td class="td-lbl">OBSERVACION:</td>
-              <td class="td-val td-obs" colspan="6">{{gv('observacion')}}</td>
-            </tr>
-
-          </table><!-- /.doc-tabla -->
-
-          <!-- Pie de página -->
-          <div class="doc-pie">
-            <div class="doc-banda"></div>
-            <p class="doc-dir">
-              PRIVADA 5ª, CALLE LAS ÁGUILAS, NUMÉRO 124 AV. UNIVERSIDAD,
-              EX HACIENDA CANDIANI. OAXACA 2026
-            </p>
-            <div class="doc-banda"></div>
-            <p class="doc-prog">PROGRAMA "RECONECTA CON LA PAZ"</p>
-          </div>
-
-        </div><!-- /.doc-legal -->
-      </div><!-- /.pv-scroll -->
-    </div><!-- /.pv-ov -->
-  }
-
-  <!-- ═══ BARRA DE PROGRESO ═══════════════════════════════════ -->
-  @if(tabActivo()==='form'){
-    <div class="pg-strip">
-      <div class="pg-inner">
-        <span class="pg-lbl">Progreso</span>
-        <div class="pg-track">
-          <div class="pg-fill" [style.width.%]="pct()">
-            <span class="pg-shine"></span>
-          </div>
-        </div>
-        <span class="pg-num">{{pct()}}%</span>
-      </div>
-    </div>
-  }
-
-  <!-- ═══ CONTENIDO PRINCIPAL ══════════════════════════════════ -->
-  <div class="main">
-
-    <!-- ══════════════════════════════════════════════════════════
-         FORMULARIO
-    ═════════════════════════════════════════════════════════════ -->
-    @if(tabActivo()==='form'){
-      <div class="form-wrap" [formGroup]="fg">
-
-        <!-- Hero -->
-        <div class="form-hero">
-          <div class="hero-ico">📁</div>
-          <div>
-            <h1 class="hero-tit">Carátula del Expediente</h1>
-            <p class="hero-sub">Formato oficial — Orden Penal · DGPD y PC · Legal 215.8 × 355.4 mm</p>
+          <div class="info-group">
+            <label>Folio</label>
+            <p>{{ folio }}</p>
           </div>
         </div>
 
-        <!-- ── SECCIÓN 1: DATOS DEL EXPEDIENTE ─────────────────── -->
-        <div class="sec-card">
-          <div class="sec-head">
-            <span class="sec-ico">📋</span>
-            <div>
-              <h3 class="sec-tit">Datos del Expediente</h3>
-              <p class="sec-desc">Centro Penal y número técnico (aparecen alineados a la derecha)</p>
-            </div>
-          </div>
-          <div class="sec-body">
-            <div class="g2">
-              <div class="fc">
-                <label class="lbl">C. Penal</label>
-                <input class="inp" formControlName="cPenal" placeholder="Centro Penal"/>
-              </div>
-              <div class="fc">
-                <label class="lbl">Expediente Técnico</label>
-                <input class="inp" formControlName="expedienteTecnico"
-                       placeholder="Número de expediente técnico"/>
-              </div>
-            </div>
-          </div>
+        <hr class="divider-small">
+
+        <div class="info-group">
+          <label>Delito(s)</label>
+          <p>{{ delito }}</p>
         </div>
 
-        <!-- ── SECCIÓN 2: DATOS DEL IMPUTADO ─────────────────────── -->
-        <div class="sec-card">
-          <div class="sec-head">
-            <span class="sec-ico">👤</span>
-            <div>
-              <h3 class="sec-tit">Datos del Imputado</h3>
-              <p class="sec-desc">Nombre, alias, juzgado, delitos y agraviados</p>
-            </div>
-          </div>
-          <div class="sec-body">
-            <div class="datos-fields">
-                <div class="fc" style="margin-bottom:12px">
-                  <label class="lbl">Nombre(s) <span class="req">✦</span></label>
-                  <input class="inp" formControlName="nombre"
-                         placeholder="Nombre completo del imputado"/>
-                  @if(!gv('nombre')){
-                    <span class="field-hint">Requerido para generar el documento</span>
-                  }
-                </div>
-                <div class="g2" style="margin-bottom:12px">
-                  <div class="fc">
-                    <label class="lbl">Alias</label>
-                    <input class="inp" formControlName="alias" placeholder="Alias o apodo"/>
-                  </div>
-                  <div class="fc">
-                    <label class="lbl">Juzgado</label>
-                    <input class="inp" formControlName="juzgado"
-                           placeholder="Juzgado que conoce el caso"/>
-                  </div>
-                </div>
-                <div class="fc" style="margin-bottom:12px">
-                  <label class="lbl">Delito(s)</label>
-                  <textarea class="inp" formControlName="delito" rows="2"
-                            placeholder="Delito o delitos imputados…"></textarea>
-                </div>
-                <div class="fc">
-                  <label class="lbl">Agraviado(s)</label>
-                  <textarea class="inp" formControlName="agraviado" rows="2"
-                            placeholder="Nombre del agraviado o víctima…"></textarea>
-                </div>
-              </div><!-- /.datos-fields -->
-            </div><!-- /.sec-body -->
-          </div><!-- /.sec-card -->
-
-        <!-- ── SECCIÓN 3: FECHAS ────────────────────────────────── -->
-        <div class="sec-card">
-          <div class="sec-head">
-            <span class="sec-ico">📅</span>
-            <div>
-              <h3 class="sec-tit">Fechas del Proceso</h3>
-              <p class="sec-desc">Ingreso, suspensión y fin de supervisión</p>
-            </div>
-          </div>
-          <div class="sec-body">
-            <div class="g3">
-              <div class="fc">
-                <label class="lbl">Fecha de Ingreso al Programa</label>
-                <input class="inp" type="date" formControlName="fechaIngreso"/>
-              </div>
-              <div class="fc">
-                <label class="lbl">Fecha de Suspensión del Proceso</label>
-                <input class="inp" type="date" formControlName="fechaSuspension"/>
-              </div>
-              <div class="fc">
-                <label class="lbl">Fecha que Fenece la Supervisión</label>
-                <input class="inp" type="date" formControlName="fechaFenece"/>
-              </div>
-            </div>
-          </div>
+        <div class="info-group">
+          <label>Agraviado</label>
+          <p>{{ agraviado }}</p>
+        </div>
+        
+        <div class="info-group">
+          <label>Juzgado</label>
+          <p>{{ juzgado }}</p>
         </div>
 
-        <!-- ── SECCIÓN 4: MEDIDA CAUTELAR Y OBSERVACIÓN ─────────── -->
-        <div class="sec-card">
-          <div class="sec-head">
-            <span class="sec-ico">⚖️</span>
-            <div>
-              <h3 class="sec-tit">Medida Cautelar y Observaciones</h3>
-            </div>
-          </div>
-          <div class="sec-body">
-            <div class="fc" style="margin-bottom:12px">
-              <label class="lbl">Medida Cautelar</label>
-              <textarea class="inp" formControlName="medidaCautelar" rows="3"
-                        placeholder="Describe la medida cautelar impuesta…"></textarea>
-            </div>
-            <div class="fc">
-              <label class="lbl">Observación</label>
-              <textarea class="inp" formControlName="observacion" rows="3"
-                        placeholder="Observaciones relevantes del expediente…"></textarea>
-            </div>
-          </div>
+        <div class="info-group">
+          <label>Medida Cautelar</label>
+          <p>{{ medidaCautelar }}</p>
+        </div>
+      </aside>
+
+      <!-- LADO DERECHO: FORMULARIO ACTIVO -->
+      <article class="card-form" [class.solo-lectura]="!puedeEditar">
+        <div class="card-head">
+          <svg class="head-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+          <h2>Anexos Identificativos</h2>
+          <span class="badge-role" *ngIf="!puedeEditar">Vista de Lectura</span>
         </div>
 
-        <!-- ── SECCIÓN 5: MARCA DE AGUA ─────────────────────────── -->
-        <div class="sec-card sec-marca">
-          <div class="sec-head">
-            <span class="sec-ico">🖼️</span>
-            <div>
-              <h3 class="sec-tit">Marca de Agua</h3>
-              <p class="sec-desc">
-                Imagen personalizada que aparece semitransparente detrás del contenido,
-                igual que en el documento Word original.
-              </p>
-            </div>
+        <form [formGroup]="form" (ngSubmit)="guardar()">
+          
+          <div class="field">
+            <label>Alias / Apodo</label>
+            <input type="text" formControlName="alias" placeholder="Ej. El Flaco, Variante...">
+            <small class="hint">Identificador secundario registrado (Opcional).</small>
           </div>
-          <div class="sec-body">
-            <div class="marca-layout">
-              <div class="marca-col">
-                <div class="marca-zone" [class.marca-loaded]="!!marcaUrl()"
-                     (click)="marcaInput.click()"
-                     (dragover)="$event.preventDefault()"
-                     (drop)="$event.preventDefault(); cargarMarca($any($event.dataTransfer?.files?.[0]))">
-                  @if(marcaUrl()){
-                    <img [src]="marcaUrl()" class="marca-preview" alt="Marca de agua"/>
-                    <div class="foto-overlay">
-                      <button class="foto-btn foto-cambiar"
-                              (click)="$event.stopPropagation(); marcaInput.click()">🔄 Cambiar</button>
-                      <button class="foto-btn foto-quitar"
-                              (click)="$event.stopPropagation(); quitarMarca()">✕ Quitar</button>
-                    </div>
-                  } @else {
-                    <div class="foto-ph-z">
-                      <span class="foto-ph-ico">🖼️</span>
-                      <span class="foto-ph-txt">Subir imagen</span>
-                      <span class="foto-ph-sub">PNG · JPG</span>
-                    </div>
-                  }
-                </div>
-                <input #marcaInput type="file" accept="image/png,image/jpeg,image/webp"
-                       style="display:none"
-                       (change)="cargarMarca($any($event.target.files?.[0]))"/>
-                <p class="foto-nota" style="margin-top:8px;text-align:center">
-                  PNG con fondo transparente recomendado.
-                </p>
-              </div>
-              <div class="marca-info">
-                <div class="marca-tip">
-                  <span class="tip-ico">💡</span>
-                  <div>
-                    <p class="tip-tit">¿Cómo funciona?</p>
-                    <ul class="tip-list">
-                      <li>Se dibuja <strong>detrás</strong> del contenido del PDF.</li>
-                      <li>Opacidad <strong>12%</strong> (igual que el docx original).</li>
-                      <li>Centrada en la página, 175 × 175 mm.</li>
-                      <li>Si el PDF ocupa varias páginas, aparece en cada una.</li>
-                      <li>Sin imagen → el PDF no incluye marca de agua.</li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
 
-        <!-- ── SECCIÓN 6: ADJUNTOS ──────────────────────────────── -->
-        <div class="sec-card">
-          <div class="sec-head">
-            <span class="sec-ico">📎</span>
-            <div>
-              <h3 class="sec-tit">Documentos Adjuntos</h3>
-              <p class="sec-desc">Se incluyen en la carpeta ZIP del expediente</p>
-            </div>
+          <div class="field mt-3">
+            <label>Observaciones de Carátula</label>
+            <textarea formControlName="observaciones" rows="4" placeholder="Notas adicionales sobre la generación de este expediente..."></textarea>
           </div>
-          <div class="sec-body">
-            <div class="drop-zone" [class.drop-drag]="dragging()"
-                 (dragover)="$event.preventDefault(); dragging.set(true)"
-                 (dragleave)="dragging.set(false)"
-                 (drop)="$event.preventDefault(); dragging.set(false); onFiles($any($event.dataTransfer?.files))"
-                 (click)="fi.click()">
-              <div class="dz-ico">📎</div>
-              <div class="dz-main">Arrastra documentos aquí</div>
-              <div class="dz-sub">PDF · JPG · PNG · DOCX — o clic para seleccionar</div>
-              <input #fi type="file" multiple accept=".pdf,.jpg,.jpeg,.png,.docx"
-                     style="display:none" (change)="onFiles($any($event.target.files))"/>
-            </div>
-            @for(a of adjuntos(); track a.id){
-              <div class="adj-item">
-                <span>{{icoAdj(a.tipo)}}</span>
-                <div class="adj-info">
-                  <div class="adj-nom">{{a.nombre}}</div>
-                  <div class="adj-sz">{{(a.tamano/1024).toFixed(1)}} KB</div>
-                </div>
-                <button class="adj-del" (click)="quitarAdj(a.id)" title="Quitar">✕</button>
-              </div>
-            }
-          </div>
-        </div>
 
-        <!-- ══════════════════════════════════════════════════════
-             CTA — VISTA PREVIA
-             Siempre visible. Si completo() → activo. Si no → disabled + chips.
-        ═══════════════════════════════════════════════════════ -->
-        <div class="cta-zone">
-          @if(completo()){
-            <!-- Formulario completo → botón activo con animación -->
-            <button class="btn-cta btn-cta-ok" (click)="verPrevia.set(true)">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                   stroke-width="2" stroke-linecap="round">
-                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                <circle cx="12" cy="12" r="3"/>
-              </svg>
-              Ver Vista Previa y Generar PDF
+          <!-- BOTÓN GUARDAR (Solo visible y activo si tiene permisos) -->
+          <div class="form-actions" *ngIf="puedeEditar">
+            <button type="submit" class="btn-primary" [disabled]="loading || form.invalid">
+              {{ caratulaExistente ? 'Actualizar Carátula' : 'Vincular y Guardar Carátula' }}
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
             </button>
-
-          } @else {
-            <!-- Formulario incompleto → botón gris + chips de pendientes -->
-            <div class="cta-incompleto">
-              <button class="btn-cta btn-cta-disabled" disabled>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                     stroke-width="2" stroke-linecap="round">
-                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                  <circle cx="12" cy="12" r="3"/>
-                </svg>
-                Ver Vista Previa
-              </button>
-              <div class="cta-pend-info">
-                <p class="cta-pend-txt">
-                  Completa el campo <span class="req">✦</span> obligatorio para continuar:
-                </p>
-                <div class="pend-chips">
-                  @for(c of pendientes(); track c){
-                    <span class="pend-chip">
-                      <span class="req">✦</span> {{c}}
-                    </span>
-                  }
-                </div>
-              </div>
-            </div>
-          }
-        </div>
-
-      </div><!-- /.form-wrap -->
-    }
-
-    <!-- ══════════════════════════════════════════════════════════
-         HISTORIAL
-    ═════════════════════════════════════════════════════════════ -->
-    @if(tabActivo()==='hist'){
-      <div class="hist">
-        <div class="hist-hdr">
-          <h2>Historial de Carátulas</h2>
-          <p>{{totalHistorial()}} carátula(s) guardada(s) en esta sesión</p>
-        </div>
-
-        @if(!historial().length){
-          <div class="empty">
-            <div class="empty-ico">📁</div>
-            <p>No hay carátulas guardadas aún</p>
-            <small>Completa el formulario y guárdalo para verlo aquí</small>
           </div>
-        } @else {
-          <div class="hist-grid">
-            @for(e of historial(); track e.id){
-              <div class="hcard">
-                <div class="hcard-top">
-                  <div class="hc-exp">📁 EXP: {{e.expediente}}</div>
-                  <div class="hc-nom">{{e.nombre}}</div>
-                </div>
-                <div class="hcard-body">
-                  <div class="hc-fecha">📅 {{e.fecha}}</div>
-                  <div class="hc-files">
-                    <span class="hf" (click)="dlExp(e)">📄 {{trunc(e.pdf.nombre)}}</span>
-                    @for(a of e.archivos; track a.id){
-                      <span class="hf" (click)="dlAdj(a)">{{icoAdj(a.tipo)}} {{trunc(a.nombre)}}</span>
-                    }
-                  </div>
-                  <div class="hc-btns">
-                    <button class="hb" (click)="dlExp(e)">⬇️ PDF</button>
-                    <button class="hb hb-zip" (click)="dlZip(e)">📁 ZIP</button>
-                    <button class="hb hb-del" (click)="borrar(e.id)">🗑️</button>
-                  </div>
-                </div>
-              </div>
-            }
-          </div>
-        }
-      </div>
-    }
 
-  </div><!-- /.main -->
-</div><!-- /.shell -->
+          <!-- MENSAJES INFORMATIVOS DEPENDIENDO DEL ROL -->
+
+          <div class="info-warning success" *ngIf="puedeEditar && esTrabajoSocial()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+            <p><b>Privilegio de Trabajo Social:</b> Tienes los permisos necesarios para generar y validar esta Carátula Oficial. Asegúrate de que el F1 (Psicología) y F2 (Tu área) estén completos.</p>
+          </div>
+
+          <div class="info-warning success" *ngIf="puedeEditar && esAdmin()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+            <p><b>Privilegio de Administrador:</b> Como administrador, tienes permisos para supervisar, editar y validar la carátula oficial de este expediente.</p>
+          </div>
+
+          <div class="info-warning" *ngIf="!puedeEditar && esPsicologo()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+            <p><b>Aviso (Psicología):</b> Estás visualizando la Carátula oficial. Tu rol permite la consulta del expediente consolidado, pero el registro formal es responsabilidad de Trabajo Social.</p>
+          </div>
+
+          <div class="info-warning" *ngIf="!puedeEditar && esGuia()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+            <p><b>Aviso (Guía Asignado):</b> Puedes consultar el resumen del beneficiario. La validación detallada y carátula corresponden al área de Trabajo Social o Administración.</p>
+          </div>
+
+          <div class="info-warning" *ngIf="!puedeEditar && !['admin','trabajo_social','psicologo','guia'].includes(role)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+            <p><b>Restricción de Perfil:</b> No tienes autorización para procesar esta carátula.</p>
+          </div>
+
+        </form>
+      </article>
+
+    </div>
+
+  </main>
+</div>

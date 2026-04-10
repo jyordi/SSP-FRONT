@@ -1,0 +1,258 @@
+<app-navbar-reconecta></app-navbar-reconecta>
+<br><br><br>
+
+<div class="shell">
+
+  <!-- ═══ TOAST ═══ -->
+  <div class="toast-container" *ngIf="toast">
+    <div class="toast-msg" [ngClass]="{
+      'toast-ok': toast.tipo === 'ok',
+      'toast-error': toast.tipo === 'error',
+      'toast-warn': toast.tipo === 'warn',
+      'toast-info': toast.tipo === 'info'
+    }">
+      <span class="toast-icon">{{ toast.tipo === 'ok' ? '✅' : toast.tipo === 'error' ? '❌' : toast.tipo === 'warn' ? '⚠️' : 'ℹ️' }}</span>
+      {{ toast.msg }}
+    </div>
+  </div>
+
+  <!-- ═══ HEADER ═══ -->
+  <div class="page-header">
+    <div class="ph-left">
+      <button class="btn-back" (click)="volver()">← Regresar</button>
+      <div class="ph-title">
+        <h1>📊 Historial de Supervisión</h1>
+        <p *ngIf="expediente">Expediente #{{ expediente.id }} — {{ expediente.beneficiario?.nombre || 'Beneficiario' }}</p>
+      </div>
+    </div>
+    <div class="ph-right">
+      <span class="role-badge">{{ role | uppercase }}</span>
+    </div>
+  </div>
+
+  <!-- ═══ TABS ═══ -->
+  <div class="tabs">
+    <button class="tab" [class.tab-on]="vistaActiva === 'historial'" (click)="vistaActiva = 'historial'">
+      🗂️ Historial
+      <span class="tab-count" *ngIf="registros.length">{{ registros.length }}</span>
+    </button>
+    <button class="tab" [class.tab-on]="vistaActiva === 'nueva'" (click)="vistaActiva = 'nueva'" *ngIf="puedeCrear">
+      ➕ Nuevo Registro
+    </button>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!--  VISTA: NUEVO REGISTRO                                 -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <div class="content" *ngIf="vistaActiva === 'nueva' && puedeCrear">
+    <div class="form-card anim-fadeup">
+      <div class="form-header">
+        <span class="form-icon">📝</span>
+        <div>
+          <h2>Nuevo Registro de Supervisión</h2>
+          <p>Registra el seguimiento mensual del beneficiario</p>
+        </div>
+      </div>
+
+      <div class="form-body">
+        <div class="form-grid">
+          <!-- MES -->
+          <div class="field">
+            <label>Mes <span class="req">*</span></label>
+            <select [(ngModel)]="mes" [class.field-error]="submitted && errores['mes']">
+              <option [ngValue]="null" disabled>Selecciona el mes...</option>
+              <option *ngFor="let m of MESES; let i = index" [ngValue]="i + 1">{{ m }}</option>
+            </select>
+            <span class="error-msg" *ngIf="submitted && errores['mes']">{{ errores['mes'] }}</span>
+          </div>
+
+          <!-- PERIODO -->
+          <div class="field">
+            <label>Periodo <span class="req">*</span></label>
+            <input type="text" [(ngModel)]="periodo" placeholder="Ej: MARZO-2026" style="text-transform:uppercase"
+              [class.field-error]="submitted && errores['periodo']" />
+            <span class="error-msg" *ngIf="submitted && errores['periodo']">{{ errores['periodo'] }}</span>
+          </div>
+
+          <!-- FECHA INICIO -->
+          <div class="field">
+            <label>Fecha Inicio <span class="req">*</span></label>
+            <input type="date" [(ngModel)]="fechaInicio" [class.field-error]="submitted && errores['fechaInicio']" />
+            <span class="error-msg" *ngIf="submitted && errores['fechaInicio']">{{ errores['fechaInicio'] }}</span>
+          </div>
+
+          <!-- FECHA FIN -->
+          <div class="field">
+            <label>Fecha Fin <span class="req">*</span></label>
+            <input type="date" [(ngModel)]="fechaFin" [class.field-error]="submitted && errores['fechaFin']" />
+            <span class="error-msg" *ngIf="submitted && errores['fechaFin']">{{ errores['fechaFin'] }}</span>
+          </div>
+
+          <!-- ESTATUS -->
+          <div class="field">
+            <label>Estatus</label>
+            <select [(ngModel)]="estatus">
+              <option *ngFor="let e of ESTATUS_OPCIONES" [value]="e">{{ e }}</option>
+            </select>
+          </div>
+
+          <!-- OBSERVACIONES -->
+          <div class="field span-2">
+            <label>Observaciones</label>
+            <textarea [(ngModel)]="observaciones" rows="4" placeholder="Escribe las observaciones del periodo..."></textarea>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button class="btn btn-save" (click)="guardarRegistro()" [disabled]="guardando">
+            <span *ngIf="guardando" class="spin"></span>
+            {{ guardando ? 'Guardando...' : '💾 Guardar Registro' }}
+          </button>
+          <button class="btn btn-clear" (click)="limpiarFormulario()">🗑️ Limpiar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!--  VISTA: HISTORIAL                                      -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <div class="content" *ngIf="vistaActiva === 'historial'">
+
+    <!-- Loading -->
+    <div class="loading-state" *ngIf="loadingRegistros">
+      <div class="spinner-lg"></div>
+      <p>Cargando historial...</p>
+    </div>
+
+    <!-- Empty -->
+    <div class="empty-state anim-fadeup" *ngIf="!loadingRegistros && !registros.length">
+      <div class="empty-icon">📊</div>
+      <h3>Sin registros de supervisión</h3>
+      <p>No se han registrado periodos de supervisión para este expediente.</p>
+      <button class="btn btn-save" *ngIf="puedeCrear" (click)="vistaActiva = 'nueva'">➕ Crear primer registro</button>
+    </div>
+
+    <!-- Lista + Detalle -->
+    <div class="hist-layout" *ngIf="!loadingRegistros && registros.length">
+
+      <!-- PANEL IZQUIERDO: Lista -->
+      <div class="hist-list">
+        <div class="list-header">
+          <h3>📋 Registros ({{ registros.length }})</h3>
+        </div>
+        <div class="list-items">
+          <div class="list-item" *ngFor="let r of registros"
+            [class.list-item-active]="registroSeleccionado?.id === r.id"
+            (click)="seleccionarRegistro(r)">
+            <div class="li-top">
+              <span class="li-mes">{{ getNombreMes(r.mes) }}</span>
+              <span class="li-badge" [ngClass]="getEstatusClass(r.estatus)">{{ getEstatusIcon(r.estatus) }} {{ r.estatus }}</span>
+            </div>
+            <div class="li-periodo">{{ r.periodo || '—' }}</div>
+            <div class="li-fechas">{{ formatFecha(r.fechaInicio) }} — {{ formatFecha(r.fechaFin) }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PANEL DERECHO: Detalle -->
+      <div class="hist-detail" *ngIf="registroSeleccionado">
+        <div class="detail-card anim-fadeup">
+
+          <div class="detail-header">
+            <div class="dh-info">
+              <h2>{{ getNombreMes(registroSeleccionado.mes) }} — {{ registroSeleccionado.periodo }}</h2>
+              <span class="dh-badge" [ngClass]="getEstatusClass(registroSeleccionado.estatus)">
+                {{ getEstatusIcon(registroSeleccionado.estatus) }} {{ registroSeleccionado.estatus }}
+              </span>
+            </div>
+            <div class="dh-actions">
+              <!-- EDITAR: solo admin/guia -->
+              <button class="btn btn-edit" *ngIf="puedeEditar && !modoEdicion" (click)="iniciarEdicion()">✏️ Editar</button>
+              <!-- ELIMINAR: solo admin -->
+              <button class="btn btn-del" *ngIf="puedeEliminar && !modoEdicion" (click)="eliminarRegistro()" [disabled]="eliminando">
+                <span *ngIf="eliminando" class="spin"></span>
+                {{ eliminando ? 'Eliminando...' : '🗑️ Eliminar' }}
+              </button>
+            </div>
+          </div>
+
+          <!-- MODO LECTURA -->
+          <div class="detail-body" *ngIf="!modoEdicion">
+            <div class="detail-grid">
+              <div class="dg-item">
+                <span class="dg-label">📅 Mes</span>
+                <span class="dg-value">{{ getNombreMes(registroSeleccionado.mes) }} ({{ registroSeleccionado.mes }})</span>
+              </div>
+              <div class="dg-item">
+                <span class="dg-label">📆 Periodo</span>
+                <span class="dg-value">{{ registroSeleccionado.periodo || '—' }}</span>
+              </div>
+              <div class="dg-item">
+                <span class="dg-label">🗓️ Fecha Inicio</span>
+                <span class="dg-value">{{ formatFecha(registroSeleccionado.fechaInicio) }}</span>
+              </div>
+              <div class="dg-item">
+                <span class="dg-label">🗓️ Fecha Fin</span>
+                <span class="dg-value">{{ formatFecha(registroSeleccionado.fechaFin) }}</span>
+              </div>
+              <div class="dg-item span-2">
+                <span class="dg-label">📝 Observaciones</span>
+                <span class="dg-value dg-text">{{ registroSeleccionado.observaciones || 'Sin observaciones' }}</span>
+              </div>
+              <div class="dg-item">
+                <span class="dg-label">🕐 Registrado</span>
+                <span class="dg-value dg-small">{{ formatFecha(registroSeleccionado.creadoEn) }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- MODO EDICIÓN -->
+          <div class="detail-body" *ngIf="modoEdicion">
+            <div class="edit-grid">
+              <div class="field">
+                <label>Mes</label>
+                <select [(ngModel)]="registroSeleccionado.mes">
+                  <option *ngFor="let m of MESES; let i = index" [ngValue]="i + 1">{{ m }}</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>Periodo</label>
+                <input type="text" [(ngModel)]="registroSeleccionado.periodo" style="text-transform:uppercase" />
+              </div>
+              <div class="field">
+                <label>Fecha Inicio</label>
+                <input type="date" [ngModel]="registroSeleccionado.fechaInicio?.slice(0,10)" (ngModelChange)="registroSeleccionado.fechaInicio = $event" />
+              </div>
+              <div class="field">
+                <label>Fecha Fin</label>
+                <input type="date" [ngModel]="registroSeleccionado.fechaFin?.slice(0,10)" (ngModelChange)="registroSeleccionado.fechaFin = $event" />
+              </div>
+              <div class="field">
+                <label>Estatus</label>
+                <select [(ngModel)]="registroSeleccionado.estatus">
+                  <option *ngFor="let e of ESTATUS_OPCIONES" [value]="e">{{ e }}</option>
+                </select>
+              </div>
+              <div class="field span-2">
+                <label>Observaciones</label>
+                <textarea [(ngModel)]="registroSeleccionado.observaciones" rows="4"></textarea>
+              </div>
+            </div>
+
+            <div class="edit-actions">
+              <button class="btn btn-save" (click)="guardarEdicion()" [disabled]="guardando">
+                <span *ngIf="guardando" class="spin"></span>
+                {{ guardando ? 'Guardando...' : '💾 Guardar Cambios' }}
+              </button>
+              <button class="btn btn-clear" (click)="cancelarEdicion()">✕ Cancelar</button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>

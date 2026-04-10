@@ -1,0 +1,235 @@
+:root {
+  --vino: #7A1E3A;
+  --vino-dark: #5c142a;
+  --dorado: #C9A66B;
+  --white: #ffffff;
+  --black: #000000;
+  
+  /* Colores de Estatus */
+  --c-pendiente: #f39c12;
+  --c-pendiente-bg: #fcf3e3;
+  --c-proceso: #3498db;
+  --c-proceso-bg: #eaf4fc;
+  --c-cumplida: #27ae60;
+  --c-cumplida-bg: #eafaf1;
+}
+
+.page-container { padding: 2rem; max-width: 1200px; margin: 0 auto; }
+
+.header-actions {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 1.5rem;
+}
+.header-actions h2 { color: var(--vino); margin: 0; }
+.btn-group { display: flex; gap: 10px; }
+
+/* =========================================
+   BOTONES (Blancos con orilla y texto negro)
+   ========================================= */
+.btn-primary, 
+.btn-secondary,
+.btn-icon.edit,
+.btn-icon.delete {
+  background-color: var(--white) !important;
+  color: var(--black) !important;
+  border: 2px solid var(--black) !important;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.3s ease;
+  padding: 10px 20px;
+}
+
+.btn-icon.edit,
+.btn-icon.delete {
+  padding: 6px 12px;
+  font-size: 0.85rem;
+}
+
+/* Efecto Hover Suave */
+.btn-primary:hover:not(:disabled), 
+.btn-secondary:hover:not(:disabled),
+.btn-icon.edit:hover,
+.btn-icon.delete:hover {
+  background-color: var(--black) !important;
+  color: var(--white) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  border-color: #cccccc !important;
+  color: #cccccc !important;
+  background-color: #f9f9f9 !important;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Tarjetas Info */
+.info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+.info-card { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); display: flex; gap: 15px; }
+.border-vino { border-top: 4px solid var(--vino); }
+.border-dark { border-top: 4px solid #333; }
+.card-icon { font-size: 2rem; }
+
+/* Grid de Detalle */
+.detalle-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; margin-top: 20px; }
+.detalle-card { background: white; border-radius: 10px; padding: 20px; transition: transform 0.3s ease, box-shadow 0.3s ease; position: relative; }
+.detalle-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+
+/* BORDES POR ESTATUS */
+.border-PENDIENTE { border-left: 5px solid var(--c-pendiente); }
+.border-EN_PROCESO { border-left: 5px solid var(--c-proceso); }
+.border-CUMPLIDA { border-left: 5px solid var(--c-cumplida); }
+
+.detalle-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px;}
+.detalle-header h4 { margin: 0; color: #333; font-size: 1.1rem; }
+
+/* BADGES DE ESTATUS */
+.badge { padding: 5px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; }
+.badge-PENDIENTE { background: var(--c-pendiente-bg); color: var(--c-pendiente); border: 1px solid var(--c-pendiente); }
+.badge-EN_PROCESO { background: var(--c-proceso-bg); color: var(--c-proceso); border: 1px solid var(--c-proceso); }
+.badge-CUMPLIDA { background: var(--c-cumplida-bg); color: var(--c-cumplida); border: 1px solid var(--c-cumplida); }
+
+.detalle-body p { margin: 8px 0; font-size: 0.9rem; color: #444; }
+.text-muted { color: #888; font-style: italic; }
+.detalle-footer { margin-top: 15px; display: flex; justify-content: flex-end; gap: 10px; }
+
+/* =========================================
+   MODALES Y ANIMACIONES (Corrección Blanco Sólido)
+   ========================================= */
+
+/* 1. EL FONDO DESENFOCADO */
+.modal-overlay { 
+  position: fixed; 
+  inset: 0; 
+  /* Fondo negro con 50% de transparencia */
+  background-color: rgba(0, 0, 0, 0.5) !important; 
+  /* Efecto de desenfoque fuerte */
+  backdrop-filter: blur(8px) !important; 
+  -webkit-backdrop-filter: blur(8px) !important;
+  display: flex; 
+  justify-content: center; 
+  align-items: center; 
+  z-index: 99999; 
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+/* 2. LA TARJETA BLANCA SÓLIDA */
+.modal-card { 
+  /* ¡Importante! Aseguramos que sea blanco puro y no herede transparencias */
+  background-color: #ffffff !important; 
+  border-radius: 12px; 
+  width: 90%; 
+  max-width: 550px; 
+  max-height: 90vh; 
+  display: flex; 
+  flex-direction: column; 
+  overflow: hidden; 
+  /* Sombra para separarlo del fondo oscuro */
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5) !important;
+  animation: slideUpFade 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+.catalog-modal { max-width: 700px; } 
+
+/* 3. EL ENCABEZADO Y CUERPO BLANCOS */
+.modal-header { 
+  background-color: #ffffff !important; 
+  color: #000000 !important; 
+  padding: 20px 25px; 
+  display: flex; 
+  justify-content: space-between; 
+  align-items: center; 
+  border-bottom: 2px solid #000000 !important;
+}
+
+.modal-header h2 { margin: 0; font-size: 1.3rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;}
+
+.btn-close { 
+  background: transparent !important; 
+  border: 2px solid #000000 !important; 
+  color: #000000 !important; 
+  font-size: 1.2rem; 
+  cursor: pointer; 
+  border-radius: 6px;
+  padding: 4px 10px;
+  transition: all 0.3s ease;
+}
+.btn-close:hover {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+  transform: rotate(90deg);
+}
+
+.light-bg { 
+  background-color: #ffffff !important; 
+  padding: 25px; 
+  overflow-y: auto; 
+}
+
+/* Formularios */
+.form { display: flex; flex-direction: column; gap: 8px; }
+.form label { font-size: 0.85rem; font-weight: bold; color: #000000; margin-top: 5px; }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+.full-width { grid-column: span 2; }
+
+/* Inputs Estilo Minimalista (Bordes grises, fondo blanco) */
+.input-field { 
+  width: 100%; 
+  padding: 12px 15px; 
+  border: 1px solid #999999 !important; /* Borde más definido */
+  border-radius: 6px; 
+  font-family: inherit; 
+  background-color: #ffffff !important; 
+  color: #000000 !important; 
+  transition: all 0.3s ease; 
+  box-sizing: border-box; 
+}
+.input-field:focus { 
+  border-color: #000000 !important; 
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1) !important; 
+  outline: none; 
+}
+.input-field:disabled { 
+  background-color: #f2f2f2 !important; 
+  color: #555555 !important;
+  cursor: not-allowed; 
+}
+.select-field { cursor: pointer; appearance: auto; }
+
+.form-actions { display: flex; justify-content: flex-end; gap: 10px; }
+.mt-3 { margin-top: 15px; }
+
+/* Lista de Catálogo */
+.search-box { position: relative; margin-bottom: 15px; }
+.search-icon { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #000000; font-weight: bold;}
+.input-search { width: 100%; padding: 12px 15px 12px 40px; border-radius: 8px; border: 2px solid #e0e0e0; outline: none; transition: 0.3s;}
+.input-search:focus { border-color: #000000; }
+
+.lista-actividades { display: flex; flex-direction: column; gap: 10px; max-height: 250px; overflow-y: auto; padding-right: 10px; }
+.card-act { display: flex; justify-content: space-between; align-items: center; padding: 15px; border: 2px solid #f0f0f0; border-radius: 8px; background-color: #ffffff; transition: 0.2s;}
+.card-act:hover { border-color: #000000; }
+.acciones { display: flex; gap: 8px; }
+
+/* =========================================
+   ANIMACIONES CLAVE
+   ========================================= */
+.anim-fade-in { animation: fadeIn 0.5s ease-out forwards; }
+.anim-slide-up { animation: slideUp 0.4s ease-out forwards; }
+
+@keyframes fadeIn { 
+  from { opacity: 0; backdrop-filter: blur(0px); } 
+  to { opacity: 1; backdrop-filter: blur(8px); } 
+}
+
+@keyframes slideUpFade { 
+  from { transform: translateY(30px) scale(0.95); opacity: 0; } 
+  to { transform: translateY(0) scale(1); opacity: 1; } 
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}

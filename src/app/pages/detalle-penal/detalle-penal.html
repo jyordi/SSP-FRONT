@@ -1,99 +1,366 @@
-<div *ngIf="loading" class="overlay">
-  <div class="loader"></div>
-  <p>Cargando expediente...</p>
+<app-navbar-reconecta></app-navbar-reconecta>
+
+<!-- TOAST -->
+<div class="toast-wrap" *ngIf="toast">
+  <div class="toast" [class.toast-ok]="toast.tipo==='ok'" [class.toast-err]="toast.tipo==='error'">
+    {{ toast.msg }}
+  </div>
 </div>
 
-<div *ngIf="expediente" class="container fade">
+<!-- LOADING -->
+<div class="loading-overlay" *ngIf="loading">
+  <div class="loader-ring"></div>
+  <p class="loading-txt">Cargando expediente...</p>
+</div>
 
-  <!-- HEADER -->
-  <div class="header">
-    <button class="btn-back" (click)="volver()">←</button>
-    <h2>Expediente Penal</h2>
-  </div>
+<!-- PÁGINA PRINCIPAL -->
+<div class="page" *ngIf="!loading && expediente">
 
-  <!-- FOTO -->
-  <div class="foto-card">
-
-    <img 
-      class="avatar"
-      [src]="previewUrl || expediente?.beneficiario?.urlFoto || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'"
-    >
-
-    <h3>{{ expediente?.beneficiario?.nombre }}</h3>
-
-    <!-- 🔐 SOLO ADMIN -->
-    <input 
-      *ngIf="esAdmin()"
-      type="file" 
-      (change)="onFileSelected($event)" 
-      accept="image/*"
-    >
-
-  </div>
-
-  <!-- BOTONES -->
-  <div class="modulos-top">
-    <button *ngIf="esAdmin() || esPsicologo()" (click)="irModulo('/vp')">🧠 Psicología</button>
-    <button *ngIf="esAdmin() || esTrabajoSocial()" (click)="irModulo('/trabajo-social')">👥 Trabajo Social</button>
-    <button *ngIf="esAdmin()" (click)="irModulo('/plan-individualizado')">📋 Plan</button>
-    <button *ngIf="esAdmin()" (click)="irModulo('/caratura-expediente')">📄 Carátula</button>
-    <button *ngIf="esAdmin() || esPsicologo()" (click)="irModulo('/proyecto-vida')">🌱 Proyecto</button>
-  </div>
-
-  <!-- FORM -->
-  <div class="card">
-
-    <h3>Información general</h3>
-
-    <div class="form-group">
-      <label>Delito</label>
-      <input [(ngModel)]="expediente.delito">
-    </div>
-
-    <div class="form-group">
-      <label>Juzgado</label>
-      <input [(ngModel)]="expediente.juzgado">
-    </div>
-
-    <div class="form-group">
-      <label>Agraviado</label>
-      <input [(ngModel)]="expediente.agraviado">
-    </div>
-
-    <div class="form-group">
-      <label>Medida cautelar</label>
-      <input [(ngModel)]="expediente.medidaCautelar">
-    </div>
-
-    <div class="form-group">
-      <label>Observaciones</label>
-      <textarea [(ngModel)]="expediente.observaciones"></textarea>
-    </div>
-
-    <button class="btn-guardar"
-      (click)="guardarCambios()"
-      [disabled]="guardando">
-      {{ guardando ? 'Guardando...' : 'Guardar cambios' }}
+  <!-- TOP BAR -->
+  <header class="topbar">
+    <button class="btn-back" (click)="volver()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+        stroke-linecap="round" stroke-linejoin="round">
+        <path d="M19 12H5M12 5l-7 7 7 7" />
+      </svg>
+      Regresar al Listado
     </button>
 
-  </div>
-
-  <!-- 🧠 VALORACIÓN -->
-  <div class="card valoracion" *ngIf="!loadingValoracion">
-
-    <h3>🧠 Valoración Psicológica</h3>
-
-    <div *ngIf="valoracion; else sinValoracion">
-
-      <p><strong>Diagnóstico:</strong> {{ valoracion?.diagnostico }}</p>
-      <p><strong>Observaciones:</strong> {{ valoracion?.observaciones }}</p>
-
+    <div class="topbar-center">
+      <span class="topbar-title">Expediente Penal</span>
+      <span class="topbar-sub">SSP Oaxaca</span>
     </div>
 
-    <ng-template #sinValoracion>
-      <p class="empty">No hay valoración psicológica registrada</p>
-    </ng-template>
+    <span class="role-chip role-{{ role }}">{{ role }}</span>
+  </header>
 
+  <div class="layout">
+
+    <!-- ══ COLUMNA IZQUIERDA ══ -->
+    <aside class="col-left">
+
+      <!-- PERFIL -->
+      <div class="card card-perfil fade-up">
+        <div class="avatar-wrap">
+          <img class="avatar"
+            [src]="previewUrl || expediente?.beneficiario?.urlFoto || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'"
+            alt="foto">
+          <label *ngIf="esAdmin()" class="avatar-edit" title="Cambiar foto">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+              stroke-linecap="round">
+              <path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z" />
+            </svg>
+            <input type="file" (change)="onFileSelected($event)" accept="image/*" style="display:none">
+          </label>
+        </div>
+        <h2 class="perfil-nombre">{{ expediente?.beneficiario?.nombre }}</h2>
+        <div class="perfil-meta">
+          <span class="badge-id">Exp. {{ expediente?.id }}</span>
+          <span class="badge-estatus estatus-{{ expediente?.estatus }}">{{ formatEstatus(expediente?.estatus) }}</span>
+        </div>
+      </div>
+
+      <!-- PROGRESO -->
+      <div class="card card-progreso fade-up d1">
+        <div class="card-head">
+          <span class="card-label">Avance del período</span>
+          <span class="pct-pill" [style.background]="progresoColor">{{ progreso.porcentaje }}%</span>
+        </div>
+
+        <!-- Anillo SVG -->
+        <div class="ring-wrap">
+          <svg class="ring-svg" viewBox="0 0 120 120">
+            <circle cx="60" cy="60" [attr.r]="ringR" class="ring-base" />
+            <circle cx="60" cy="60" [attr.r]="ringR" class="ring-prog" [style.strokeDasharray]="circumference"
+              [style.strokeDashoffset]="strokeDashoffset" [style.stroke]="progresoColor" />
+          </svg>
+          <div class="ring-inner">
+            <span class="ring-num">{{ progreso.porcentaje }}%</span>
+            <span class="ring-unit">{{ progreso.unidad }}</span>
+          </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="prog-stats">
+          <div class="ps">
+            <span class="ps-n">{{ progreso.transcurrido }}</span>
+            <span class="ps-l">transcurridos</span>
+          </div>
+          <div class="ps-sep"></div>
+          <div class="ps">
+            <span class="ps-n">{{ progreso.total }}</span>
+            <span class="ps-l">total</span>
+          </div>
+          <div class="ps-sep"></div>
+          <div class="ps">
+            <span class="ps-n" [style.color]="progresoColor">{{ progreso.restante }}</span>
+            <span class="ps-l">restantes</span>
+          </div>
+        </div>
+
+        <!-- Barra -->
+        <div class="bar-rail">
+          <div class="bar-fill" [style.width.%]="progreso.porcentaje" [style.background]="progresoColor"></div>
+        </div>
+
+        <p class="fecha-ing" *ngIf="expediente?.beneficiario?.fechaIngreso">
+          Ingreso: {{ expediente.beneficiario.fechaIngreso | date:'dd/MM/yyyy' }}
+        </p>
+      </div>
+
+      <!-- VALIDACIONES -->
+      <div class="card card-valid fade-up d2">
+        <div class="card-label mb-10">Estado del expediente</div>
+        <ul class="valid-list">
+          <li class="vl-item" [class.done]="validaciones?.tieneF1">
+            <span class="vl-dot"></span>
+            <span class="vl-txt">F1 — Valoración psicológica</span>
+            <svg *ngIf="validaciones?.tieneF1" class="vl-check" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+          </li>
+          <li class="vl-item" [class.done]="validaciones?.tieneF2">
+            <span class="vl-dot"></span>
+            <span class="vl-txt">F2 — Estudio trabajo social</span>
+            <svg *ngIf="validaciones?.tieneF2" class="vl-check" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+          </li>
+          <li class="vl-item" [class.done]="validaciones?.tieneF3">
+            <span class="vl-dot"></span>
+            <span class="vl-txt">Plan de trabajo</span>
+            <svg *ngIf="validaciones?.tieneF3" class="vl-check" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+          </li>
+          <li class="vl-item" [class.done]="validaciones?.tieneDetalleF3">
+            <span class="vl-dot"></span>
+            <span class="vl-txt">Detalle del plan</span>
+            <svg *ngIf="validaciones?.tieneDetalleF3" class="vl-check" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+          </li>
+          <li class="vl-item" [class.done]="validaciones?.tieneCaratula">
+            <span class="vl-dot"></span>
+            <span class="vl-txt">Carátula</span>
+            <svg *ngIf="validaciones?.tieneCaratula" class="vl-check" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+          </li>
+          <li class="vl-item" [class.done]="validaciones?.caratulaHabilitada">
+            <span class="vl-dot"></span>
+            <span class="vl-txt">Carátula habilitada</span>
+            <svg *ngIf="validaciones?.caratulaHabilitada" class="vl-check" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+          </li>
+          <li class="vl-item vl-alert" *ngIf="validaciones?.tieneIncidencias">
+            <span class="vl-dot"></span>
+            <span class="vl-txt">Incidencias registradas</span>
+            <svg class="vl-warn" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round">
+              <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+              <line x1="12" y1="9" x2="12" y2="13" />
+              <line x1="12" y1="17" x2="12.01" y2="17" />
+            </svg>
+          </li>
+        </ul>
+      </div>
+
+    </aside>
+
+    <!-- ══ COLUMNA DERECHA ══ -->
+    <div class="col-right">
+
+      <!-- MÓDULOS -->
+      <div class="card fade-up d1">
+        <div class="card-label mb-14">Módulos</div>
+        <div class="mods-grid">
+
+          <button *ngIf="esAdmin() || esPsicologo()" class="mod" (click)="irModulo('/vp')">
+            <svg class="mod-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+              stroke-linecap="round">
+              <path
+                d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.46 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z" />
+              <path
+                d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96-.46 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2Z" />
+            </svg>
+            <span>Psicología</span>
+          </button>
+
+          <button *ngIf="esAdmin() || esTrabajoSocial()" class="mod" (click)="irModulo('/trabajo-social')">
+            <svg class="mod-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+              stroke-linecap="round">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+              <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+            </svg>
+            <span>Trabajo Social</span>
+          </button>
+
+          <button *ngIf="esAdmin()" class="mod" (click)="irModulo('/plan-individualizado')">
+            <svg class="mod-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+              stroke-linecap="round">
+              <path d="M9 11l3 3L22 4" />
+              <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+            </svg>
+            <span>Plan</span>
+          </button>
+
+          <button *ngIf="esAdmin() || esTrabajoSocial() || esPsicologo() || esGuia()" 
+                  class="mod" 
+                  (click)="irModulo('/caratura-expediente')"
+                  [disabled]="!puedeAccederCaratula"
+                  [title]="!puedeAccederCaratula ? 'Complete F1, F2 y Plan de Trabajo para habilitar' : 'Acceder a Carátula'">
+            <svg class="mod-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+              stroke-linecap="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+              <polyline points="14 2 14 8 20 8" />
+              <line x1="16" y1="13" x2="8" y2="13" />
+              <line x1="16" y1="17" x2="8" y2="17" />
+              <line x1="10" y1="9" x2="8" y2="9" />
+            </svg>
+            <span>Carátula</span>
+          </button>
+
+          <button *ngIf="esGuia() || esAdmin()" class="mod" (click)="irDetalleAdmin()">
+            <svg class="mod-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+              stroke-linecap="round">
+              <rect x="3" y="3" width="18" height="18" rx="2" />
+              <path d="M8 7h8M8 12h8M8 17h4" />
+            </svg>
+            <span>Detalle Plan</span>
+          </button>
+
+          <button *ngIf="esGuia() || esAdmin()" class="mod" (click)="irFichaSeguimiento()">
+            <svg class="mod-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+              stroke-linecap="round">
+              <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+            </svg>
+            <span>Ficha Seg.</span>
+          </button>
+
+          <button *ngIf="esGuia() || esAdmin() || esPsicologo() || esTrabajoSocial()" class="mod"
+            (click)="irHistorialSupervision()">
+            <svg class="mod-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+              stroke-linecap="round">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+              <circle cx="12" cy="12" r="3" />
+            </svg>
+            <span>Supervisión</span>
+          </button>
+
+          <button *ngIf="esAdmin() || esPsicologo() || esGuia() || esTrabajoSocial()" class="mod"
+            (click)="irNotaEvolucion()">
+            <svg class="mod-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+              stroke-linecap="round">
+              <path d="M12 20h9" />
+              <path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z" />
+            </svg>
+            <span>Notas Psic.</span>
+          </button>
+
+          <button *ngIf="esAdmin() || esGuia() || esPsicologo() || esTrabajoSocial()" class="mod mod-alert"
+            (click)="irIncidencias()">
+            <svg class="mod-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+              stroke-linecap="round">
+              <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+              <line x1="12" y1="9" x2="12" y2="13" />
+              <line x1="12" y1="17" x2="12.01" y2="17" />
+            </svg>
+            <span>Incidencias</span>
+          </button>
+
+        </div>
+      </div>
+
+      <!-- INFORMACIÓN DEL EXPEDIENTE -->
+      <div class="card fade-up d2">
+        <div class="card-head mb-14">
+          <span class="card-label">Información del expediente</span>
+          <span *ngIf="!esAdmin()" class="tag-readonly">sólo lectura</span>
+        </div>
+
+        <div class="info-grid">
+          <div class="field">
+            <label class="field-lbl">C. Penal</label>
+            <input *ngIf="esAdmin()" class="field-inp" [(ngModel)]="expediente.cPenal" placeholder="—">
+            <p *ngIf="!esAdmin()" class="field-txt">{{ expediente.cPenal || '—' }}</p>
+          </div>
+          <div class="field">
+            <label class="field-lbl">Folio expediente</label>
+            <input *ngIf="esAdmin()" class="field-inp" [(ngModel)]="expediente.folioExpediente" placeholder="—">
+            <p *ngIf="!esAdmin()" class="field-txt">{{ expediente.folioExpediente || '—' }}</p>
+          </div>
+          <div class="field">
+            <label class="field-lbl">Expediente técnico</label>
+            <input *ngIf="esAdmin()" class="field-inp" [(ngModel)]="expediente.expedienteTecnico" placeholder="—">
+            <p *ngIf="!esAdmin()" class="field-txt">{{ expediente.expedienteTecnico || '—' }}</p>
+          </div>
+          <div class="field">
+            <label class="field-lbl">Juzgado</label>
+            <input *ngIf="esAdmin()" class="field-inp" [(ngModel)]="expediente.juzgado" placeholder="—">
+            <p *ngIf="!esAdmin()" class="field-txt">{{ expediente.juzgado || '—' }}</p>
+          </div>
+          <div class="field">
+            <label class="field-lbl">Delito</label>
+            <input *ngIf="esAdmin()" class="field-inp" [(ngModel)]="expediente.delito" placeholder="—">
+            <p *ngIf="!esAdmin()" class="field-txt">{{ expediente.delito || '—' }}</p>
+          </div>
+          <div class="field">
+            <label class="field-lbl">Agraviado</label>
+            <input *ngIf="esAdmin()" class="field-inp" [(ngModel)]="expediente.agraviado" placeholder="—">
+            <p *ngIf="!esAdmin()" class="field-txt">{{ expediente.agraviado || '—' }}</p>
+          </div>
+          <div class="field">
+            <label class="field-lbl">Medida cautelar</label>
+            <input *ngIf="esAdmin()" class="field-inp" [(ngModel)]="expediente.medidaCautelar" placeholder="—">
+            <p *ngIf="!esAdmin()" class="field-txt">{{ expediente.medidaCautelar || '—' }}</p>
+          </div>
+          <div class="field field-full">
+            <label class="field-lbl">Observaciones</label>
+            <textarea *ngIf="esAdmin()" class="field-inp field-ta" [(ngModel)]="expediente.observaciones" rows="3"
+              placeholder="—"></textarea>
+            <p *ngIf="!esAdmin()" class="field-txt">{{ expediente.observaciones || '—' }}</p>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button class="btn-back-flat" (click)="volver()">
+            Cancelar / Volver
+          </button>
+          <button *ngIf="esAdmin()" class="btn-guardar" (click)="guardarCambios()" [disabled]="guardando">
+            <span *ngIf="!guardando">Guardar cambios</span>
+            <span *ngIf="guardando" class="btn-saving">
+              <span class="btn-spinner"></span> Guardando
+            </span>
+          </button>
+        </div>
+      </div>
+
+      <!-- VALORACIÓN -->
+      <div class="card fade-up d3" *ngIf="(esAdmin() || esPsicologo()) && !loadingValoracion">
+        <div class="card-label mb-14">Valoración psicológica</div>
+        <div *ngIf="valoracion">
+          <div class="val-row">
+            <span class="val-k">Diagnóstico</span>
+            <span class="val-v">{{ valoracion?.diagnostico || '—' }}</span>
+          </div>
+          <div class="val-row">
+            <span class="val-k">Observaciones</span>
+            <span class="val-v">{{ valoracion?.observaciones || '—' }}</span>
+          </div>
+        </div>
+        <p *ngIf="!valoracion" class="empty-txt">Sin valoración psicológica registrada</p>
+      </div>
+
+    </div>
   </div>
-
 </div>

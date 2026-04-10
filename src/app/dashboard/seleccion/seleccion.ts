@@ -1,11 +1,12 @@
 import { Component } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
 import { Router } from '@angular/router';
+import { NavbarReconectaComponent } from "../../shared/navbar-reconecta/navbar-reconecta";
 
 @Component({
   selector: 'app-seleccion',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, NavbarReconectaComponent],
   templateUrl: './seleccion.html',
   styleUrl: './seleccion.css'
 })

@@ -1,85 +1,245 @@
-<div class="container">
+<app-navbar-reconecta></app-navbar-reconecta>
 
-  <!-- 🔥 LOADING -->
-  <div class="overlay" *ngIf="loading">
-    <div class="loader"></div>
-    <p>Procesando...</p>
+<!-- TOAST NOTIFICATION -->
+<div class="toast-wrap" *ngIf="toast">
+  <div class="toast" [class.toast-ok]="toast.tipo==='ok'" [class.toast-err]="toast.tipo==='error'">
+    {{ toast.msg }}
   </div>
+</div>
 
-  <!-- 🔥 STEPS -->
-  <div class="steps">
-    <div [class.active]="paso === 1">1. Beneficiario</div>
-    <div [class.active]="paso === 2">2. Expediente</div>
-  </div>
+<div class="page-container">
 
-  <!-- 🔥 PASO 1 -->
-  <div *ngIf="paso === 1" class="card fade">
+  <main class="content-wrapper">
 
-    <h2>👤 Nuevo Beneficiario</h2>
-
-    <form [formGroup]="beneficiarioForm">
-
-      <input placeholder="Nombre completo" formControlName="nombre">
-      <input placeholder="CURP" formControlName="curp">
-
-      <!-- 📸 FOTO -->
-      <label class="file-label">Subir foto</label>
-      <input type="file" (change)="onFileChange($event)" accept="image/*">
-
-      <!-- 🔥 PREVIEW -->
-      <div *ngIf="previewUrl" class="preview">
-        <img [src]="previewUrl">
+    <!-- HEADER Y ACCIONES -->
+    <header class="page-header slide-up">
+      <div class="header-info">
+        <button class="btn-back" (click)="regresar()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 12H5M12 5l-7 7 7 7" />
+          </svg>
+          Cancelar / Volver
+        </button>
+        <div class="header-titles">
+          <h1>Alta de Expediente Penal</h1>
+          <p>Registra un nuevo usuario al modelo de Justicia Penal.</p>
+        </div>
       </div>
+    </header>
 
-      <select formControlName="sexo">
-        <option value="HOMBRE">Hombre</option>
-        <option value="MUJER">Mujer</option>
-      </select>
+    <!-- LOADING OVERLAY -->
+    <div class="loading-overlay" *ngIf="loading">
+      <div class="spinner"></div>
+      <p>Procesando información...</p>
+    </div>
 
-      <select formControlName="unidadTiempo">
-        <option value="HORAS">Horas</option>
-        <option value="DIAS">Días</option>
-      </select>
+    <!-- PROGRESS STEPS -->
+    <div class="steps-container slide-up d1">
+      <div class="step" [class.active]="paso >= 1" [class.completed]="paso > 1">
+        <div class="step-circle">1</div>
+        <span class="step-label">Datos Beneficiario</span>
+      </div>
+      <div class="step-line" [class.active]="paso === 2"></div>
+      <div class="step" [class.active]="paso === 2">
+        <div class="step-circle">2</div>
+        <span class="step-label">Información Judicial</span>
+      </div>
+    </div>
 
-      <input type="date" formControlName="fechaNacimiento">
-      <input type="number" placeholder="Tiempo asignado" formControlName="tiempoAsignado">
 
-      <button type="button" (click)="crearBeneficiario()">
-        Siguiente →
-      </button>
+    <!-- ==============================================
+         PASO 1: BENEFICIARIO (Solo requerido)
+         ============================================== -->
+    <div *ngIf="paso === 1" class="step-content slide-up d2">
+      <div class="card card-form">
 
-    </form>
+        <div class="card-head">
+          <svg class="head-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+            <circle cx="12" cy="7" r="4" />
+          </svg>
+          <h2>Perfil del Beneficiario</h2>
+        </div>
 
-  </div>
+        <form [formGroup]="beneficiarioForm" (ngSubmit)="crearBeneficiario()">
 
-  <!-- 🔥 PASO 2 -->
-  <div *ngIf="paso === 2" class="card fade">
+          <div class="grid-form">
 
-    <h2>⚖️ Expediente Penal</h2>
+            <!-- UPLOAD FOTO (COLUMNA IZQUIERDA) -->
+            <div class="photo-column">
+              <label class="photo-label">Fotografía de Identificación</label>
 
-    <form [formGroup]="penalForm">
+              <div class="photo-upload-box" [class.has-image]="previewUrl" (click)="fileInput.click()">
+                <ng-container *ngIf="!previewUrl">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                    <circle cx="8.5" cy="8.5" r="1.5" />
+                    <polyline points="21 15 16 10 5 21" />
+                  </svg>
+                  <span>Subir Fotografía</span>
+                </ng-container>
 
-      <input placeholder="Causa penal" formControlName="cPenal">
-      <input placeholder="Expediente técnico" formControlName="expedienteTecnico">
-      <input placeholder="Folio expediente" formControlName="folioExpediente">
-      <input placeholder="Juzgado" formControlName="juzgado">
-      <input placeholder="Delito" formControlName="delito">
-      <input placeholder="Agraviado" formControlName="agraviado">
+                <img *ngIf="previewUrl" [src]="previewUrl" class="photo-preview">
+              </div>
 
-      <input type="date" formControlName="fechaIngresoPrograma">
-      <input type="date" formControlName="fechaSuspensionProceso">
-      <input type="date" formControlName="fechaFinSupervision">
+              <input #fileInput type="file" style="display: none;" (change)="onFileChange($event)" accept="image/*">
+            </div>
 
-      <input placeholder="Medida cautelar" formControlName="medidaCautelar">
+            <!-- CAMPOS (COLUMNA DERECHA) -->
+            <div class="fields-column">
+              <div class="field">
+                <label>Nombre Completo</label>
+                <div class="input-wrap">
+                  <svg class="input-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                    <circle cx="12" cy="7" r="4" />
+                  </svg>
+                  <input type="text" formControlName="nombre" placeholder="Nombre completo empezando por apellidos"
+                    [class.is-invalid]="beneficiarioForm.get('nombre')?.invalid && beneficiarioForm.get('nombre')?.touched">
+                </div>
+              </div>
 
-      <textarea placeholder="Observaciones" formControlName="observaciones"></textarea>
+              <div class="form-row">
+                <div class="field">
+                  <label>Tiempo Asignado al Programa</label>
+                  <div class="input-wrap">
+                    <svg class="input-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                      stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="12" cy="12" r="10" />
+                      <polyline points="12 6 12 12 16 14" />
+                    </svg>
+                    <input type="number" formControlName="tiempoAsignado" placeholder="Ej. 6">
+                  </div>
+                </div>
 
-      <button type="button" (click)="crearExpediente()">
-        Guardar Expediente
-      </button>
+                <div class="field">
+                  <label>Unidad de Tiempo</label>
+                  <div class="input-wrap select-wrap">
+                    <select formControlName="unidadTiempo">
+                      <option value="MESES">Meses</option>
+                      <option value="HORAS">Horas</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
 
-    </form>
+          </div>
 
-  </div>
+          <div class="form-actions">
+            <button type="button" class="btn-secondary" (click)="regresar()">Cancelar</button>
+            <button type="submit" class="btn-primary" [disabled]="loading">
+              Guardar y Continuar
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M5 12h14M12 5l7 7-7 7" />
+              </svg>
+            </button>
+          </div>
 
+        </form>
+      </div>
+    </div>
+
+
+    <!-- ==============================================
+         PASO 2: EXPEDIENTE PENAL
+         ============================================== -->
+    <div *ngIf="paso === 2" class="step-content slide-up">
+      <div class="card card-form">
+
+        <div class="card-head">
+          <svg class="head-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21.5 12H16c-.7 2-3 3-4 3s-3.3-1-4-3H2.5" />
+            <path d="M5.5 5.1L2 12v6c0 1.1.9 2 2 2h16a2 2 0 002-2v-6l-3.4-6.9A2 2 0 0017 4H7a2 2 0 00-1.5 1.1z" />
+          </svg>
+          <h2>Datos Judiciales</h2>
+        </div>
+
+        <form [formGroup]="penalForm" (ngSubmit)="crearExpediente()">
+
+          <div class="grid-form-2col">
+
+            <div class="field">
+              <label>Causa Penal <span class="req">*</span></label>
+              <input type="text" formControlName="cPenal" placeholder="Ej. CP-001/2026">
+            </div>
+
+            <div class="field">
+              <label>Expediente Técnico <span class="req">*</span></label>
+              <input type="text" formControlName="expedienteTecnico" placeholder="Ej. ET-SSP-002">
+            </div>
+
+            <div class="field">
+              <label>Folio de Incorporación <span class="req">*</span></label>
+              <input type="text" formControlName="folioIncorporacion" placeholder="Ej. FI-OAX-26">
+            </div>
+
+            <div class="field">
+              <label>Juzgado <span class="req">*</span></label>
+              <input type="text" formControlName="juzgado" placeholder="Ej. Juzgado Primero">
+            </div>
+
+            <div class="field">
+              <label>Delito <span class="req">*</span></label>
+              <input type="text" formControlName="delito" placeholder="Descripción del delito">
+            </div>
+
+            <div class="field">
+              <label>Agraviado</label>
+              <input type="text" formControlName="agraviado" placeholder="Nombre completo o institución">
+            </div>
+
+            <div class="field">
+              <label>Fecha de Ingreso al Programa <span class="req">*</span></label>
+              <input type="date" formControlName="fechaIngresoPrograma">
+            </div>
+
+            <div class="field">
+              <label>Fecha de Fin de Supervisión <span class="req">*</span></label>
+              <input type="date" formControlName="fechaFinSupervision">
+            </div>
+
+            <div class="field full-width">
+              <label>Fecha de Suspensión Condicional del Proceso</label>
+              <input type="date" formControlName="fechaSuspensionProceso">
+            </div>
+
+            <div class="field full-width">
+              <label>Medida Cautelar <span class="req">*</span></label>
+              <input type="text" formControlName="medidaCautelar" placeholder="Descripción de la medida impuesta">
+            </div>
+
+            <div class="field full-width">
+              <label>Observaciones</label>
+              <textarea formControlName="observaciones" rows="3"
+                placeholder="Información adicional relevante..."></textarea>
+            </div>
+
+          </div>
+
+          <div class="form-actions">
+            <button type="button" class="btn-secondary" (click)="regresarPaso1()">← Atrás</button>
+            <button type="submit" class="btn-primary" [disabled]="loading">
+              Guardar Expediente Completo
+              <svg *ngIf="!loading" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+                <polyline points="17 21 17 13 7 13 7 21" />
+                <polyline points="7 3 7 8 15 8" />
+              </svg>
+            </button>
+          </div>
+
+        </form>
+
+      </div>
+    </div>
+
+  </main>
 </div>

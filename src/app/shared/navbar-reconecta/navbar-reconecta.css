@@ -1,0 +1,113 @@
+/* 🔥 NAVBAR COMPLETO */
+.navbar-reconecta {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+
+  height: 70px;
+
+  background: linear-gradient(135deg, #850a31, #b01145);
+  border-bottom: 3px solid #C8952A;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  padding: 0 50px; /* 🔥 MÁS ESPACIO LATERAL */
+  box-sizing: border-box; /* 🔥 IMPORTANTE */
+
+  color: white;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+
+  z-index: 9999;
+}
+
+/* 🔥 IZQUIERDA */
+.left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+}
+
+/* 🔥 LOGO */
+.logo {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 2px solid #C8952A;
+  object-fit: cover;
+}
+
+/* 🔥 TEXTO */
+.text {
+  display: flex;
+  flex-direction: column;
+}
+
+.title {
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.subtitle {
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+/* 🔥 DERECHA */
+.right {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-shrink: 0; /* 🔥 EVITA QUE SE COMPRIMA */
+  margin-right: 10px; /* 🔥 SEPARACIÓN EXTRA */
+}
+
+/* 🔥 USUARIO */
+.user {
+  text-align: right;
+}
+
+.name {
+  font-weight: bold;
+  display: block;
+}
+
+.role {
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+/* 🔥 BOTÓN */
+.btn-logout {
+  background: rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.3);
+  color: white;
+
+  padding: 10px 20px; /* 🔥 MÁS ANCHO */
+  border-radius: 20px;
+
+  cursor: pointer;
+  font-weight: 600;
+
+  white-space: nowrap; /* 🔥 EVITA CORTE */
+
+  transition: all 0.3s ease;
+
+  margin-right: 5px; /* 🔥 SEPARACIÓN DEL BORDE */
+}
+
+/* 🔥 HOVER PRO */
+.btn-logout:hover {
+  background: white;
+  color: #850a31;
+  transform: translateY(-1px);
+}
+
+/* 🔥 EVITA SCROLL HORIZONTAL */
+body {
+  margin: 0;
+  overflow-x: hidden;
+}
