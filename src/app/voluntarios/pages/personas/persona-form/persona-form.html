@@ -21,6 +21,19 @@
     <label>FOLIO:</label>
     <input formControlName="folio" placeholder="101" class="folio-input-inline">
   </div>
+@if (errores.length > 0) {
+  <div class="alerta-error">
+    <div class="error-header">
+      <span class="icon-error">⚠️</span>
+      <span class="error-titulo">Se encontraron los siguientes errores:</span>
+    </div>
+    <ul class="error-lista">
+      @for (error of errores; track $index) {
+        <li>{{ error }}</li>
+      }
+    </ul>
+  </div>
+}
 
   <!-- I. GENERALES -->
   <div class="section-title">I. Generales</div>
@@ -37,10 +50,11 @@
       <label>Sobrenombre</label>
       <input formControlName="sobrenombre" placeholder="Apodo o alias">
     </div>
-    <div class="field">
-      <label>Edad</label>
-      <input formControlName="edad" type="number" placeholder="25">
-    </div>
+
+<div class="field">
+  <label>Edad</label>
+  <input formControlName="edad" type="text" placeholder="25">
+</div>
   </div>
 
   <div class="form-row col-3">

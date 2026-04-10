@@ -3,22 +3,27 @@ import { Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PersonaService } from '../../../services/persona.service';
+import { CsvModal } from '../../../shared/csv-modal/csv-modal';
+import { Paginacion } from "../../../shared/paginacion/paginacion";
 
 @Component({
   selector: 'app-personas-list',
   standalone: true,
-  imports: [RouterLink, CommonModule, FormsModule],
+  imports: [RouterLink, CommonModule, FormsModule, CsvModal, Paginacion],
   templateUrl: './personas-list.html',
   styleUrl: './personas-list.css'
 })
 export class PersonasList {
   private svc = inject(PersonaService);
   private router = inject(Router);
+  mostrarModalCsv = signal(false);
 
   searchTerm   = signal('');
   filtroEstado = signal('Todos');
+ paginaActual = signal(1);
+  itemsPorPagina = 5;
 
-  personas = computed(() => {
+    personasFiltradas = computed(() => {
     const t = this.searchTerm().toLowerCase();
     const e = this.filtroEstado();
     return this.svc.personas().filter(p => {
@@ -31,6 +36,16 @@ export class PersonasList {
       return okSearch && okEstado;
     });
   });
+
+  totalItems = computed(() => this.personasFiltradas().length);
+
+ personas = computed(() => {
+    const inicio = (this.paginaActual() - 1) * this.itemsPorPagina;
+    const fin = inicio + this.itemsPorPagina;
+    return this.personasFiltradas().slice(inicio, fin);
+  });
+
+
 
   verPersona(id: string): void {
     this.router.navigate(['/voluntarios/personas/editar', id]);
@@ -45,4 +60,21 @@ export class PersonasList {
       });
     }
   }
+    abrirModalCsv(): void {
+    this.mostrarModalCsv.set(true);
+  }
+
+  cerrarModalCsv(): void {
+    this.mostrarModalCsv.set(false);
+  }
+
+  onCsvCargado(): void {
+    this.svc.refresh(); // Refresca la lista
+    setTimeout(() => this.cerrarModalCsv(), 2000); // Cierra después de 2 segundos
+  }
+  onPaginaCambiada(pagina: number): void {
+    this.paginaActual.set(pagina);
+       window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
 }
