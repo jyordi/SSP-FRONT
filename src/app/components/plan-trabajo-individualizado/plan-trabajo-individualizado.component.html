@@ -1,478 +1,131 @@
 <app-navbar-reconecta></app-navbar-reconecta>
-<br><br><br>
 
-<div class="shell">
-
-  <div class="tabs">
-    <button class="tab" [class.on]="tabActivo()==='form'" (click)="tabActivo.set('form')">
-      <span>📋</span> Formulario
-      @if(planEditandoId()){
-        <span class="tab-badge tab-badge-edit">✏️</span>
-      }
-    </button>
-    <button class="tab" [class.on]="tabActivo()==='hist'" (click)="tabActivo.set('hist')">
-      <span>🗂️</span> Historial
-      @if(totalPlanes() > 0){
-        <span class="tab-badge">{{totalPlanes()}}</span>
-      }
-    </button>
+<!-- TOAST -->
+<div class="toast-wrap" *ngIf="toast">
+  <div class="toast" [class.toast-ok]="toast.tipo === 'ok'" [class.toast-err]="toast.tipo === 'error'">
+    {{ toast.msg }}
   </div>
+</div>
 
-  <div class="toast" [class.show]="!!toast().msg" [class.ok]="toast().tipo==='ok'" [class.er]="toast().tipo==='err'">
-    <span class="toast-ico">{{toast().tipo==='ok' ? '✓' : '✕'}}</span>
-    {{toast().msg}}
-  </div>
+<div class="page-container">
+  <main class="content-wrapper">
 
-  @if(estado().activo){
-    <div class="ov-bg">
-      <div class="ov-card" [class.ov-ok]="estado().exito" [class.ov-err]="!!estado().error">
-        <div class="ov-ico" [class.ico-spin]="!estado().exito && !estado().error" [class.ico-ok]="estado().exito" [class.ico-err]="!!estado().error">
-          @if(estado().exito){
-            <svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="20" stroke="currentColor" stroke-width="2.5" fill="none"/><path d="M14 24l8 8 12-14" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" fill="none" class="check-anim"/></svg>
-          } @else if(estado().error){
-            <svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="20" stroke="currentColor" stroke-width="2.5" fill="none"/><path d="M16 16l16 16M32 16L16 32" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" fill="none"/></svg>
-          } @else {
-            <svg viewBox="0 0 48 48" class="spin-ico"><circle cx="24" cy="24" r="18" stroke="currentColor" stroke-width="3" fill="none" stroke-dasharray="80 40" stroke-linecap="round"/></svg>
-          }
+    <!-- HEADER Y ACCIONES -->
+    <header class="page-header slide-up">
+      <div class="header-info">
+        <button class="btn-back" (click)="regresar()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+          Volver al Expediente
+        </button>
+        <div class="header-titles">
+          <h1>Plan de Trabajo Individualizado</h1>
+          <p *ngIf="planExistente">Este beneficiario ya cuenta con un Plan Activo.</p>
+          <p *ngIf="!planExistente">Crea el marco inicial para el seguimiento del beneficiario.</p>
         </div>
-        <div class="ov-titulo">
-          @if(estado().exito){¡Listo!} @else if(estado().error){Error} @else {Procesando…}
-        </div>
-        <div class="ov-fase" [class.fase-ok]="estado().exito" [class.fase-er]="!!estado().error">
-          {{estado().fase}}
-        </div>
-        <div class="ov-bar">
-          <div class="ov-fill" [class.fill-ok]="estado().exito" [class.fill-er]="!!estado().error" [style.width.%]="estado().pct">
-            <span class="ov-shine"></span>
-          </div>
-        </div>
-        <div class="ov-pct">{{estado().pct}}%</div>
       </div>
+
+      <!-- BOTÓN GIGANTE SI YA EXISTE -->
+      <div class="header-action" *ngIf="planExistente">
+        <button class="btn-gigante" (click)="irAPlanDetalle()">
+          🚀 Ir a Registro de Actividades <span>(Plan Detalle)</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- LOADING OVERLAY -->
+    <div class="loading-overlay" *ngIf="loading">
+      <div class="spinner"></div>
+      <p>Procesando información...</p>
     </div>
-  }
 
-  @if(verPrevia()){
-    <div class="pv-ov">
-      <br><br><br><br><br>
-      <div class="pv-bar">
-        <div class="pv-bar-title"><span>👁️</span> Vista Previa — Plan de Trabajo Individualizado</div>
-        <div class="pv-bar-btns">
-          <button class="pvb pvb-edit" (click)="verPrevia.set(false)">✏️ Editar</button>
-          <button class="pvb pvb-dl" (click)="descargarPdf()" [disabled]="generando() || guardando()">
-            @if(generando()){<span class="spin-sm"></span> Generando…} @else {⬇️ Descargar PDF (local)}
-          </button>
-          <button class="pvb pvb-save" (click)="guardarEnBackend()" [disabled]="guardando() || generando()">
-            @if(guardando()){<span class="spin-sm"></span> Guardando…} @else {💾 {{planEditandoId() ? 'Actualizar en servidor' : 'Guardar en servidor'}}}
-          </button>
+    <!-- MODO FORMULARIO (Creación o Solo Lectura) -->
+    <div class="form-section slide-up d1">
+      <div class="card card-form" [class.solo-lectura]="planExistente || !puedeEditar">
+
+        <div class="card-head">
+          <svg class="head-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          <h2>{{ planExistente ? 'Resumen del Plan' : 'Apertura de Plan' }}</h2>
+          <span class="badge-role" *ngIf="!puedeEditar && !planExistente">Solo Lectura (Req. Guía o Admin)</span>
         </div>
-      </div>
 
-      <div class="pv-scroll">
-        <div class="doc">
-          <table class="doc-hdr">
-            <tr>
-              <td class="doc-logo-td">
-                <strong class="doc-seg">SEGURIDAD CIUDADANA</strong>
-                <small>SECRETARIA DE SEGURIDAD<br/>Y PROTECCION</small>
-              </td>
-              <td class="doc-inst-td">
-                <div>SUBSECRETARIA DE PREVENCION Y REINSERCION SOCIAL</div>
-                <div>DIRECCION GENERAL DE PREVENCION DEL DELITO Y PARTICIPACION CIUDADANA</div>
-                <div class="doc-inst-main">PLAN DE TRABAJO INDIVIDUALIZADO</div>
-                <div class="doc-inst-sub">Programa: RECONECTA CON LA PAZ</div>
-              </td>
-            </tr>
-          </table>
-          <div class="doc-rline"></div>
-          <div class="doc-ficha">FICHA TECNICA DE SEGUIMIENTO</div>
+        <form [formGroup]="form" (ngSubmit)="guardar()">
+          
+          <div class="grid-form-2col">
+            <!-- GUIA -->
+            <div class="field">
+              <label>Guía ResponsableAsignado <span class="req">*</span></label>
+              <div class="input-wrap">
+                <svg class="input-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                <select formControlName="guiaId">
+                  <option [ngValue]="null" disabled>Selecciona un Guía</option>
+                  <option *ngFor="let g of guiasDisponibles" [value]="g.id">{{ g.nombre }}</option>
+                </select>
+              </div>
+            </div>
 
-          <div class="dt1-layout">
-            <table class="dt dt1-tabla">
-              <tr><td colspan="2" class="dt-cab-d9">DATOS PERSONALES</td></tr>
-              <tr><td class="dt-lbl-cc" style="width:34%">Nombre</td><td class="dt-val">{{gv('nombre')}}</td></tr>
-              <tr><td class="dt-lbl-cc">Edad</td><td class="dt-val">{{gv('edad')}}</td></tr>
-              <tr><td class="dt-lbl-cc">Municipio</td><td class="dt-val">{{gv('municipio')}}</td></tr>
-              <tr><td class="dt-lbl-cc">Ocupación</td><td class="dt-val">{{gv('ocupacion')}}</td></tr>
-              <tr><td class="dt-lbl-cc">Fecha de Ingreso</td><td class="dt-val">{{gv('fechaIngreso')}}</td></tr>
-              <tr><td class="dt-lbl-cc">Teléfono</td><td class="dt-val">{{gv('telefono')}}</td></tr>
-            </table>
-            <div class="dt1-foto">
-              @if(fotoUrl()){
-                <img class="dt1-foto-img" [src]="fotoUrl()" alt="Foto beneficiario"/>
-              } @else {
-                <span class="dt1-foto-ph">📷<br/><small>FOTO</small></span>
-              }
+            <!-- PERIODO -->
+            <div class="field">
+              <label>Periodo <span class="req">*</span></label>
+              <input type="text" formControlName="periodo" placeholder="Ej. MARZO-2026">
+            </div>
+
+            <!-- FECHAS -->
+            <div class="field">
+              <label>Fecha de Inicio <span class="req">*</span></label>
+              <input type="date" formControlName="fechaInicio">
+            </div>
+            <div class="field">
+              <label>Fecha Estimada de Fin <span class="req">*</span></label>
+              <input type="date" formControlName="fechaFin">
             </div>
           </div>
 
-          @if(gv('periodo') || gv('fechaInicio') || gv('fechaFin')){
-            <table class="dt" style="margin-top:3px">
-              <tr>
-                <td class="dt-lbl-cc" style="width:23%">Período</td>
-                <td class="dt-val">
-                  {{gv('periodo')}}
-                  @if(gv('fechaInicio')){ &nbsp;|&nbsp; Inicio: {{gv('fechaInicio')}} }
-                  @if(gv('fechaFin')){ &nbsp;|&nbsp; Fin: {{gv('fechaFin')}} }
-                </td>
-              </tr>
-            </table>
-          }
+          <hr class="divider">
 
-          <table class="dt" style="margin-top:3px">
-            <tr>
-              <td class="dt-lbl-cc" style="width:23%;vertical-align:top">Proceso de ingreso a PREVENCIÓN</td>
-              <td class="dt-val dt-area">{{gv('procesoIngreso')}}</td>
-            </tr>
-          </table>
+          <div formGroupName="datosJsonb">
 
-          <table class="dt" style="margin-top:3px">
-            <tr><td colspan="2" class="dt-cab-d9">PROCESO DE SEGUIMIENTO</td></tr>
-            <tr><td class="dt-sub-d9" style="width:21%">ACTIVIDADES</td><td class="dt-sub-d9">OBSERVACIONES</td></tr>
-            @for(a of ASEG; track a.key){
-              <tr><td class="dt-act">{{a.label}}</td><td class="dt-val dt-area-sm">{{gv(a.key + 'Obs')}}</td></tr>
-            }
-            <tr><td colspan="2" class="dt-cab-cc">PROYECTO DE VIDA</td></tr>
-            @for(a of AVIDA; track a.key){
-              <tr>
-                <td class="dt-act">{{a.label}}</td>
-                <td class="dt-val dt-area-sm">{{gv('vida' + a.key.charAt(0).toUpperCase() + a.key.slice(1) + 'Obs')}}</td>
-              </tr>
-            }
-          </table>
+            <h3 class="section-title">Ejes Transversales</h3>
+            <div class="grid-form-2col">
+              
+              <!-- PROCESO DE INGRESO -->
+              <div formGroupName="proceso_ingreso" class="field full-width card-inner">
+                <label>📌 Proceso de Ingreso</label>
+                <input type="text" formControlName="situacion_actual" placeholder="Situación actual (Ej. Ingreso derivado de juzgado cívico)">
+              </div>
 
-          <table class="dt dt4" style="margin-top:3px">
-            <tr><td colspan="4" class="dt-cab-d9 dt-italic">Proceso de seguimiento de actividades del programa "RECONECTA CON LA PAZ."</td></tr>
-            <tr>
-              <td class="dt-sub-d9" style="width:20%">ACTIVIDAD</td>
-              <td class="dt-sub-d9" style="width:27%">STATUS</td>
-              <td class="dt-sub-d9" style="width:27%">OBJETIVO</td>
-              <td class="dt-sub-d9" style="width:26%">CUMPLIMIENTO</td>
-            </tr>
-            @for(a of APROG; track a.key){
-              <tr>
-                <td class="dt-act4">{{a.label}}</td>
-                <td class="dt-val dt-area-sm">{{gv(a.key + 'Status')}}</td>
-                <td class="dt-val dt-area-sm">{{gv(a.key + 'Objetivo')}}</td>
-                <td class="dt-val dt-area-sm">{{gv(a.key + 'Cumplimiento')}}</td>
-              </tr>
-            }
-            <tr>
-              <td class="dt-act4">OBSERVACIONES</td>
-              <td class="dt-val dt-area-sm" colspan="3">{{filterJoin([gv('obsStatus'), gv('obsObjetivo'), gv('obsCumplimiento')])}}</td>
-            </tr>
-          </table>
+              <!-- SEGUIMIENTO -->
+              <div formGroupName="proceso_seguimiento" class="field full-width card-inner">
+                <label>🔄 Proceso de Seguimiento</label>
+                <div class="grid-form-3col-inner">
+                  <input type="text" formControlName="educativa" placeholder="Área Educativa">
+                  <input type="text" formControlName="laboral" placeholder="Área Laboral">
+                  <input type="text" formControlName="familiar" placeholder="Área Familiar">
+                </div>
+              </div>
 
-          <div class="doc-firmas">
-            <div class="doc-firma">
-              <div class="doc-fline"></div>
-              <div class="doc-fnom">{{gv('firmaNombre') || '________________________________'}}</div>
-              <div class="doc-fcargo">{{gv('firmaCargo') || 'RESPONSABLE DEL PROGRAMA'}}</div>
-              @if(gv('firmaFecha')){ <div class="doc-ffecha">Fecha: {{gv('firmaFecha')}}</div> }
-            </div>
-            <div class="doc-firma">
-              <div class="doc-fline"></div>
-              <div class="doc-fnom">MTRA. LII YIO PEREZ ZARATE</div>
-              <div class="doc-fcargo">DIRECTORA DE PREVENCION DEL DELITO</div>
-              <div class="doc-fcargo">Y PARTICIPACION CIUDADANA</div>
+              <!-- PROYECTO VIDA -->
+              <div formGroupName="proyecto_vida" class="field full-width card-inner">
+                <label>🎯 Proyecto de Vida</label>
+                <div class="grid-form-2col-inner">
+                  <input type="text" formControlName="personal" placeholder="Meta Personal (Ej. Mejoramiento de hábitos)">
+                  <input type="text" formControlName="social" placeholder="Meta Social (Ej. Fortalecer red de apoyo comunitario)">
+                </div>
+              </div>
+
             </div>
           </div>
-        </div>
-      </div>
-    </div>
-  }
 
-  @if(tabActivo()==='form'){
-    <div class="pg-strip">
-      <div class="pg-inner">
-        <span class="pg-lbl">Progreso</span>
-        <div class="pg-track"><div class="pg-fill" [style.width.%]="pct()"><span class="pg-shine"></span></div></div>
-        <span class="pg-num">{{pct()}}%</span>
-        <span class="pg-step">Paso {{paso() + 1}}/{{PASOS.length}}</span>
-        @if(planEditandoId()){ <span class="pg-edit-badge">✏️ Editando plan #{{planEditandoId()}}</span> }
-      </div>
-    </div>
-  }
-
-  <div class="main">
-
-    @if(tabActivo()==='form'){
-      <div class="wiz">
-        <aside class="wiz-side">
-          <p class="wiz-side-tit">Secciones</p>
-          @for(p of PASOS; track p.titulo; let i = $index){
-            <button class="wiz-step" [class.wiz-step-on]="paso() === i" [class.wiz-step-done]="pasoDone(i)" [style.--c]="p.color" (click)="irA(i)">
-              <span class="ws-ico">{{p.icono}}</span>
-              <span class="ws-info"><small>{{i + 1}}</small><span>{{p.titulo}}</span></span>
-              @if(pasoDone(i)){ <span class="ws-ck">✓</span> }
+          <!-- BOTÓN GUARDAR (Solo visible si No hay plan Y tiene permisos) -->
+          <div class="form-actions" *ngIf="!planExistente && puedeEditar">
+            <button type="submit" class="btn-primary" [disabled]="loading || form.invalid">
+              Crear Plan Oficial
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
             </button>
-          }
-        </aside>
-
-        <div class="wiz-body" [formGroup]="fg" [class.slide-out]="slideOut()">
-          <div class="paso-hdr" [style.--c]="PASOS[paso()].color">
-            <span class="ph-ico">{{PASOS[paso()].icono}}</span>
-            <div class="ph-info"><h2>{{PASOS[paso()].titulo}}</h2><p>{{PASOS[paso()].desc}}</p></div>
-            <span class="ph-badge">{{paso() + 1}}/{{PASOS.length}}</span>
           </div>
 
-          @if(paso() === 0){
-            <div class="blk anim-in">
-              @if(beneficiario){
-                <div class="info-box info-box-ok" style="margin-bottom:12px">✅ Datos cargados automáticamente del beneficiario.</div>
-              }
-              <div class="blk-body">
-                <div class="p0-layout">
-                  <div class="p0-fields">
-                    <div class="g2">
-                      <div class="fc span2">
-                        <label class="lbl">Nombre completo <span class="req">✦</span></label>
-                        <input class="inp" formControlName="nombre" placeholder="Nombre completo"/>
-                      </div>
-                      <div class="fc"><label class="lbl">Edad</label><input class="inp" formControlName="edad" placeholder="Ej: 28 años"/></div>
-                      <div class="fc"><label class="lbl">Municipio</label><input class="inp" formControlName="municipio" placeholder="Municipio de residencia"/></div>
-                      <div class="fc"><label class="lbl">Ocupación</label><input class="inp" formControlName="ocupacion" placeholder="Actividad u ocupación"/></div>
-                      <div class="fc"><label class="lbl">Fecha de Ingreso</label><input class="inp" type="date" formControlName="fechaIngreso"/></div>
-                      <div class="fc span2"><label class="lbl">Teléfono</label><input class="inp" formControlName="telefono" placeholder="10 dígitos"/></div>
-                    </div>
-                  </div>
-                  <div class="p0-foto-col">
-                    <label class="lbl" style="margin-bottom:8px;display:block">Foto</label>
-                    <div class="foto-zone" [class.foto-loaded]="!!fotoUrl()" (click)="fotoInput.click()" (dragover)="$event.preventDefault()" (drop)="$event.preventDefault(); cargarFoto($any($event.dataTransfer?.files?.[0]))">
-                      @if(fotoUrl()){
-                        <img class="foto-img" [src]="fotoUrl()" alt="Foto beneficiario"/>
-                        <div class="foto-overlay">
-                          <button class="foto-cambiar" (click)="$event.stopPropagation(); fotoInput.click()">🔄 Cambiar</button>
-                          <button class="foto-quitar" (click)="$event.stopPropagation(); quitarFoto()">✕ Quitar</button>
-                        </div>
-                      } @else {
-                        <div class="foto-placeholder"><span class="foto-pl-ico">📷</span><span class="foto-pl-txt">Subir foto</span></div>
-                      }
-                    </div>
-                    <input #fotoInput type="file" accept="image/jpeg,image/png,image/webp" style="display:none" (change)="cargarFoto($any($event.target.files?.[0]))"/>
-                  </div>
-                </div>
-              </div>
-            </div>
-          }
-
-          @if(paso() === 1){
-            <div class="blk anim-in">
-              <div class="blk-body">
-                <div class="info-box">📅 Define el período, las fechas y el guía responsable del plan de trabajo.</div>
-                <div class="g2" style="margin-top:16px">
-                  <div class="fc span2">
-                    <label class="lbl">Período <span class="req">✦</span></label>
-                    <input class="inp" formControlName="periodo" placeholder="Ej: MARZO-2026" style="text-transform:uppercase"/>
-                  </div>
-                  <div class="fc"><label class="lbl">Fecha de inicio <span class="req">✦</span></label><input class="inp" type="date" formControlName="fechaInicio"/></div>
-                  <div class="fc"><label class="lbl">Fecha de fin <span class="req">✦</span></label><input class="inp" type="date" formControlName="fechaFin"/></div>
-                  
-                  <div class="fc span2">
-                    <label class="lbl">Guía Asignado <span class="req">✦</span></label>
-                    <select class="inp select-field" formControlName="guiaId">
-                      <option [ngValue]="null" disabled selected>Seleccione el guía responsable...</option>
-                      @for(g of guias(); track g.id){
-                        <option [ngValue]="g.id">{{g.nombre}}</option>
-                      }
-                    </select>
-                  </div>
-                </div>
-              </div>
-            </div>
-          }
-
-          @if(paso() === 2){
-            <div class="blk anim-in">
-              <div class="blk-body">
-                <div class="info-box">ℹ️ Describe cómo fue el proceso de ingreso del beneficiario.</div>
-                <div class="fc" style="margin-top:12px">
-                  <label class="lbl">Proceso de ingreso a PREVENCIÓN</label>
-                  <textarea class="inp ta-xl" formControlName="procesoIngreso" rows="8"></textarea>
-                </div>
-              </div>
-            </div>
-          }
-
-          @if(paso() === 3){
-            <div class="blk anim-in">
-              <div class="blk-body">
-                <div class="info-box">📊 Registra las observaciones de seguimiento para cada área de actividad.</div>
-                <div class="seg-grid">
-                  <div class="sg-hdr"><div class="sg-col-a">ACTIVIDAD</div><div class="sg-col-o">OBSERVACIONES</div></div>
-                  @for(a of ASEG; track a.key){
-                    <div class="sg-row">
-                      <div class="sg-act">{{a.label}}</div>
-                      <div class="sg-obs"><textarea class="inp inp-sm" [formControlName]="a.key + 'Obs'" rows="2"></textarea></div>
-                    </div>
-                  }
-                </div>
-              </div>
-            </div>
-          }
-
-          @if(paso() === 4){
-            <div class="blk anim-in">
-              <div class="blk-body">
-                <div class="vida-banner"><span class="vb-ico">🎯</span><div><div class="vb-title">Proyecto de Vida</div><div class="vb-sub">Sub-sección de la Tabla 3</div></div></div>
-                <div class="seg-grid" style="margin-top:14px">
-                  <div class="sg-hdr"><div class="sg-col-a">ÁREA</div><div class="sg-col-o">OBSERVACIONES Y METAS</div></div>
-                  @for(a of AVIDA; track a.key){
-                    <div class="sg-row">
-                      <div class="sg-act">{{a.label}}</div>
-                      <div class="sg-obs"><textarea class="inp inp-sm" [formControlName]="'vida' + a.key.charAt(0).toUpperCase() + a.key.slice(1) + 'Obs'" rows="2"></textarea></div>
-                    </div>
-                  }
-                </div>
-              </div>
-            </div>
-          }
-
-          @if(paso() === 5){
-            <div class="blk anim-in">
-              <div class="blk-body">
-                <div class="prog-banner"><span class="pb-tag">RECONECTA CON LA PAZ</span><p>Tabla 4 — Status, objetivo y cumplimiento</p></div>
-                <div class="prog-grid">
-                  <div class="pg-hdr"><div class="pg-col-a">ACTIVIDAD</div><div class="pg-col-s">STATUS</div><div class="pg-col-o">OBJETIVO</div><div class="pg-col-c">CUMPLIMIENTO</div></div>
-                  @for(a of APROG; track a.key){
-                    <div class="pg-row">
-                      <div class="pg-act">{{a.label}}</div>
-                      <div class="pg-col-s"><input class="inp inp-sm" [formControlName]="a.key + 'Status'"/></div>
-                      <div class="pg-col-o"><textarea class="inp inp-sm" [formControlName]="a.key + 'Objetivo'" rows="2"></textarea></div>
-                      <div class="pg-col-c"><input class="inp inp-sm" [formControlName]="a.key + 'Cumplimiento'"/></div>
-                    </div>
-                  }
-                  <div class="pg-row pg-obs-row">
-                    <div class="pg-act">OBSERVACIONES</div>
-                    <div class="pg-obs-cols">
-                      <div class="g3">
-                        <div class="fc"><label class="lbl-sm">Status</label><textarea class="inp inp-sm" formControlName="obsStatus" rows="2"></textarea></div>
-                        <div class="fc"><label class="lbl-sm">Objetivo</label><textarea class="inp inp-sm" formControlName="obsObjetivo" rows="2"></textarea></div>
-                        <div class="fc"><label class="lbl-sm">Cumplimiento</label><textarea class="inp inp-sm" formControlName="obsCumplimiento" rows="2"></textarea></div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          }
-
-          @if(paso() === 6){
-            <div class="blk anim-in">
-              <div class="blk-body">
-                <div class="sec-sub">✍️ Datos del Firmante</div>
-                <div class="g3" style="margin-bottom:20px">
-                  <div class="fc"><label class="lbl">Nombre del Firmante</label><input class="inp" formControlName="firmaNombre"/></div>
-                  <div class="fc"><label class="lbl">Cargo</label><input class="inp" formControlName="firmaCargo"/></div>
-                  <div class="fc"><label class="lbl">Fecha</label><input class="inp" type="date" formControlName="firmaFecha"/></div>
-                </div>
-
-                <div class="sec-sub">📎 Documentos Adjuntos</div>
-                <div class="drop-zone" [class.drop-drag]="dragging()" (dragover)="$event.preventDefault(); dragging.set(true)" (dragleave)="dragging.set(false)" (drop)="$event.preventDefault(); dragging.set(false); onFiles($any($event.dataTransfer?.files))" (click)="fi.click()">
-                  <div class="dz-ico">📎</div>
-                  <div class="dz-main">Arrastra documentos aquí</div>
-                  <input #fi type="file" multiple accept=".pdf,.jpg,.jpeg,.png,.docx" style="display:none" (change)="onFiles($any($event.target.files))"/>
-                </div>
-
-                @for(a of adjuntos(); track a.id){
-                  <div class="adj-item">
-                    <span class="adj-ico">{{icoAdj(a.tipo)}}</span>
-                    <div class="adj-info"><div class="adj-nom">{{a.nombre}}</div><div class="adj-sz">{{(a.tamano / 1024).toFixed(1)}} KB</div></div>
-                    <button class="adj-del" (click)="quitarAdj(a.id)">✕</button>
-                  </div>
-                }
-
-                <div class="cta">
-                  @if(completo()){
-                    <div class="cta-btns">
-                      <button class="btn-cta btn-cta-save" (click)="guardarEnBackend()" [disabled]="guardando()">
-                        @if(guardando()){ <span class="spin-sm"></span> Guardando… } @else { <span>💾</span> {{planEditandoId() ? 'Actualizar en servidor' : 'Guardar en servidor'}} }
-                      </button>
-                    </div>
-                  } @else {
-                    <div class="cta-pend">
-                      <p>Completa los campos <span class="req">✦</span> obligatorios:</p>
-                    </div>
-                  }
-                </div>
-
-                @if(planEditandoId()){
-                  <div style="text-align:center;margin-top:12px">
-                    <button class="btn-cancelar-edit" (click)="planEditandoId.set(null); fg.reset(); paso.set(0)">✕ Cancelar edición</button>
-                  </div>
-                }
-              </div>
-            </div>
-          }
-
-          <div class="wiz-nav">
-            <button class="wn-btn wn-prev" [disabled]="paso() === 0" (click)="anterior()">← Anterior</button>
-            <div class="wn-dots">
-              @for(p of PASOS; track p.titulo; let i = $index){
-                <button class="wn-dot" [class.wnd-on]="paso() === i" [class.wnd-done]="pasoDone(i)" [style.--c]="p.color" (click)="irA(i)" [title]="p.titulo"></button>
-              }
-            </div>
-            @if(paso() < PASOS.length - 1){
-              <button class="wn-btn wn-next" (click)="siguiente()">Siguiente →</button>
-            } @else {
-              @if(completo()){
-                <button class="wn-btn wn-pv" (click)="verPrevia.set(true)">👁️ Vista Previa</button>
-              } @else {
-                <button class="wn-btn wn-next" disabled>Pendientes ({{pendientes().length}})</button>
-              }
-            }
-          </div>
-
-        </div>
+        </form>
       </div>
-    }
+    </div>
 
-    @if(tabActivo() === 'hist'){
-      <div class="hist">
-        <div class="hist-hdr">
-          <h2>Historial de Planes de Trabajo</h2>
-          <p>@if(cargandoPlanes()){ <span class="spin-sm"></span> Cargando… } @else { {{totalPlanes()}} plan(es) registrado(s) }</p>
-        </div>
-
-        @if(cargandoPlanes()){
-          <div class="empty"><div class="empty-ico">⏳</div><div>Consultando servidor…</div></div>
-        } @else if(!planesBackend().length){
-          <div class="empty">
-            <div class="empty-ico">📋</div><div>No hay planes registrados aún</div>
-            <button class="btn-nuevo" style="margin-top:14px" (click)="tabActivo.set('form'); paso.set(0)">➕ Crear primer plan</button>
-          </div>
-        } @else {
-          <div class="hist-grid">
-            @for(plan of planesBackend(); track plan.id){
-              <div class="hcard" [class.hcard-editing]="planEditandoId() === plan.id">
-                @if(planEditandoId() === plan.id){ <div class="hcard-badge-editing">✏️ Editando ahora</div> }
-                <div class="hcard-top">
-                  <div class="hc-nom">📅 {{plan.periodo}}</div>
-                  <div class="hc-mun">🗓️ {{formatFecha(plan.fechaInicio)}} @if(plan.fechaFin){ — {{formatFecha(plan.fechaFin)}} }</div>
-                </div>
-                <div class="hcard-body">
-                  @if(plan.datosJsonb?.proceso_ingreso?.situacion_actual){
-                    <div class="hc-resumen">
-                      <span class="hc-resumen-lbl">Ingreso:</span> {{plan.datosJsonb.proceso_ingreso.situacion_actual | slice:0:90}}
-                    </div>
-                  }
-                  <div class="hc-fecha">
-                    @if(plan.createdAt){ 🕐 Creado: {{formatFecha(plan.createdAt)}} }
-                  </div>
-                  <div class="hc-btns">
-                    <button class="hb hb-edit" [disabled]="eliminandoId() === plan.id" (click)="cargarPlanEnFormulario(plan)">✏️ Editar</button>
-                    <button class="hb hb-del" [disabled]="eliminandoId() === plan.id" (click)="eliminarPlan(plan)">
-                      @if(eliminandoId() === plan.id){ <span class="spin-sm"></span> } @else { 🗑️ }
-                    </button>
-                  </div>
-                </div>
-              </div>
-            }
-          </div>
-          <div style="margin-top:18px;text-align:center">
-            <button class="btn-nuevo" (click)="planEditandoId.set(null); fg.reset(); tabActivo.set('form'); paso.set(0)">➕ Crear nuevo plan</button>
-          </div>
-        }
-      </div>
-    }
-  </div>
+  </main>
 </div>

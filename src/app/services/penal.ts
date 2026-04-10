@@ -11,6 +11,7 @@ export class PenalService {
   private API_TRABAJO      = `${this.BASE}/penal/estudio-trabajo-social`;
   private API_PLAN         = `${this.BASE}/penal/plan-trabajo`;
   private API_DOCS         = `${this.BASE}/penal/documentos`;
+  private API_FICHA_SEG    = `${this.BASE}/penal/ficha-seguimiento`;
 
   constructor(private http: HttpClient) {}
 
@@ -213,5 +214,86 @@ deleteActividad(id: number) {
       headers, 
       responseType: 'blob' 
     });
+  }
+
+  // ─── FICHA DE SEGUIMIENTO ──────────────────────────
+  saveFichaSeguimiento(data: any): Observable<any> {
+    return this.http.post(this.API_FICHA_SEG, data, { headers: this._headers() });
+  }
+  getFichasSeguimientoByExpediente(expedienteId: number): Observable<any> {
+    return this.http.get(`${this.API_FICHA_SEG}/expediente/${expedienteId}`, { headers: this._headers() });
+  }
+  getFichaSeguimientoById(id: number): Observable<any> {
+    return this.http.get(`${this.API_FICHA_SEG}/${id}`, { headers: this._headers() });
+  }
+  updateFichaSeguimiento(id: number, data: any): Observable<any> {
+    return this.http.patch(`${this.API_FICHA_SEG}/${id}`, data, { headers: this._headers() });
+  }
+  deleteFichaSeguimiento(id: number): Observable<any> {
+    return this.http.delete(`${this.API_FICHA_SEG}/${id}`, { headers: this._headers() });
+  }
+  getFichaSeguimientoPdf(id: number): Observable<Blob> {
+    const headers = this._headers().delete('Content-Type');
+    return this.http.get(`${this.BASE}/penal/documentos/ficha-seguimiento/${id}/pdf`, {
+      headers,
+      responseType: 'blob'
+    });
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  //  HISTORIAL SUPERVISIÓN
+  // ═══════════════════════════════════════════════════════════
+  getHistorialByExpediente(expedienteId: number): Observable<any> {
+    return this.http.get(`${this.BASE}/penal/historial-supervision/expediente/${expedienteId}`, { headers: this._headers() });
+  }
+  getHistorialById(id: number): Observable<any> {
+    return this.http.get(`${this.BASE}/penal/historial-supervision/${id}`, { headers: this._headers() });
+  }
+  createHistorial(data: any): Observable<any> {
+    return this.http.post(`${this.BASE}/penal/historial-supervision`, data, { headers: this._headers() });
+  }
+  updateHistorial(id: number, data: any): Observable<any> {
+    return this.http.patch(`${this.BASE}/penal/historial-supervision/${id}`, data, { headers: this._headers() });
+  }
+  deleteHistorial(id: number): Observable<any> {
+    return this.http.delete(`${this.BASE}/penal/historial-supervision/${id}`, { headers: this._headers() });
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  //  NOTA EVOLUCIÓN PSICOLÓGICA
+  // ═══════════════════════════════════════════════════════════
+  getNotasByExpediente(expedienteId: number): Observable<any> {
+    return this.http.get(`${this.BASE}/penal/nota-evolucion-psicologica/expediente/${expedienteId}`, { headers: this._headers() });
+  }
+  getNotaById(id: number): Observable<any> {
+    return this.http.get(`${this.BASE}/penal/nota-evolucion-psicologica/${id}`, { headers: this._headers() });
+  }
+  createNota(data: any): Observable<any> {
+    return this.http.post(`${this.BASE}/penal/nota-evolucion-psicologica`, data, { headers: this._headers() });
+  }
+  updateNota(id: number, data: any): Observable<any> {
+    return this.http.patch(`${this.BASE}/penal/nota-evolucion-psicologica/${id}`, data, { headers: this._headers() });
+  }
+  deleteNota(id: number): Observable<any> {
+    return this.http.delete(`${this.BASE}/penal/nota-evolucion-psicologica/${id}`, { headers: this._headers() });
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  //  INCIDENCIAS PENALES
+  // ═══════════════════════════════════════════════════════════
+  getIncidenciasByExpediente(expedienteId: number): Observable<any> {
+    return this.http.get(`${this.BASE}/penal/incidencias/expediente/${expedienteId}`, { headers: this._headers() });
+  }
+  getIncidenciaById(id: number): Observable<any> {
+    return this.http.get(`${this.BASE}/penal/incidencias/${id}`, { headers: this._headers() });
+  }
+  createIncidencia(data: any): Observable<any> {
+    return this.http.post(`${this.BASE}/penal/incidencias`, data, { headers: this._headers() });
+  }
+  updateIncidencia(id: number, data: any): Observable<any> {
+    return this.http.patch(`${this.BASE}/penal/incidencias/${id}`, data, { headers: this._headers() });
+  }
+  deleteIncidencia(id: number): Observable<any> {
+    return this.http.delete(`${this.BASE}/penal/incidencias/${id}`, { headers: this._headers() });
   }
 }

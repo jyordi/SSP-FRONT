@@ -163,6 +163,38 @@ export const routes: Routes = [
         .then(m => m.DetalleCivicoComponent),
   },
 
+  {
+    path: 'penal/ficha-seguimiento/:id',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./pages/ficha-seguimiento/ficha-seguimiento')
+        .then(m => m.FichaSeguimientoComponent),
+  },
+
+  {
+    path: 'penal/historial-supervision/:id',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./pages/historial-supervision/historial-supervision')
+        .then(m => m.HistorialSupervisionComponent),
+  },
+
+  {
+    path: 'penal/nota-evolucion/:id',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./pages/nota-evolucion/nota-evolucion')
+        .then(m => m.NotaEvolucionComponent),
+  },
+
+  {
+    path: 'penal/incidencias/:id',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./pages/incidencias-penal/incidencias-penal.component')
+        .then(m => m.IncidenciasPenalComponent),
+  },
+
   // 🔚 FINAL
   { path: '**', redirectTo: 'login' }
 

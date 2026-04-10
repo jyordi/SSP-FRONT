@@ -1,0 +1,290 @@
+<app-navbar-reconecta></app-navbar-reconecta>
+
+<!-- TOAST -->
+<div class="toast-container" *ngIf="toast">
+  <div class="toast" [ngClass]="'toast-' + toast.tipo">
+    <span class="toast-icon" *ngIf="toast.tipo === 'ok'">✅</span>
+    <span class="toast-icon" *ngIf="toast.tipo === 'error'">❌</span>
+    <span class="toast-icon" *ngIf="toast.tipo === 'warn'">⚠️</span>
+    <span class="toast-icon" *ngIf="toast.tipo === 'info'">ℹ️</span>
+    <span>{{ toast.msg }}</span>
+  </div>
+</div>
+
+<!-- LOADING OVERLAY -->
+<div *ngIf="loading" class="overlay">
+  <div class="loader-gov"></div>
+  <p class="loading-text">Cargando expediente...</p>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- CONTENIDO PRINCIPAL -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="container fade-in" *ngIf="!loading && expediente">
+
+  <!-- HEADER -->
+  <div class="page-header">
+    <button class="btn-back" (click)="volver()">
+      <span class="back-arrow">←</span> Volver
+    </button>
+    <div class="header-center">
+      <h2>Ficha de Seguimiento</h2>
+      <div class="header-subtitle">
+        <span class="badge-exp">Exp. #{{ expediente.id }}</span>
+        <span class="badge-nombre">{{ expediente.beneficiario?.nombre }}</span>
+      </div>
+    </div>
+    <div class="header-role">
+      <span class="role-chip">{{ role | uppercase }}</span>
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs-bar">
+    <button class="tab" [class.active]="vistaActiva === 'nueva'" (click)="cambiarVista('nueva')">
+      <span class="tab-icon">✍️</span> Nueva Ficha
+    </button>
+    <button class="tab" [class.active]="vistaActiva === 'historial'" (click)="cambiarVista('historial')">
+      <span class="tab-icon">📋</span> Historial
+      <span class="tab-badge" *ngIf="fichas.length > 0">{{ fichas.length }}</span>
+    </button>
+  </div>
+
+  <!-- ═══════════════════════════════ -->
+  <!-- NUEVA FICHA -->
+  <!-- ═══════════════════════════════ -->
+  <div class="card-main slide-in" *ngIf="vistaActiva === 'nueva'">
+
+    <!-- FECHA / PERIODO -->
+    <div class="section-header-bar">Información del Informe</div>
+    <div class="row-2">
+      <div class="field" [class.has-error]="tieneError('fecha')">
+        <label>Fecha del Informe <span class="req">*</span></label>
+        <input type="date" [(ngModel)]="fecha" />
+        <span class="error-msg" *ngIf="tieneError('fecha')">{{ errores['fecha'] }}</span>
+      </div>
+      <div class="field" [class.has-error]="tieneError('periodo')">
+        <label>Periodo a evaluar <span class="req">*</span></label>
+        <input type="text" [(ngModel)]="periodo" placeholder="Ej: Mayo 2026" />
+        <span class="error-msg" *ngIf="tieneError('periodo')">{{ errores['periodo'] }}</span>
+      </div>
+    </div>
+
+    <!-- BENEFICIARIO (autorellenado, desactivado) -->
+    <div class="section-header-bar">Datos del Beneficiario</div>
+    <div class="row-2">
+      <div class="field"><label>Nombre</label><input disabled [value]="datosPersonalesJsonb.nombre" /></div>
+    </div>
+    <div class="row-2">
+      <div class="field"><label>Teléfono</label><input disabled [value]="datosPersonalesJsonb.telefono" /></div>
+      <div class="field"><label>Domicilio</label><input disabled [value]="datosPersonalesJsonb.domicilio" /></div>
+    </div>
+
+    <!-- EVALUACIÓN -->
+    <div class="section-header-bar">Evaluación del Periodo</div>
+    <div class="field" [class.has-error]="tieneError('cumplimientoGeneral')">
+      <label>Cumplimiento General <span class="req">*</span></label>
+      <textarea rows="3" [(ngModel)]="cumplimientoGeneral" placeholder="Describe el cumplimiento de las actividades asignadas..."></textarea>
+      <span class="error-msg" *ngIf="tieneError('cumplimientoGeneral')">{{ errores['cumplimientoGeneral'] }}</span>
+    </div>
+    <div class="field" [class.has-error]="tieneError('comportamiento')">
+      <label>Comportamiento y Actitud <span class="req">*</span></label>
+      <textarea rows="3" [(ngModel)]="comportamiento" placeholder="Conducta durante el periodo evaluado..."></textarea>
+      <span class="error-msg" *ngIf="tieneError('comportamiento')">{{ errores['comportamiento'] }}</span>
+    </div>
+    <div class="field">
+      <label>Observaciones Generales</label>
+      <textarea rows="3" [(ngModel)]="observaciones" placeholder="Información adicional relevante..."></textarea>
+    </div>
+
+    <!-- INCIDENCIAS -->
+    <div class="section-header-bar">Control de Incidencias</div>
+    <div class="row-2">
+      <div class="field field-sm">
+        <label>Inasistencias</label>
+        <input type="number" min="0" [(ngModel)]="incidenciasJsonb.inasistencias" />
+      </div>
+      <div class="field field-sm">
+        <label>Incumplimientos</label>
+        <input type="number" min="0" [(ngModel)]="incidenciasJsonb.incumplimientos" />
+      </div>
+    </div>
+    <div class="field">
+      <label>Detalle de Incidencias</label>
+      <div class="input-add-row">
+        <input type="text" [(ngModel)]="nuevaIncidenciaObs" placeholder="Ej: Retardo en sesión grupal" (keydown.enter)="agregarObsIncidencia()" />
+        <button class="btn-add" (click)="agregarObsIncidencia()">+ Agregar</button>
+      </div>
+      <ul class="chip-list" *ngIf="incidenciasJsonb.observaciones.length > 0">
+        <li *ngFor="let obs of incidenciasJsonb.observaciones; let i = index" class="chip-item">
+          <span>{{ obs }}</span>
+          <button class="chip-remove" (click)="eliminarObsIncidencia(i)">✕</button>
+        </li>
+      </ul>
+    </div>
+
+    <!-- RECOMENDACIONES -->
+    <div class="section-header-bar">Conclusión</div>
+    <div class="field">
+      <label>Recomendaciones Finales</label>
+      <textarea rows="3" [(ngModel)]="recomendaciones" placeholder="Sugerencias para el próximo periodo..."></textarea>
+    </div>
+
+    <!-- GUARDAR -->
+    <div class="actions-bar">
+      <button class="btn-primary" (click)="guardar()" [disabled]="guardando">
+        <span *ngIf="!guardando">💾 Guardar Ficha</span>
+        <span *ngIf="guardando" class="btn-loading"><span class="spinner-w"></span> Guardando...</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════ -->
+  <!-- HISTORIAL -->
+  <!-- ═══════════════════════════════ -->
+  <div class="slide-in" *ngIf="vistaActiva === 'historial'">
+
+    <!-- LOADING -->
+    <div class="state-box" *ngIf="loadingFichas">
+      <div class="loader-gov"></div>
+      <p class="loading-text">Cargando fichas de seguimiento...</p>
+    </div>
+
+    <!-- VACÍO -->
+    <div class="state-box state-empty" *ngIf="!loadingFichas && fichas.length === 0">
+      <div class="empty-icon">📭</div>
+      <p>No hay fichas de seguimiento registradas.</p>
+      <button class="btn-secondary" (click)="cambiarVista('nueva')">Crear primera ficha</button>
+    </div>
+
+    <!-- LISTA + DETALLE -->
+    <div class="split-view" *ngIf="!loadingFichas && fichas.length > 0">
+
+      <!-- PANEL IZQUIERDO: LISTA -->
+      <div class="list-panel">
+        <div class="list-header">
+          <span>{{ fichas.length }} ficha(s)</span>
+          <button class="btn-icon" (click)="cargarFichas()" title="Actualizar">
+            <span class="icon-spin" [class.spinning]="loadingFichas">🔄</span>
+          </button>
+        </div>
+        <div class="list-scroll">
+          <div class="list-item" *ngFor="let f of fichas"
+            [class.active]="fichaSeleccionada?.id === f.id"
+            (click)="seleccionarFicha(f)">
+            <div class="list-item-top">
+              <span class="list-periodo">{{ f.periodo }}</span>
+              <span class="list-id">#{{ f.id }}</span>
+            </div>
+            <div class="list-item-bottom">
+              <span>{{ f.fecha | date:'dd/MM/yyyy' }}</span>
+              <span class="list-guia">{{ f.guia?.nombre || '—' }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PANEL DERECHO: DETALLE / EDICIÓN -->
+      <div class="detail-panel" *ngIf="fichaSeleccionada; else placeholderTpl">
+
+        <!-- TOOLBAR DETALLE -->
+        <div class="detail-toolbar">
+          <div class="detail-toolbar-left">
+            <h3>Ficha #{{ fichaSeleccionada.id }}</h3>
+            <span class="periodo-tag">{{ fichaSeleccionada.periodo }}</span>
+          </div>
+          <div class="detail-toolbar-right">
+            <!-- PDF -->
+            <button class="btn-pdf" (click)="descargarPdf(fichaSeleccionada.id)" [disabled]="descargandoPdf" title="Descargar PDF">
+              <span *ngIf="!descargandoPdf">📄 PDF</span>
+              <span *ngIf="descargandoPdf" class="btn-loading"><span class="spinner-w-sm"></span></span>
+            </button>
+            <!-- EDITAR -->
+            <button class="btn-edit" *ngIf="puedeEditar() && !modoEdicion" (click)="toggleEdicion()">✏️ Editar</button>
+            <button class="btn-cancel" *ngIf="modoEdicion" (click)="toggleEdicion()">✕ Cancelar</button>
+            <!-- ELIMINAR -->
+            <button class="btn-danger" *ngIf="puedeEliminar()" (click)="eliminarFicha(fichaSeleccionada.id)" [disabled]="eliminando">
+              <span *ngIf="!eliminando">🗑️</span>
+              <span *ngIf="eliminando" class="spinner-r-sm"></span>
+            </button>
+          </div>
+        </div>
+
+        <!-- ══════ MODO LECTURA ══════ -->
+        <div *ngIf="!modoEdicion" class="detail-body fade-in">
+          <div class="detail-section-title">Información General</div>
+          <div class="kv-row"><span class="kv-k">Fecha</span><span class="kv-v">{{ fichaSeleccionada.fecha | date:'dd/MM/yyyy' }}</span></div>
+          <div class="kv-row"><span class="kv-k">Guía</span><span class="kv-v">{{ fichaSeleccionada.guia?.nombre || '—' }}</span></div>
+
+          <div class="detail-section-title">Datos del Beneficiario</div>
+          <div class="kv-row"><span class="kv-k">Nombre</span><span class="kv-v">{{ fichaSeleccionada.datosPersonalesJsonb?.nombre }}</span></div>
+          <div class="kv-row"><span class="kv-k">Teléfono</span><span class="kv-v">{{ fichaSeleccionada.datosPersonalesJsonb?.telefono || '—' }}</span></div>
+          <div class="kv-row"><span class="kv-k">Domicilio</span><span class="kv-v">{{ fichaSeleccionada.datosPersonalesJsonb?.domicilio || '—' }}</span></div>
+
+          <div class="detail-section-title">Evaluación</div>
+          <div class="kv-block"><span class="kv-k">Cumplimiento General</span><p>{{ fichaSeleccionada.cumplimientoGeneral || '—' }}</p></div>
+          <div class="kv-block"><span class="kv-k">Comportamiento</span><p>{{ fichaSeleccionada.comportamiento || '—' }}</p></div>
+          <div class="kv-block"><span class="kv-k">Observaciones</span><p>{{ fichaSeleccionada.observaciones || '—' }}</p></div>
+
+          <div class="detail-section-title">Incidencias</div>
+          <div class="stat-row">
+            <div class="stat-card"><span class="stat-num">{{ fichaSeleccionada.incidenciasJsonb?.inasistencias || 0 }}</span><span class="stat-label">Inasistencias</span></div>
+            <div class="stat-card stat-warn"><span class="stat-num">{{ fichaSeleccionada.incidenciasJsonb?.incumplimientos || 0 }}</span><span class="stat-label">Incumplimientos</span></div>
+          </div>
+          <ul class="obs-list" *ngIf="fichaSeleccionada.incidenciasJsonb?.observaciones?.length > 0">
+            <li *ngFor="let obs of fichaSeleccionada.incidenciasJsonb.observaciones">{{ obs }}</li>
+          </ul>
+          <p class="empty-text" *ngIf="!fichaSeleccionada.incidenciasJsonb?.observaciones?.length">Sin incidencias detalladas.</p>
+
+          <div class="detail-section-title">Conclusión</div>
+          <div class="kv-block"><span class="kv-k">Recomendaciones</span><p>{{ fichaSeleccionada.recomendaciones || '—' }}</p></div>
+        </div>
+
+        <!-- ══════ MODO EDICIÓN ══════ -->
+        <div *ngIf="modoEdicion" class="detail-body fade-in">
+          <div class="detail-section-title">Editar Ficha</div>
+          <div class="row-2">
+            <div class="field"><label>Fecha</label><input type="date" [(ngModel)]="fichaSeleccionada.fecha" /></div>
+            <div class="field"><label>Periodo</label><input type="text" [(ngModel)]="fichaSeleccionada.periodo" /></div>
+          </div>
+          <div class="field"><label>Cumplimiento General</label><textarea rows="3" [(ngModel)]="fichaSeleccionada.cumplimientoGeneral"></textarea></div>
+          <div class="field"><label>Comportamiento</label><textarea rows="3" [(ngModel)]="fichaSeleccionada.comportamiento"></textarea></div>
+          <div class="field"><label>Observaciones</label><textarea rows="3" [(ngModel)]="fichaSeleccionada.observaciones"></textarea></div>
+          <div class="row-2">
+            <div class="field field-sm"><label>Inasistencias</label><input type="number" min="0" [(ngModel)]="fichaSeleccionada.incidenciasJsonb.inasistencias" /></div>
+            <div class="field field-sm"><label>Incumplimientos</label><input type="number" min="0" [(ngModel)]="fichaSeleccionada.incidenciasJsonb.incumplimientos" /></div>
+          </div>
+          <div class="field">
+            <label>Incidencias</label>
+            <div class="input-add-row">
+              <input type="text" [(ngModel)]="fichaSeleccionada._nuevaObs" placeholder="Agregar incidencia" (keydown.enter)="agregarObsIncidenciaEdicion()" />
+              <button class="btn-add" (click)="agregarObsIncidenciaEdicion()">+ Agregar</button>
+            </div>
+            <ul class="chip-list" *ngIf="fichaSeleccionada.incidenciasJsonb?.observaciones?.length > 0">
+              <li *ngFor="let obs of fichaSeleccionada.incidenciasJsonb.observaciones; let i = index" class="chip-item">
+                <span>{{ obs }}</span>
+                <button class="chip-remove" (click)="eliminarObsIncidenciaEdicion(i)">✕</button>
+              </li>
+            </ul>
+          </div>
+          <div class="field"><label>Recomendaciones</label><textarea rows="3" [(ngModel)]="fichaSeleccionada.recomendaciones"></textarea></div>
+          <div class="actions-bar">
+            <button class="btn-primary" (click)="actualizarFicha()" [disabled]="guardando">
+              <span *ngIf="!guardando">💾 Guardar Cambios</span>
+              <span *ngIf="guardando" class="btn-loading"><span class="spinner-w"></span> Guardando...</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- PLACEHOLDER -->
+      <ng-template #placeholderTpl>
+        <div class="placeholder-panel">
+          <div class="placeholder-icon">👈</div>
+          <p>Selecciona una ficha del listado para ver su detalle</p>
+        </div>
+      </ng-template>
+    </div>
+  </div>
+</div>

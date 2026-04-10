@@ -1,8 +1,9 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { PenalService } from '../../services/penal';
+import { SessionService } from '../../services/session';
 import { NavbarReconectaComponent } from "../../shared/navbar-reconecta/navbar-reconecta";
 
 @Component({
@@ -12,12 +13,12 @@ import { NavbarReconectaComponent } from "../../shared/navbar-reconecta/navbar-r
   templateUrl: './nuevo-expediente-penal.html',
   styleUrls: ['./nuevo-expediente-penal.css']
 })
-export class NuevoExpedientePenalComponent {
+export class NuevoExpedientePenalComponent implements OnInit {
 
   paso = 1;
   loading = false;
-  mensaje = '';
-  error = '';
+  
+  toast: { msg: string; tipo: 'ok' | 'error' } | null = null;
 
   beneficiarioId!: number;
 
@@ -27,45 +28,54 @@ export class NuevoExpedientePenalComponent {
   beneficiarioForm: FormGroup;
   penalForm: FormGroup;
 
+  role: string = '';
+
   constructor(
     private fb: FormBuilder,
     private penalService: PenalService,
+    private session: SessionService,
     private router: Router
   ) {
 
+    // Solo pide lo que el back de beneficiarios espera
     this.beneficiarioForm = this.fb.group({
-      nombre: ['', Validators.required],
-      curp: ['', Validators.required],
-      sexo: ['HOMBRE', Validators.required],
-      fechaNacimiento: ['', Validators.required],
-      tiempoAsignado: [1, Validators.required],
-      unidadTiempo: ['HORAS', Validators.required],
+      nombre: ['', [Validators.required, Validators.minLength(3)]],
+      tiempoAsignado: [6, [Validators.required, Validators.min(1)]],
+      unidadTiempo: ['MESES', Validators.required],
       urlFoto: ['']
     });
 
+    // Pide estrictamente lo del JSON de expediente penal
     this.penalForm = this.fb.group({
-      cPenal: [''],
-      expedienteTecnico: [''],
-      folioExpediente: [''],
-      juzgado: [''],
-      delito: [''],
+      cPenal: ['', Validators.required],
+      expedienteTecnico: ['', Validators.required],
+      folioIncorporacion: ['', Validators.required],
+      juzgado: ['', Validators.required],
+      delito: ['', Validators.required],
       agraviado: [''],
-      fechaIngresoPrograma: [''],
+      fechaIngresoPrograma: ['', Validators.required],
       fechaSuspensionProceso: [''],
-      fechaFinSupervision: [''],
-      medidaCautelar: [''],
+      fechaFinSupervision: ['', Validators.required],
+      medidaCautelar: ['', Validators.required],
       observaciones: ['']
     });
   }
 
-  // 📸 COMPRESIÓN DE IMAGEN (SOLUCIÓN 413)
+  ngOnInit() {
+    this.role = this.session.getRole();
+    if (this.role !== 'admin') {
+      this.router.navigate(['/expedientes']);
+    }
+  }
+
+  // 📸 COMPRESIÓN DE IMAGEN
   onFileChange(event: any) {
     const file = event.target.files[0];
 
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
-      this.error = 'Solo se permiten imágenes';
+      this.mostrarToast('Solo se permiten imágenes (jpg, png)', 'error');
       return;
     }
 
@@ -76,9 +86,7 @@ export class NuevoExpedientePenalComponent {
       img.src = e.target.result;
 
       img.onload = () => {
-
         const canvas = document.createElement('canvas');
-
         const MAX_WIDTH = 300;
         const scale = MAX_WIDTH / img.width;
 
@@ -104,14 +112,13 @@ export class NuevoExpedientePenalComponent {
   }
 
   crearBeneficiario() {
-
     if (this.beneficiarioForm.invalid) {
-      this.error = 'Completa los campos';
+      this.beneficiarioForm.markAllAsTouched();
+      this.mostrarToast('Por favor completa los campos del beneficiario', 'error');
       return;
     }
 
     this.loading = true;
-    this.error = '';
 
     const data = {
       ...this.beneficiarioForm.value,
@@ -124,18 +131,31 @@ export class NuevoExpedientePenalComponent {
           this.beneficiarioId = res.id;
           this.loading = false;
           this.paso = 2;
+          this.mostrarToast('Beneficiario registrado. Continúa con el expediente.', 'ok');
         },
         error: (err) => {
           this.loading = false;
-          this.error = err.error?.message || 'Error al crear beneficiario';
+          this.mostrarToast(err.error?.message || 'Error al crear beneficiario', 'error');
         }
       });
   }
 
   crearExpediente() {
+    if (this.penalForm.invalid) {
+       this.penalForm.markAllAsTouched();
+       this.mostrarToast('Revisa los campos obligatorios del expediente', 'error');
+       return;
+    }
+
+    // Validación de fechas
+    const fi = new Date(this.penalForm.value.fechaIngresoPrograma);
+    const ff = new Date(this.penalForm.value.fechaFinSupervision);
+    if (ff < fi) {
+       this.mostrarToast('La fecha de fin no puede ser menor a la de ingreso', 'error');
+       return;
+    }
 
     this.loading = true;
-    this.mensaje = 'Guardando expediente...';
 
     const data = {
       ...this.penalForm.value,
@@ -145,16 +165,32 @@ export class NuevoExpedientePenalComponent {
     this.penalService.crearExpediente(data)
       .subscribe({
         next: () => {
-          this.mensaje = 'Expediente creado correctamente ✅';
+          this.loading = false;
+          this.mostrarToast('✅ Expediente creado correctamente', 'ok');
 
           setTimeout(() => {
             this.router.navigate(['/expedientes']);
-          }, 1500);
+          }, 2000);
         },
         error: (err) => {
           this.loading = false;
-          this.error = err.error?.message || 'Error al crear expediente';
+          this.mostrarToast(err.error?.message || 'Error al crear expediente', 'error');
         }
       });
+  }
+
+  regresarPaso1() {
+    this.paso = 1;
+  }
+
+  regresar() {
+    if(confirm('¿Seguro que deseas salir? Los datos no guardados se perderán.')) {
+      this.router.navigate(['/expedientes']);
+    }
+  }
+
+  mostrarToast(msg: string, tipo: 'ok' | 'error') {
+    this.toast = { msg, tipo };
+    setTimeout(() => this.toast = null, 3500);
   }
 }

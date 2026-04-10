@@ -1,60 +1,112 @@
-<div class="wrapper">
+<app-navbar-reconecta></app-navbar-reconecta>
 
-  <!-- NAVBAR -->
-  <header class="top-nav">
-    <span>Reconecta con la Paz</span>
-    <button class="btn-back" (click)="regresar()">← Regresar</button>
-  </header>
-
-  <div class="container">
-
-    <!-- FORM -->
-    <div class="card fade-in">
-
-      <h2>Crear Nuevo Usuario</h2>
-
-      <form [formGroup]="form" (ngSubmit)="submit()">
-
-        <input type="text" placeholder="Nombre completo" formControlName="nombre">
-        <input type="text" placeholder="Usuario" formControlName="nomUsuario">
-
-        <select formControlName="rol" class="select-rol" title="Selecciona un rol">
-          <option value="admin">Admin</option>
-          <option value="psicologo">Psicólogo</option>
-          <option value="trabajo_social">Trabajo Social</option>
-          <option value="guia">Guía</option>
-        </select>
-
-        <input type="password" placeholder="Contraseña" formControlName="contrasena">
-
-        <button class="btn-primary" [disabled]="loading">
-          {{ loading ? 'Guardando...' : 'Crear Usuario' }}
-        </button>
-
-      </form>
+<div class="page-container">
+  
+  <!-- TOAST NOTIFICATION -->
+  <div class="toast-wrap" *ngIf="toast">
+    <div class="toast" [class.toast-ok]="toast.tipo==='ok'" [class.toast-err]="toast.tipo==='error'">
+      {{ toast.msg }}
     </div>
-
-    <!-- LISTADO -->
-    <div class="card fade-in delay">
-
-      <h2>Usuarios del sistema</h2>
-
-      <div *ngFor="let u of usuarios" class="user-item">
-
-        <div class="user-header" (click)="toggleUser(u.id!)">
-          <span>{{ u.nombre }}</span>
-          <span class="badge">{{ u.rol }}</span>
-        </div>
-
-        <div class="user-details" *ngIf="expandedUser === u.id">
-          <p><strong>Usuario:</strong> {{ u.nomUsuario }}</p>
-          <p><strong>Rol:</strong> {{ u.rol }}</p>
-          <p><strong>Estatus:</strong> {{ u.estatus ? 'Activo' : 'Inactivo' }}</p>
-        </div>
-
-      </div>
-
-    </div>
-
   </div>
+
+  <main class="content-wrapper">
+    
+    <!-- HEADER -->
+    <header class="page-header slide-up">
+      <div class="header-info">
+        <button class="btn-back" (click)="regresar()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+          Volver
+        </button>
+        <div class="header-titles">
+          <h1>Gestión de Usuarios</h1>
+          <p>Administra los accesos y roles del personal del sistema.</p>
+        </div>
+      </div>
+    </header>
+
+    <div class="main-grid">
+      
+      <!-- FORM COLUMN -->
+      <section class="form-section slide-up d1">
+        <div class="card card-form">
+          <div class="card-head">
+            <svg class="head-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+            <h2>Registrar Usuario</h2>
+          </div>
+
+          <form [formGroup]="form" (ngSubmit)="submit()">
+            <div class="field">
+              <label>Nombre Completo</label>
+              <input type="text" formControlName="nombre" placeholder="Ej. Lic. Ana García">
+            </div>
+
+            <div class="field">
+              <label>Nombre de Usuario (Login)</label>
+              <input type="text" formControlName="nomUsuario" placeholder="Ej. ana_garcia">
+            </div>
+
+            <div class="field">
+              <label>Rol en el Sistema</label>
+              <div class="select-wrapper">
+                <select formControlName="rol">
+                  <option value="admin">Administrador</option>
+                  <option value="psicologo">Psicólogo/a</option>
+                  <option value="trabajo_social">Trabajador/a Social</option>
+                  <option value="guia">Guía / Seguimiento</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="field">
+              <label>Contraseña Temporal</label>
+              <input type="password" formControlName="contrasena" placeholder="Min. 6 caracteres">
+            </div>
+
+            <button type="submit" class="btn-submit" [disabled]="form.invalid || loading">
+              <span *ngIf="!loading">Crear Usuario</span>
+              <span *ngIf="loading" class="spinner"></span>
+            </button>
+          </form>
+        </div>
+      </section>
+
+      <!-- LIST COLUMN -->
+      <section class="list-section slide-up d2">
+        <div class="list-header">
+          <h2>Usuarios en el Sistema</h2>
+          <span class="count-badge">{{ usuarios.length }} registrados</span>
+        </div>
+
+        <div class="users-scroll">
+          <div class="user-card" *ngFor="let u of usuarios; let i = index" [style.animation-delay]="(0.1 + (i * 0.05)) + 's'">
+            <div class="user-main">
+              <div class="user-avatar" [class]="'av-' + u.rol">
+                {{ u.nombre.charAt(0) }}
+              </div>
+              <div class="user-info">
+                <h3>{{ u.nombre }}</h3>
+                <span class="u-login">@{{ u.nomUsuario }}</span>
+              </div>
+            </div>
+            
+            <div class="user-meta">
+              <span class="u-role-chip" [class]="'r-' + u.rol">
+                {{ getRoleLabel(u.rol) }}
+              </span>
+              <div class="u-status" [class.active]="u.estatus">
+                <span class="s-dot"></span>
+                {{ u.estatus ? 'Activo' : 'Inactivo' }}
+              </div>
+            </div>
+          </div>
+
+          <div class="empty-list" *ngIf="usuarios.length === 0">
+            <p>No hay usuarios registrados aún.</p>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
 </div>

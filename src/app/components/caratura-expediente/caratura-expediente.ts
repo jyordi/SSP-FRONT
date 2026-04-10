@@ -1,74 +1,52 @@
-import {
-  Component, OnInit, OnDestroy,
-  signal, computed, inject,
-  ChangeDetectionStrategy, ChangeDetectorRef,
-} from '@angular/core';
-import { Router, ActivatedRoute } from '@angular/router';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Subject } from 'rxjs';
-import { takeUntil, debounceTime } from 'rxjs/operators';
-import { NavbarReconectaComponent } from "../../shared/navbar-reconecta/navbar-reconecta";
+import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { Router, ActivatedRoute } from '@angular/router';
+import { SessionService } from '../../services/session';
 import { ExpedientesService } from '../../services/expedientes';
 import { PenalService } from '../../services/penal';
-
-export interface Adjunto {
-  id: number; nombre: string; tamano: number; tipo: string; dataUrl: string;
-}
-export interface EstadoPdf {
-  activo: boolean; pct: number; fase: string; exito: boolean; error: string;
-}
-
-const CAMPOS_REQ = ['nombre'];
+import { NavbarReconectaComponent } from "../../shared/navbar-reconecta/navbar-reconecta";
 
 @Component({
   selector: 'app-caratura-expediente',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, NavbarReconectaComponent],
   templateUrl: './caratura-expediente.html',
-  styleUrl: './caratura-expediente.css',
-  changeDetection: ChangeDetectionStrategy.OnPush,
+  styleUrl: './caratura-expediente.css'
 })
-export class CaraturaExpediente implements OnInit, OnDestroy {
+export class CaraturaExpediente implements OnInit {
 
-  private readonly fb     = inject(FormBuilder);
-  private readonly cdr    = inject(ChangeDetectorRef);
+  private readonly fb = inject(FormBuilder);
   private readonly router = inject(Router);
-  private readonly route  = inject(ActivatedRoute);
-  
+  private readonly route = inject(ActivatedRoute);
+  private readonly session = inject(SessionService);
   private readonly expedientesService = inject(ExpedientesService);
   private readonly penalService = inject(PenalService);
 
+  form!: FormGroup;
+  loading = false;
+  toast: { msg: string; tipo: 'ok' | 'error' } | null = null;
+
+  // Variables de Entorno
   expedienteId: number | null = null;
-  expedienteBase: any = null;
-  caratulaBackend: any = null; 
+  role = '';
+  puedeEditar = false;
 
-  // ── Signals UI ───────────────────────────────────────────────
-  readonly tabActivo  = signal<'form' | 'hist'>('form');
-  readonly verPrevia  = signal(false);
-  readonly adjuntos   = signal<Adjunto[]>([]);
-  readonly toast      = signal<{ msg: string; tipo: string }>({ msg: '', tipo: '' });
-  readonly estado     = signal<EstadoPdf>({ activo: false, pct: 0, fase: '', exito: false, error: '' });
-  readonly dragging   = signal(false);
-  readonly generando  = signal(false);
-  readonly guardando  = signal(false);
+  // Datos Preexistentes (Sólo lectura)
+  expedienteData: any = null;
+  beneficiarioData: any = null;
   
-  // 🔥 Señal para la animación de salida a Detalle Penal
-  readonly saliendo   = signal(false);
+  // Registro Existente en Backend
+  caratulaExistente: any = null;
 
-  readonly pct        = signal(0);
-  readonly completo   = signal(false);
-  readonly pendientes = signal<string[]>([]);
+  ngOnInit(): void {
+    // 1. Verificar Roles (Administrador y Trabajo Social pueden editar)
+    this.role = this.session.getRole();
+    if (this.esAdmin() || this.esTrabajoSocial()) {
+      this.puedeEditar = true;
+    }
 
-  readonly marcaUrl = signal<string>('');
-
-  fg!: FormGroup;
-  private readonly destroy$ = new Subject<void>();
-
-  ngOnInit(): void { 
-    this._buildForm(); 
-    this._watchPct(); 
-
+    // 2. Extraer ID del expediente
     const paramId = this.route.snapshot.params['id'];
     const navState = this.router.getCurrentNavigation?.()?.extras?.state ?? history.state;
 
@@ -83,156 +61,98 @@ export class CaraturaExpediente implements OnInit, OnDestroy {
       }
     }
 
-    if (this.expedienteId) {
-      this._cargarDatos();
-    } else {
-      this.toast$('No se encontró el ID del expediente', 'err');
+    if (!this.expedienteId) {
+      this.router.navigate(['/expedientes']);
+      return;
+    }
+
+    this._buildForm();
+    this._cargarDatosNativos();
+  }
+
+  private _buildForm(): void {
+    this.form = this.fb.group({
+      alias: [''],
+      observaciones: ['']
+    });
+
+    if (!this.puedeEditar) {
+      this.form.disable();
     }
   }
 
-  ngOnDestroy(): void { this.destroy$.next(); this.destroy$.complete(); }
-
-  // ══════════════════════════════════════════════════════════════
-  //  CARGA DE DATOS DEL BACKEND
-  // ══════════════════════════════════════════════════════════════
-  private _cargarDatos(): void {
+  private _cargarDatosNativos(): void {
+    this.loading = true;
+    
+    // Obtenemos los datos base del expediente para mostrarlos
     this.expedientesService.getResumenPenal(this.expedienteId!).subscribe({
       next: (res: any) => {
-        this.expedienteBase = res.expediente ?? res;
-        this._autoRellenar(this.expedienteBase, res.beneficiario ?? this.expedienteBase.beneficiario);
-        this._cargarCaratulaBackend();
+        this.expedienteData = res.expediente ?? res;
+        this.beneficiarioData = res.beneficiario ?? this.expedienteData.beneficiario;
+        
+        // Ahora consultamos si ya había una carátula guardada previamente
+        this._verificarCaratula();
       },
-      error: () => this.toast$('Error al cargar expediente base', 'err')
-    });
-  }
-
-  private _cargarCaratulaBackend(): void {
-    this.penalService.getCaratulaByExpediente(this.expedienteId!).subscribe({
-      next: (caratula) => {
-        this.caratulaBackend = caratula;
-        this.fg.patchValue({
-          nombre: caratula.nombre ?? '',
-          alias: caratula.alias ?? '',
-          juzgado: caratula.juzgado ?? '',
-          delito: caratula.delito ?? '',
-          agraviado: caratula.agraviado ?? '',
-          fechaIngreso: caratula.fechaIngresoPrograma ? caratula.fechaIngresoPrograma.slice(0,10) : '',
-          fechaSuspension: caratula.fechaSuspensionProceso ? caratula.fechaSuspensionProceso.slice(0,10) : '',
-          fechaFenece: caratula.fechaFinSupervision ? caratula.fechaFinSupervision.slice(0,10) : '',
-          medidaCautelar: caratula.medidaCautelar ?? '',
-          observacion: caratula.observaciones ?? ''
-        });
-        this.cdr.markForCheck();
-      },
-      error: (err) => {
-        if (err.status !== 404) console.error('Error al verificar carátula', err);
+      error: () => {
+        this.loading = false;
+        this.mostrarToast('Error al cargar datos base', 'error');
       }
     });
   }
 
-  private _autoRellenar(exp: any, benef: any): void {
-    if (!this.fg) return;
-    const nombre = benef?.nombre ?? benef?.nombreCompleto ?? `${benef?.nombre ?? ''} ${benef?.apellidoPaterno ?? ''} ${benef?.apellidoMaterno ?? ''}`.trim() ?? exp?.nombre ?? '';
-    const patch: Record<string, any> = {};
-
-    patch['cPenal'] = ''; 
-    if (exp?.noExpediente) patch['expedienteTecnico'] = exp.noExpediente;
-    if (nombre) patch['nombre'] = nombre;
-    if (exp?.delito) patch['delito'] = exp.delito;
-    if (exp?.juzgado) patch['juzgado'] = exp.juzgado;
-    if (exp?.agraviado) patch['agraviado'] = exp.agraviado;
-    if (exp?.medidaCautelar) patch['medidaCautelar'] = exp.medidaCautelar;
-    if (exp?.fechaIngresoPrograma) patch['fechaIngreso'] = exp.fechaIngresoPrograma.slice(0, 10);
-    
-    this.fg.patchValue(patch, { emitEvent: false });
-  }
-
-  private _buildForm(): void {
-    this.fg = this.fb.group({
-      cPenal:            [''],
-      expedienteTecnico: [''],
-      nombre:            ['', Validators.required],
-      alias:             [''],
-      juzgado:           [''],
-      delito:            [''],
-      agraviado:         [''],
-      fechaIngreso:      [''],
-      fechaSuspension:   [''],
-      fechaFenece:       [''],
-      medidaCautelar:    [''],
-      observacion:       [''],
+  private _verificarCaratula(): void {
+    this.penalService.getCaratulaByExpediente(this.expedienteId!).subscribe({
+      next: (caratula) => {
+        this.loading = false;
+        this.caratulaExistente = caratula;
+        // Si existe, inyectamos los datos al formulario
+        this.form.patchValue({
+          alias: caratula.alias ?? '',
+          observaciones: caratula.observaciones ?? ''
+        });
+      },
+      error: (err) => {
+        this.loading = false;
+        // 404 es esperado si es la primera vez
+        if (err.status !== 404) {
+          console.error('Error al verificar carátula', err);
+        }
+      }
     });
   }
 
-  private _watchPct(): void {
-    const calc = () => {
-      const v = this.fg?.value ?? {};
-      const n = CAMPOS_REQ.filter(k => v[k] && v[k] !== '').length;
-      this.pct.set(CAMPOS_REQ.length ? Math.round((n / CAMPOS_REQ.length) * 100) : 100);
-      this.completo.set(CAMPOS_REQ.every(k => v[k] && v[k] !== ''));
-      this.pendientes.set(CAMPOS_REQ.filter(k => !v[k] || v[k] === ''));
-      this.cdr.markForCheck();
-    };
-    calc();
-    this.fg.valueChanges.pipe(takeUntil(this.destroy$), debounceTime(120)).subscribe(calc);
-  }
+  guardar(): void {
+    if (!this.puedeEditar) return;
+    this.loading = true;
 
-  // ══════════════════════════════════════════════════════════════
-  //  GUARDAR EN BACKEND Y REDIRIGIR A DETALLE PENAL
-  // ══════════════════════════════════════════════════════════════
-  guardarEnBackend(): void {
-    if (!this.expedienteId) { this.toast$('No hay expediente', 'err'); return; }
-    
-    this.guardando.set(true);
-    const v = this.fg.value;
-
+    // Sólo enviamos lo indispensable
     const payload = {
       expedienteId: this.expedienteId,
-      nombre: v.nombre,
-      alias: v.alias,
-      juzgado: v.juzgado,
-      delito: v.delito,
-      agraviado: v.agraviado,
-      fechaIngresoPrograma: v.fechaIngreso || null,
-      fechaSuspensionProceso: v.fechaSuspension || null,
-      fechaFinSupervision: v.fechaFenece || null,
-      medidaCautelar: v.medidaCautelar,
-      observaciones: v.observacion
+      alias: this.form.value.alias,
+      observaciones: this.form.value.observaciones
     };
 
-    // 🔥 IMPRESIÓN EN CONSOLA DEL PAYLOAD ENVIADO
-    console.group('%c🚀 ENVIANDO DATOS A BACKEND (CARÁTULA)', 'color: #3498db; font-weight: bold; font-size: 14px');
-    console.log('Ruta: /penal/expediente-caratula');
-    console.log('Payload:', JSON.stringify(payload, null, 2));
-    console.groupEnd();
-
     const onExito = (res: any) => {
-      // 🔥 IMPRESIÓN EN CONSOLA DE LA RESPUESTA
-      console.group('%c✅ RESPUESTA DEL BACKEND (ÉXITO)', 'color: #2ecc71; font-weight: bold; font-size: 14px');
-      console.log('Datos guardados:', res);
-      console.groupEnd();
-
-      this.caratulaBackend = res;
-      this.guardando.set(false);
-      this.toast$('Carátula guardada con éxito');
-      
-      // Auto-descargar PDF y luego salir
-      this._descargarPdfYSalir(res.id);
+      this.loading = false;
+      this.caratulaExistente = res;
+      this.mostrarToast('Carátula procesada con éxito', 'ok');
+      // Redirigir casi de inmediato
+      setTimeout(() => {
+        this.regresar();
+      }, 1000);
     };
 
     const onError = (err: any) => {
-      // 🔥 IMPRESIÓN EN CONSOLA DEL ERROR
-      console.group('%c❌ ERROR DEL BACKEND', 'color: #e74c3c; font-weight: bold; font-size: 14px');
-      console.error(err);
-      console.groupEnd();
-
-      if(err.status === 409) this.toast$(err.error?.message || 'Faltan módulos previos', 'err');
-      else this.toast$('Error al guardar', 'err'); 
-      this.guardando.set(false);
+      this.loading = false;
+      if (err.status === 409) {
+        this.mostrarToast(err.error?.message || 'Conflicto de módulos previos', 'error');
+      } else {
+        this.mostrarToast('Error al guardar carátula', 'error');
+      }
     };
 
-    if (this.caratulaBackend?.id) {
-      this.penalService.updateCaratula(this.caratulaBackend.id, payload).subscribe({
+    if (this.caratulaExistente && this.caratulaExistente.id) {
+      this.penalService.updateCaratula(this.caratulaExistente.id, payload).subscribe({
         next: onExito,
         error: onError
       });
@@ -244,105 +164,59 @@ export class CaraturaExpediente implements OnInit, OnDestroy {
     }
   }
 
-  // ══════════════════════════════════════════════════════════════
-  //  DESCARGAR PDF AUTOMÁTICO Y REDIRIGIR
-  // ══════════════════════════════════════════════════════════════
-  private _descargarPdfYSalir(caratulaId: number): void {
-    this.generando.set(true);
-    this.toast$('Generando PDF...');
+  descargarPdf(): void {
+    if (!this.expedienteId) return;
+    this.loading = true;
 
-    this.penalService.getCaratulaPdf(caratulaId).subscribe({
-      next: (blob: Blob) => {
-        if (blob && blob.size > 0) {
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = `Caratula_${this.fg.value.nombre || 'Expediente'}.pdf`;
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-          URL.revokeObjectURL(url);
-          console.log('📄 PDF descargado automáticamente.');
-        }
-        this._iniciarAnimacionSalida();
+    this.penalService.getCaratulaPdf(this.expedienteId).subscribe({
+      next: (blob) => {
+        this.loading = false;
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `CARATULA_EXPEDIENTE_${this.expedienteId}.pdf`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+        this.mostrarToast('PDF generado con éxito', 'ok');
       },
-      error: (err) => { 
-        console.error('Error al generar PDF automáticamente', err);
-        this.toast$('No se pudo descargar el PDF', 'err'); 
-        this._iniciarAnimacionSalida();
+      error: () => {
+        this.loading = false;
+        this.mostrarToast('Error al generar PDF', 'error');
       }
     });
   }
 
-  // 🔥 ANIMACIÓN Y REDIRECCIÓN A DETALLE PENAL
-  private _iniciarAnimacionSalida(): void {
-    this.generando.set(false);
-    this.verPrevia.set(false);
-    this.saliendo.set(true); // Activa la capa de carga blanca
-    this.cdr.markForCheck();
-
-    setTimeout(() => {
-      // Ajusta esta ruta a tu ruta exacta de Detalle Penal
-      this.router.navigate(['/detalle-penal', this.expedienteId]); 
-    }, 1200); // 1.2 segundos para mostrar el spinner y redirigir
+  regresar(): void {
+    if (this.expedienteId) {
+      this.router.navigate(['/detalle-penal', this.expedienteId]);
+    } else {
+      this.router.navigate(['/expedientes']);
+    }
   }
 
-  // Descarga manual (cuando se le da click desde el historial)
-  descargarPdfBackend(): void {
-    if (!this.caratulaBackend?.id) return;
-    this.generando.set(true);
-    this.penalService.getCaratulaPdf(this.caratulaBackend.id).subscribe({
-      next: (blob: Blob) => {
-        if (!blob || blob.size === 0) { this.toast$('PDF vacío', 'err'); this.generando.set(false); return; }
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `Caratula_${this.fg.value.nombre || 'Expediente'}.pdf`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-        this.generando.set(false);
-        this.toast$('PDF descargado');
-      },
-      error: () => { this.toast$('Error al descargar PDF del servidor', 'err'); this.generando.set(false); }
-    });
+  mostrarToast(msg: string, tipo: 'ok' | 'error') {
+    this.toast = { msg, tipo };
+    setTimeout(() => this.toast = null, 3500);
   }
 
-  // ══════════════════════════════════════════════════════════════
-  //  ARCHIVOS Y MARCA DE AGUA
-  // ══════════════════════════════════════════════════════════════
-  onFiles(files: FileList | null): void {
-    if (!files) return;
-    Array.from(files).forEach(f => {
-      const r = new FileReader();
-      r.onload = e => {
-        this.adjuntos.update(a => [...a, { id: Date.now() + Math.random(), nombre: f.name, tamano: f.size, tipo: f.type, dataUrl: e.target!.result as string }]);
-        this.cdr.markForCheck();
-      };
-      r.readAsDataURL(f);
-    });
-  }
-  quitarAdj(id: number): void { this.adjuntos.update(a => a.filter(x => x.id !== id)); }
+  // ─── ROLES ────────────────────────────────────────────────
+  esAdmin()         { return this.role === 'admin'; }
+  esPsicologo()     { return this.role === 'psicologo'; }
+  esTrabajoSocial() { return this.role === 'trabajo_social'; }
+  esGuia()          { return this.role === 'guia'; }
 
-  cargarMarca(file: File | null): void {
-    if (!file) return;
-    const r = new FileReader();
-    r.onload = e => { this.marcaUrl.set(e.target!.result as string); this.cdr.markForCheck(); };
-    r.readAsDataURL(file);
-  }
-  quitarMarca(): void { this.marcaUrl.set(''); }
-
-  toast$(msg: string, tipo: 'ok' | 'err' = 'ok'): void {
-    this.toast.set({ msg, tipo });
-    setTimeout(() => { this.toast.set({ msg: '', tipo: '' }); this.cdr.markForCheck(); }, 3500);
+  // Funciones Utilitarias de Presentación
+  get nombreBeneficiario(): string {
+    if(this.caratulaExistente && this.caratulaExistente.nombre) return this.caratulaExistente.nombre;
+    if (!this.beneficiarioData) return 'Sin asignar';
+    return (this.beneficiarioData.nombreCompleto || 
+            `${this.beneficiarioData.nombre || ''} ${this.beneficiarioData.apellidoPaterno || ''} ${this.beneficiarioData.apellidoMaterno || ''}`).trim();
   }
 
-  regresar(): void { this.router.navigate(['/expedientes']); }
-  
-  gv(k: string): any { return this.fg?.get(k)?.value; }
-  icoAdj(t: string): string { return t?.includes('pdf') ? '📄' : t?.includes('image') ? '🖼️' : '📝'; }
-  trunc(n: string, m = 24): string { return n.length > m ? n.slice(0, m - 3) + '…' : n; }
+  get cPenal(): string { return this.expedienteData?.cPenal || '—'; }
+  get folio(): string { return this.expedienteData?.folioExpediente || this.expedienteData?.noExpediente || '—'; }
+  get juzgado(): string { return this.caratulaExistente?.juzgado || this.expedienteData?.juzgado || '—'; }
+  get delito(): string { return this.caratulaExistente?.delito || this.expedienteData?.delito || '—'; }
+  get agraviado(): string { return this.caratulaExistente?.agraviado || this.expedienteData?.agraviado || '—'; }
+  get medidaCautelar(): string { return this.caratulaExistente?.medidaCautelar || this.expedienteData?.medidaCautelar || '—'; }
 }
-
-function san(s: string): string { return s.replace(/[/\\:*?"<>|]/g, '-').replace(/\s+/g, '_').trim(); }

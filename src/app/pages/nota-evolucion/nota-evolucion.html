@@ -1,0 +1,258 @@
+<app-navbar-reconecta></app-navbar-reconecta>
+<br><br><br>
+
+<div class="shell">
+
+  <!-- TOAST -->
+  <div class="toast-container" *ngIf="toast">
+    <div class="toast-msg" [ngClass]="{
+      'toast-ok': toast.tipo === 'ok',
+      'toast-error': toast.tipo === 'error',
+      'toast-warn': toast.tipo === 'warn',
+      'toast-info': toast.tipo === 'info'
+    }">
+      <span class="toast-icon">{{ toast.tipo === 'ok' ? '✅' : toast.tipo === 'error' ? '❌' : toast.tipo === 'warn' ? '⚠️' : 'ℹ️' }}</span>
+      {{ toast.msg }}
+    </div>
+  </div>
+
+  <!-- HEADER -->
+  <div class="page-header">
+    <div class="ph-left">
+      <button class="btn-back" (click)="volver()">← Regresar</button>
+      <div class="ph-title">
+        <h1>🧠 Notas de Evolución Psicológica</h1>
+        <p *ngIf="expediente">Expediente #{{ expediente.id }} — {{ expediente.beneficiario?.nombre || 'Beneficiario' }}</p>
+      </div>
+    </div>
+    <div class="ph-right">
+      <span class="role-badge">{{ role | uppercase }}</span>
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab" [class.tab-on]="vistaActiva === 'historial'" (click)="vistaActiva = 'historial'">
+      🗂️ Sesiones
+      <span class="tab-count" *ngIf="notas.length">{{ notas.length }}</span>
+    </button>
+    <button class="tab" [class.tab-on]="vistaActiva === 'nueva'" (click)="vistaActiva = 'nueva'" *ngIf="puedeCrear">
+      ➕ Nueva Sesión
+    </button>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!--  NUEVA NOTA                                            -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <div class="content" *ngIf="vistaActiva === 'nueva' && puedeCrear">
+    <div class="form-card anim-fadeup">
+      <div class="form-header">
+        <span class="form-icon">🧠</span>
+        <div>
+          <h2>Nueva Nota de Evolución</h2>
+          <p>Registra la sesión psicológica del beneficiario</p>
+        </div>
+      </div>
+
+      <div class="form-body">
+        <div class="form-grid">
+          <div class="field">
+            <label>Fecha de Sesión <span class="req">*</span></label>
+            <input type="date" [(ngModel)]="fecha" [class.field-error]="submitted && errores['fecha']" />
+            <span class="error-msg" *ngIf="submitted && errores['fecha']">{{ errores['fecha'] }}</span>
+          </div>
+          <div class="field">
+            <label>Número de Sesión <span class="req">*</span></label>
+            <input type="number" [(ngModel)]="numeroSesion" min="1" placeholder="Ej: 1, 2, 3..."
+              [class.field-error]="submitted && errores['numeroSesion']" />
+            <span class="error-msg" *ngIf="submitted && errores['numeroSesion']">{{ errores['numeroSesion'] }}</span>
+          </div>
+          <div class="field span-2">
+            <label>Objetivo de la Sesión <span class="req">*</span></label>
+            <textarea [(ngModel)]="objetivoSesion" rows="3" placeholder="Describe el objetivo principal..."
+              [class.field-error]="submitted && errores['objetivoSesion']"></textarea>
+            <span class="error-msg" *ngIf="submitted && errores['objetivoSesion']">{{ errores['objetivoSesion'] }}</span>
+          </div>
+          <div class="field span-2">
+            <label>Descripción de la Sesión</label>
+            <textarea [(ngModel)]="descripcionSesion" rows="4" placeholder="Detalla lo trabajado en la sesión..."></textarea>
+          </div>
+          <div class="field">
+            <label>Técnicas Aplicadas</label>
+            <textarea [(ngModel)]="tecnicasAplicadas" rows="3" placeholder="Ej: Entrevista clínica, TCC..."></textarea>
+          </div>
+          <div class="field">
+            <label>Avances Percibidos</label>
+            <textarea [(ngModel)]="avances" rows="3" placeholder="Progreso observado..."></textarea>
+          </div>
+          <div class="field span-2">
+            <label>Observaciones</label>
+            <textarea [(ngModel)]="observaciones" rows="3" placeholder="Notas adicionales..."></textarea>
+          </div>
+          <div class="field">
+            <label>Próxima Sesión</label>
+            <input type="date" [(ngModel)]="proximaSesion" />
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button class="btn btn-save" (click)="guardarNota()" [disabled]="guardando">
+            <span *ngIf="guardando" class="spin"></span>
+            {{ guardando ? 'Guardando...' : '💾 Guardar Nota' }}
+          </button>
+          <button class="btn btn-clear" (click)="limpiarFormulario()">🗑️ Limpiar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!--  HISTORIAL                                             -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <div class="content" *ngIf="vistaActiva === 'historial'">
+
+    <div class="loading-state" *ngIf="loadingNotas">
+      <div class="spinner-lg"></div>
+      <p>Cargando sesiones...</p>
+    </div>
+
+    <div class="empty-state anim-fadeup" *ngIf="!loadingNotas && !notas.length">
+      <div class="empty-icon">🧠</div>
+      <h3>Sin notas de evolución</h3>
+      <p>No se han registrado sesiones psicológicas para este expediente.</p>
+      <button class="btn btn-save" *ngIf="puedeCrear" (click)="vistaActiva = 'nueva'">➕ Crear primera nota</button>
+    </div>
+
+    <div class="hist-layout" *ngIf="!loadingNotas && notas.length">
+
+      <!-- LISTA -->
+      <div class="hist-list">
+        <div class="list-header">
+          <h3>📋 Sesiones ({{ notas.length }})</h3>
+        </div>
+        <div class="list-items">
+          <div class="list-item" *ngFor="let n of notas"
+            [class.list-item-active]="notaSeleccionada?.id === n.id"
+            (click)="seleccionarNota(n)">
+            <div class="li-top">
+              <span class="li-sesion">Sesión {{ n.numeroSesion }}</span>
+              <span class="li-fecha">{{ formatFecha(n.fecha) }}</span>
+            </div>
+            <div class="li-objetivo">{{ n.objetivoSesion?.slice(0, 60) || 'Sin objetivo' }}{{ n.objetivoSesion?.length > 60 ? '...' : '' }}</div>
+            <div class="li-psicologo" *ngIf="n.psicologo">🧑‍⚕️ {{ n.psicologo.nombre }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- DETALLE -->
+      <div class="hist-detail" *ngIf="notaSeleccionada">
+        <div class="detail-card anim-fadeup">
+
+          <div class="detail-header">
+            <div class="dh-info">
+              <h2>Sesión {{ notaSeleccionada.numeroSesion }}</h2>
+              <span class="dh-fecha">{{ formatFecha(notaSeleccionada.fecha) }}</span>
+            </div>
+            <div class="dh-actions">
+              <button class="btn btn-pdf" (click)="descargarPdf()" [disabled]="descargandoPdf" *ngIf="!modoEdicion">
+                <span *ngIf="descargandoPdf" class="spin"></span>
+                {{ descargandoPdf ? 'Generando...' : '📄 PDF' }}
+              </button>
+              <button class="btn btn-edit" *ngIf="puedeEditar && !modoEdicion" (click)="iniciarEdicion()">✏️ Editar</button>
+              <button class="btn btn-del" *ngIf="puedeEliminar && !modoEdicion" (click)="eliminarNota()" [disabled]="eliminando">
+                <span *ngIf="eliminando" class="spin"></span>
+                {{ eliminando ? '...' : '🗑️' }}
+              </button>
+            </div>
+          </div>
+
+          <!-- LECTURA -->
+          <div class="detail-body" *ngIf="!modoEdicion">
+            <div class="detail-grid">
+              <div class="dg-item">
+                <span class="dg-label">🧑‍⚕️ Psicólogo</span>
+                <span class="dg-value">{{ notaSeleccionada.psicologo?.nombre || '—' }}</span>
+              </div>
+              <div class="dg-item">
+                <span class="dg-label">📅 Próxima Sesión</span>
+                <span class="dg-value">{{ formatFecha(notaSeleccionada.proximaSesion) }}</span>
+              </div>
+              <div class="dg-item span-2">
+                <span class="dg-label">🎯 Objetivo de la Sesión</span>
+                <span class="dg-value dg-text">{{ notaSeleccionada.objetivoSesion || '—' }}</span>
+              </div>
+              <div class="dg-item span-2">
+                <span class="dg-label">📝 Descripción de la Sesión</span>
+                <span class="dg-value dg-text">{{ notaSeleccionada.descripcionSesion || '—' }}</span>
+              </div>
+              <div class="dg-item">
+                <span class="dg-label">🛠️ Técnicas Aplicadas</span>
+                <span class="dg-value dg-text">{{ notaSeleccionada.tecnicasAplicadas || '—' }}</span>
+              </div>
+              <div class="dg-item">
+                <span class="dg-label">📈 Avances</span>
+                <span class="dg-value dg-text">{{ notaSeleccionada.avances || '—' }}</span>
+              </div>
+              <div class="dg-item span-2">
+                <span class="dg-label">📋 Observaciones</span>
+                <span class="dg-value dg-text">{{ notaSeleccionada.observaciones || 'Sin observaciones' }}</span>
+              </div>
+              <div class="dg-item">
+                <span class="dg-label">🕐 Registrado</span>
+                <span class="dg-value dg-small">{{ formatFecha(notaSeleccionada.creadoEn) }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- EDICIÓN -->
+          <div class="detail-body" *ngIf="modoEdicion">
+            <div class="edit-grid">
+              <div class="field">
+                <label>Fecha</label>
+                <input type="date" [ngModel]="notaSeleccionada.fecha?.slice(0,10)" (ngModelChange)="notaSeleccionada.fecha = $event" />
+              </div>
+              <div class="field">
+                <label>Nº Sesión</label>
+                <input type="number" [(ngModel)]="notaSeleccionada.numeroSesion" min="1" />
+              </div>
+              <div class="field span-2">
+                <label>Objetivo de la Sesión</label>
+                <textarea [(ngModel)]="notaSeleccionada.objetivoSesion" rows="3"></textarea>
+              </div>
+              <div class="field span-2">
+                <label>Descripción de la Sesión</label>
+                <textarea [(ngModel)]="notaSeleccionada.descripcionSesion" rows="4"></textarea>
+              </div>
+              <div class="field">
+                <label>Técnicas Aplicadas</label>
+                <textarea [(ngModel)]="notaSeleccionada.tecnicasAplicadas" rows="3"></textarea>
+              </div>
+              <div class="field">
+                <label>Avances</label>
+                <textarea [(ngModel)]="notaSeleccionada.avances" rows="3"></textarea>
+              </div>
+              <div class="field span-2">
+                <label>Observaciones</label>
+                <textarea [(ngModel)]="notaSeleccionada.observaciones" rows="3"></textarea>
+              </div>
+              <div class="field">
+                <label>Próxima Sesión</label>
+                <input type="date" [ngModel]="notaSeleccionada.proximaSesion?.slice(0,10)" (ngModelChange)="notaSeleccionada.proximaSesion = $event" />
+              </div>
+            </div>
+            <div class="edit-actions">
+              <button class="btn btn-save" (click)="guardarEdicion()" [disabled]="guardando">
+                <span *ngIf="guardando" class="spin"></span>
+                {{ guardando ? 'Guardando...' : '💾 Guardar Cambios' }}
+              </button>
+              <button class="btn btn-clear" (click)="cancelarEdicion()">✕ Cancelar</button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
