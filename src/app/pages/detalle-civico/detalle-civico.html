@@ -37,18 +37,32 @@
 
 <!-- GUIAS -->
 <button class="tab"
-  *ngIf="esAdmin()"
+  *ngIf="esAdmin() || esGuia()"
   [class.active]="tabActual === 'guias'"
   (click)="cambiarTab('guias')">
    Guías
 </button>
 
-<!-- TS -->
+<!-- PLAN DE TRABAJO (NUEVO MÓDULO) -->
 <button class="tab"
-  *ngIf="esAdmin()"
-  [class.active]="tabActual === 'tsocial'"
-  (click)="cambiarTab('tsocial')">
+  [class.active]="tabActual === 'plan'"
+  (click)="cambiarTab('plan')">
+   Plan de Trabajo
+</button>
+
+<!-- TRABAJO SOCIAL MASTER TAB -->
+<button class="tab"
+  *ngIf="esAdmin() || esTrabajadorSocial()"
+  [class.active]="tabActual === 'trabajosocial'"
+  (click)="cambiarTab('trabajosocial')">
    Trabajo Social
+</button>
+
+<!-- FICHA TÉCNICA — visible para todos los roles (solo Admin puede editar) -->
+<button class="tab"
+  [class.active]="tabActual === 'fichaTecnica'"
+  (click)="cambiarTab('fichaTecnica')">
+   Ficha Técnica
 </button>
 
 <!-- OFICIO -->
@@ -56,65 +70,137 @@
   *ngIf="esAdmin()"
   [class.active]="tabActual === 'oficio'"
   (click)="cambiarTab('oficio')">
-   Oficio
+   Oficios
 </button>
 
   </div>
 
   <!-- ================= PSICOLOGÍA ================= -->
-  <app-psico-tabs [expediente]="expediente"></app-psico-tabs>
+  <app-psico-tabs *ngIf="tabActual === 'psicologia' && (esAdmin() || esPsicologo())" [expediente]="expediente"></app-psico-tabs>
 
 
 
 
   <!-- ================= GUÍAS ================= -->
   <div class="card" *ngIf="tabActual === 'guias'">
-
-    <h3>⏱️ Control de Horas</h3>
-
-    <div class="stats">
-      <div>
-        <span class="label">Horas cubiertas</span>
-        <strong>{{ expediente.horasCubiertas || 0 }}</strong>
-      </div>
-
-      <div>
-        <span class="label">Horas totales</span>
-        <strong>{{ expediente.horasSentencia }}</strong>
-      </div>
-    </div>
-
+    <app-guia-tabs *ngIf="esAdmin() || esGuia()" [expediente]="expediente"></app-guia-tabs>
   </div>
 
-  <!-- ================= TRABAJO SOCIAL ================= -->
-  <div class="card" *ngIf="tabActual === 'tsocial'">
-
-    <h3>👥 Trabajo Social</h3>
-
-    <div *ngIf="!expediente.trabajoSocial" class="empty-box">
-      Aún no hay estudio de trabajo social
+  <!-- ================= TRABAJO SOCIAL (MASTER) ================= -->
+  <div class="card" *ngIf="tabActual === 'trabajosocial'">
+    
+    <!-- VISTA: ESTUDIO (Única vista para TS ahora) -->
+    <div>
+      <app-estudio-ts-civico [expedienteId]="expediente?.idUUID || expediente?.id"></app-estudio-ts-civico>
     </div>
+  </div> <!-- /fin master tab TS -->
 
-    <div *ngIf="expediente.trabajoSocial">
-      {{ expediente.trabajoSocial?.estudioWord }}
-    </div>
-
+  <!-- ================= PLAN DE TRABAJO (TOP LEVEL) ================= -->
+  <div class="card" *ngIf="tabActual === 'plan'">
+     <app-plan-individual 
+        [modoSoloLectura]="!esAdmin()"
+        [expedienteId]="expediente?.idUUID || expediente?.id"
+        [datosExpediente]="expediente">
+     </app-plan-individual>
   </div>
 
-  <!-- ================= OFICIO ================= -->
+  <!-- ================= FICHA TÉCNICA (F4 — Cédula Inicial) ================= -->
+  <div class="card" *ngIf="tabActual === 'fichaTecnica'">
+    <app-ficha-tecnica
+      [expedienteId]="expediente?.idUUID || expediente?.id"
+      [datosExpediente]="expediente"
+      [modoSoloLectura]="!esAdmin()">
+    </app-ficha-tecnica>
+  </div>
+
+  <!-- ================= OFICIO / DOCUMENTOS ================= -->
   <div class="card" *ngIf="tabActual === 'oficio'">
+    <div class="docs-view fade-in">
+      <div class="docs-header">
+        <h3>📄 Gestión de Documentos y Oficios</h3>
+        <p>Generación de formatos oficiales y control de historial.</p>
+      </div>
 
-    <h3>📄 Resolución</h3>
+      <!-- ACCIONES DE GENERACIÓN -->
+      <div class="actions-grid">
+        <div class="doc-action-card" *ngIf="esAdmin() || esTrabajadorSocial()">
+          <h4>Oficio de Incorporación</h4>
+          <p>Documento oficial para dar de alta al beneficiario.</p>
+          <div class="action-footer">
+            <button class="btn-primary" (click)="generarPDF('oficio-incorporacion')">Descargar PDF</button>
+            <label class="btn-outline">
+              <input type="file" (change)="subirFirmado($event, 'INCORPORACION')" hidden>
+              Subir Firmado
+            </label>
+          </div>
+        </div>
 
-    <div class="estado">
-      {{ expediente.horasCubiertas >= expediente.horasSentencia 
-        ? 'Apto para oficio'
-        : 'En proceso' }}
+        <div class="doc-action-card" *ngIf="esAdmin() || esTrabajadorSocial()">
+          <h4>Oficio de Conclusión</h4>
+          <p>Generar cuando se cubren las horas del expediente.</p>
+          <div class="action-footer">
+            <button class="btn-primary" (click)="generarPDF('oficio-conclusion')" 
+                    [disabled]="expediente.horasCubiertas < expediente.horasSentencia">
+              Descargar PDF
+            </button>
+          </div>
+        </div>
+
+        <div class="doc-action-card" *ngIf="esAdmin() || esTrabajadorSocial()">
+          <h4>Informe de Baja</h4>
+          <p>Para casos de deserción o acumulación de faltas.</p>
+          <div class="action-footer">
+            <button class="btn-primary btn-danger-soft" (click)="generarPDF('informe-baja')">Descargar PDF</button>
+          </div>
+        </div>
+
+
+        <div class="doc-action-card" *ngIf="esAdmin()">
+          <h4>Ficha de Incidencias</h4>
+          <p>Resumen técnico de incidencias registradas.</p>
+          <div class="action-footer">
+            <button class="btn-primary" (click)="generarPDF('ficha-incidencias')">Descargar PDF</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- HISTORIAL DE DOCUMENTOS -->
+      <div class="history-section">
+        <h4>📦 Historial de Documentos Generados</h4>
+        
+        <div *ngIf="cargandoHistorial" class="loader-small"></div>
+        
+        <div class="table-card" *ngIf="!cargandoHistorial && historialDocumentos.length > 0">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Fecha</th>
+                <th>Tipo de Documento</th>
+                <th>Nombre del Archivo</th>
+                <th>Acción</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let doc of historialDocumentos">
+                <td>{{ doc.createdAt | date:'dd/MM/yyyy HH:mm' }}</td>
+                <td><span class="badge-type">{{ doc.tipo }}</span></td>
+                <td>{{ doc.filename }}</td>
+                <td>
+                  <a [href]="doc.driveUrl" target="_blank" class="btn-small">Link Drive</a>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div *ngIf="!cargandoHistorial && historialDocumentos.length === 0" class="empty-state">
+          Aún no se han generado documentos oficiales para este expediente.
+        </div>
+      </div>
     </div>
-
   </div>
 
-  <!-- ================= INFO GENERAL (ADMIN) ================= -->
+  <!-- ================= INFO GENERAL  ================= -->
   <div class="card">
 
     <h3>📋 Información General</h3>
@@ -123,29 +209,30 @@
 
       <div class="form-group">
         <label>CURP</label>
-        <input [(ngModel)]="expediente.curp">
+        <input [(ngModel)]="expediente.curp" [disabled]="!puedeEditarGeneral">
       </div>
 
       <div class="form-group">
         <label>Municipio</label>
-        <input [(ngModel)]="expediente.municipio">
+        <input [(ngModel)]="expediente.municipio" [disabled]="!puedeEditarGeneral">
       </div>
 
       <div class="form-group">
         <label>Delito</label>
-        <input [(ngModel)]="expediente.delitoImputado">
+        <input [(ngModel)]="expediente.delitoImputado" [disabled]="!puedeEditarGeneral">
       </div>
 
       <div class="form-group">
         <label>Agraviado</label>
-        <input [(ngModel)]="expediente.agraviado">
+        <input [(ngModel)]="expediente.agraviado" [disabled]="!puedeEditarGeneral">
       </div>
 
     </div>
 
     <button class="btn-guardar"
       (click)="guardarCambios()"
-      [disabled]="guardando">
+      [disabled]="guardando || !puedeEditarGeneral"
+      *ngIf="puedeEditarGeneral">
 
       {{ guardando ? 'Guardando...' : 'Guardar cambios' }}
 

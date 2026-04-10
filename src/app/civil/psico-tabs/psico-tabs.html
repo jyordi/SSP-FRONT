@@ -1,14 +1,8 @@
 <div class="acciones">
-
-  <button (click)="tab='entrevista'">➕ Entrevista</button>
-  <button (click)="tab='notas'">📄 Notas de Evaluación</button>
-  <button (click)="tab='ficha'">🧾 Ficha</button>
-
+  <button [class.active]="tab==='entrevista'" (click)="tab='entrevista'"> Entrevista</button>
+  <button [class.active]="tab==='notas'" (click)="tab='notas'"> Notas de Evaluación</button>
+  <button [class.active]="tab==='plan-vida'" (click)="tab='plan-vida'"> 🌟 Plan de Vida</button>
 </div>
-<app-ficha-psi
-*ngIf="tab==='ficha'" 
-  [expediente]="expediente"
-></app-ficha-psi>
 
 <app-entrevista-psi 
   *ngIf="tab==='entrevista'" 
@@ -21,7 +15,13 @@
   [expediente]="expediente">
 </app-notas-psi>
 
-<!-- FICHA -->
+<!-- PLAN DE VIDA -->
+<app-plan-vida
+  *ngIf="tab==='plan-vida'"
+  [expediente]="expediente">
+</app-plan-vida>
+
+
 
 
  

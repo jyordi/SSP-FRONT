@@ -3,7 +3,7 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule} from '@angular
 import { ActivatedRoute } from '@angular/router';
 import { SessionService } from '../../services/session';
 import { Civico } from '../../services/civico';
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import Swal from 'sweetalert2';
 @Component({
   standalone:true,
@@ -22,7 +22,8 @@ export class SeguimientoPsi {
     private fb: FormBuilder,
     private route: ActivatedRoute,
     private notaService: Civico,
-    private sessionService: SessionService
+    private sessionService: SessionService,
+    private location: Location
   ) {}
 
   ngOnInit(): void {
@@ -99,7 +100,9 @@ export class SeguimientoPsi {
       next: () => {
         this.loading = false;
 
-        Swal.fire('Guardado', 'Nota guardada correctamente', 'success');
+        Swal.fire('Guardado', 'Nota guardada correctamente', 'success').then(() => {
+          this.location.back();
+        });
 
         this.notaEvolucionForm.reset({
           avancePercibido: 'INICIAL',

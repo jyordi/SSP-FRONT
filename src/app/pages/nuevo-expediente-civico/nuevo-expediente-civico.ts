@@ -201,6 +201,9 @@ export class NuevoExpedienteCivicoComponent {
 
       ...raw,
 
+      horasPorDia: Number(raw.horasPorDia) || 4,
+      horasSentencia: Number(raw.horasSentencia) || 0,
+
       genero: raw.genero === 'masculino' ? 'M' : 'F',
 
       fechaDetencion: raw.fechaDetencion || null,

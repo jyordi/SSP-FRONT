@@ -1,1 +1,177 @@
-<p>ficha-tecnica works!</p>
+<!-- ===================== FICHA TÉCNICA (F4 — Cédula Inicial) ===================== -->
+
+<!-- Estado: cargando -->
+<div *ngIf="cargando" class="ft-loader-wrap">
+  <div class="ft-spinner"></div>
+  <p class="ft-loader-text">Cargando Ficha Técnica...</p>
+</div>
+
+<!-- Contenido principal -->
+<div *ngIf="!cargando" class="ft-container fade-in">
+
+  <!-- HEADER -->
+  <div class="ft-header">
+    <div class="ft-header-left">
+      <span class="ft-icon">📋</span>
+      <div>
+        <h3 class="ft-title">Ficha Técnica</h3>
+        <p class="ft-subtitle">Cédula Inicial de Seguimiento — F4</p>
+      </div>
+    </div>
+    <div class="ft-header-right">
+      <span class="ft-badge" [ngClass]="{
+        'badge-pendiente':  f4Estatus === 'PENDIENTE',
+        'badge-en-proceso': f4Estatus === 'EN_PROCESO',
+        'badge-completado': f4Estatus === 'COMPLETADO',
+        'badge-cerrado':    f4Estatus === 'CERRADO'
+      }">{{ f4Estatus | titlecase }}</span>
+      <span *ngIf="modoSoloLectura" class="ft-badge-readonly">Solo lectura</span>
+    </div>
+  </div>
+
+  <!-- Info bar -->
+  <div class="ft-info-bar" *ngIf="datosExpediente">
+    <div class="ft-info-item">
+      <span class="ft-info-label">Beneficiario</span>
+      <span class="ft-info-value">{{ datosExpediente?.beneficiario?.nombre || '—' }}</span>
+    </div>
+    <div class="ft-info-item">
+      <span class="ft-info-label">Folio</span>
+      <span class="ft-info-value">{{ datosExpediente?.folioExpediente || '—' }}</span>
+    </div>
+    <div class="ft-info-item">
+      <span class="ft-info-label">Estatus Expediente</span>
+      <span class="ft-info-value">{{ datosExpediente?.estatus || '—' }}</span>
+    </div>
+  </div>
+
+  <!-- Aviso: aún no existe F4 -->
+  <div *ngIf="!f4Existente && puedeEditar" class="ft-alert-info">
+    <span>ℹ️</span>
+    <p>Aún no existe una Ficha Técnica para este expediente. Completa el formulario y guarda para crearla.</p>
+  </div>
+
+  <!-- Aviso: sin F4 + sin permisos -->
+  <div *ngIf="!f4Existente && !puedeEditar" class="ft-alert-warning">
+    <span>⚠️</span>
+    <p>La Ficha Técnica aún no ha sido creada. Solo el Administrador puede generarla.</p>
+  </div>
+
+  <!-- FORMULARIO -->
+  <form [formGroup]="f4Form" (ngSubmit)="guardar()" *ngIf="f4Existente || puedeEditar">
+
+
+    <!-- == SECCIÓN 1: PROCESO DE INGRESO == -->
+    <div class="ft-section">
+      <div class="ft-section-header">
+        <span class="ft-section-icon">📥</span>
+        <h4>Proceso de Ingreso</h4>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Descripción del proceso de ingreso al programa</label>
+        <textarea
+          formControlName="procesoIngreso"
+          class="form-control"
+          rows="5"
+          placeholder="El beneficiario se presenta en tiempo y forma. Se le explica el programa y firma carta de compromiso...">
+        </textarea>
+      </div>
+    </div>
+
+    <!-- == SECCIÓN 2: SEGUIMIENTO DE ACTIVIDADES == -->
+    <div class="ft-section">
+      <div class="ft-section-header">
+        <span class="ft-section-icon">📊</span>
+        <h4>Seguimiento de Actividades</h4>
+        <p class="ft-section-hint">6 categorías reconocidas por el sistema. Complete las observaciones de cada área.</p>
+      </div>
+
+      <div class="ft-grid-2">
+
+        <div class="form-group">
+          <label class="form-label">
+            <span class="ft-cat-pill cat-educativa">EDUCATIVA</span>
+          </label>
+          <textarea formControlName="educativa" class="form-control" rows="3"
+            placeholder="Ej. Manual Fénix — 0/8 sesiones completadas..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">
+            <span class="ft-cat-pill cat-laboral">LABORAL</span>
+          </label>
+          <textarea formControlName="laboral" class="form-control" rows="3"
+            placeholder="Ej. Pendiente asignación de actividad laboral..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">
+            <span class="ft-cat-pill cat-familiar">FAMILIAR</span>
+          </label>
+          <textarea formControlName="familiar" class="form-control" rows="3"
+            placeholder="Ej. Red de apoyo familiar identificada..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">
+            <span class="ft-cat-pill cat-deportivo">DEPORTIVO</span>
+          </label>
+          <textarea formControlName="deportivo" class="form-control" rows="3"
+            placeholder="Ej. Participación en actividades físicas..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">
+            <span class="ft-cat-pill cat-cultural">CULTURAL</span>
+          </label>
+          <textarea formControlName="cultural" class="form-control" rows="3"
+            placeholder="Ej. Asistencia a taller de pintura comunitaria..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">
+            <span class="ft-cat-pill cat-psicologica">PSICOLÓGICA</span>
+          </label>
+          <textarea formControlName="psicologica" class="form-control" rows="3"
+            placeholder="Ej. Sesiones de seguimiento psicológico, avances observados..."></textarea>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- == SECCIÓN 3: ESTATUS == -->
+    <div class="ft-section" *ngIf="puedeEditar">
+      <div class="ft-section-header">
+        <span class="ft-section-icon">🔖</span>
+        <h4>Estatus de la Ficha</h4>
+      </div>
+      <div class="form-group ft-field-mid">
+        <label class="form-label">Estado actual del F4</label>
+        <select formControlName="estatusF4" class="form-control">
+          <option *ngFor="let op of estatusOpciones" [value]="op">{{ op }}</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- == ACCIONES == -->
+    <div class="ft-actions" *ngIf="puedeEditar">
+      <button type="submit" class="btn-primary" [disabled]="guardando">
+        <span *ngIf="!guardando">💾 {{ f4Existente ? 'Actualizar Ficha Técnica' : 'Crear Ficha Técnica' }}</span>
+        <span *ngIf="guardando">Guardando...</span>
+      </button>
+      <button type="button" class="btn-secondary" (click)="generarPDF()"
+        [disabled]="generandoPDF || !f4Existente">
+        <span *ngIf="!generandoPDF">📄 Generar PDF Oficial</span>
+        <span *ngIf="generandoPDF">Generando...</span>
+      </button>
+    </div>  
+
+    <!-- Feedback de guardado exitoso -->
+    <div *ngIf="guardadoExito" class="ft-success-toast">
+      ✅ Ficha Técnica guardada correctamente.
+    </div>
+
+  </form>
+
+
+</div>

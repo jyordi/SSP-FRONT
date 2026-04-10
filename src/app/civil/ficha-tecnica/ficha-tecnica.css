@@ -1,0 +1,366 @@
+/* ======================================================
+   FICHA TÉCNICA — F4 Cédula Inicial
+   Paleta consistente con estudio-ts-civico / plan-ts-civico
+====================================================== */
+
+/* --- LOADER --- */
+.ft-loader-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  gap: 14px;
+  color: #6b7280;
+}
+.ft-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid #e2e8f0;
+  border-top-color: #2563eb;
+  border-radius: 50%;
+  animation: ft-spin 0.8s linear infinite;
+}
+@keyframes ft-spin { to { transform: rotate(360deg); } }
+.ft-loader-text {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+/* --- CONTENEDOR --- */
+.ft-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.fade-in {
+  animation: fadeIn 0.3s ease-in-out;
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* --- HEADER --- */
+.ft-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 14px;
+  border-bottom: 2px solid #e2e8f0;
+  flex-wrap: wrap;
+}
+.ft-header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.ft-icon { font-size: 1.8rem; line-height: 1; }
+.ft-title {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: #1e3a8a;
+}
+.ft-subtitle {
+  margin: 2px 0 0;
+  font-size: 0.78rem;
+  color: #64748b;
+  letter-spacing: 0.02em;
+}
+.ft-header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* --- BADGES DE ESTATUS --- */
+.ft-badge {
+  padding: 3px 12px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.badge-pendiente  { background: #fef9c3; color: #854d0e; border: 1px solid #fde68a; }
+.badge-en-proceso { background: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; }
+.badge-completado { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+.badge-cerrado    { background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; }
+
+.ft-badge-readonly {
+  padding: 3px 10px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  background: #fff7ed;
+  color: #c2410c;
+  border: 1px solid #fed7aa;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* --- INFO BAR --- */
+.ft-info-bar {
+  display: flex;
+  gap: 24px;
+  padding: 12px 16px;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-left: 4px solid #2563eb;
+  border-radius: 6px;
+  flex-wrap: wrap;
+}
+.ft-info-item { display: flex; flex-direction: column; gap: 2px; }
+.ft-info-label {
+  font-size: 0.68rem;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  font-weight: 600;
+}
+.ft-info-value {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #1e3a8a;
+}
+
+/* --- ALERTAS --- */
+.ft-alert-info,
+.ft-alert-warning {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 16px;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  border-left: 4px solid;
+}
+.ft-alert-info {
+  background: #eff6ff;
+  border-color: #3b82f6;
+  color: #1e40af;
+}
+.ft-alert-warning {
+  background: #fff7ed;
+  border-color: #f97316;
+  color: #c2410c;
+}
+.ft-alert-info span, .ft-alert-warning span { font-size: 1rem; }
+.ft-alert-info p, .ft-alert-warning p { margin: 0; }
+
+/* Reutilizar alerta genérica del sistema */
+.alert-info {
+  background-color: #eff6ff;
+  border-left: 4px solid #3b82f6;
+  color: #1e40af;
+  padding: 12px 16px;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* --- SECCIONES --- */
+.ft-section {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 20px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+.ft-section-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #e2e8f0;
+}
+.ft-section-icon { font-size: 1.1rem; }
+.ft-section-header h4 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1e3a8a;
+}
+.ft-section-hint {
+  flex-basis: 100%;
+  margin: 0;
+  font-size: 0.78rem;
+  color: #64748b;
+  padding-left: 22px;
+}
+
+/* --- GRID --- */
+.ft-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.ft-grid-3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
+}
+@media (max-width: 768px) {
+  .ft-grid-2 { grid-template-columns: 1fr; }
+  .ft-grid-3 { grid-template-columns: 1fr; }
+}
+@media (min-width: 769px) and (max-width: 1024px) {
+  .ft-grid-3 { grid-template-columns: 1fr 1fr; }
+}
+
+/* --- CAMPOS — reutilizar sistema del proyecto --- */
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+.form-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #4b5563;
+  margin-bottom: 0.5rem;
+}
+.form-control {
+  padding: 0.6rem 0.875rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  color: #1f2937;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  background-color: #f8fafc;
+  font-family: inherit;
+  line-height: 1.5;
+  width: 100%;
+  box-sizing: border-box;
+}
+.form-control:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  background-color: #ffffff;
+}
+.form-control:disabled {
+  background-color: #f1f5f9;
+  color: #64748b;
+  cursor: not-allowed;
+}
+textarea.form-control {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.ft-field-mid { max-width: 260px; }
+
+/* --- CAMPO SOLO LECTURA (proyecto de vida) --- */
+.ft-readonly-field {
+  padding: 0.6rem 0.875rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  color: #374151;
+  background-color: #f8fafc;
+  line-height: 1.5;
+  min-height: 70px;
+  white-space: pre-wrap;
+}
+
+/* --- PILLS CATEGORÍAS --- */
+.ft-cat-pill {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 4px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+}
+/* Seguimiento de actividades */
+.cat-educativa  { background: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; }
+.cat-laboral    { background: #fef9c3; color: #713f12; border: 1px solid #fde68a; }
+.cat-familiar   { background: #fce7f3; color: #831843; border: 1px solid #fbcfe8; }
+.cat-deportivo  { background: #dcfce7; color: #14532d; border: 1px solid #bbf7d0; }
+.cat-cultural   { background: #ffedd5; color: #7c2d12; border: 1px solid #fed7aa; }
+.cat-psicologica{ background: #ede9fe; color: #4c1d95; border: 1px solid #ddd6fe; }
+
+/* Proyecto de vida */
+.cat-personal      { background: #e0f2fe; color: #075985; border: 1px solid #bae6fd; }
+.cat-familiar-vida { background: #fce7f3; color: #831843; border: 1px solid #fbcfe8; }
+.cat-espiritual    { background: #ede9fe; color: #4c1d95; border: 1px solid #ddd6fe; }
+.cat-academico     { background: #dcfce7; color: #14532d; border: 1px solid #bbf7d0; }
+.cat-social        { background: #ffedd5; color: #7c2d12; border: 1px solid #fed7aa; }
+
+/* --- BOTONES --- */
+.ft-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding-top: 4px;
+}
+.btn-primary {
+  background-color: #2563eb;
+  color: #ffffff;
+  border: none;
+  padding: 0.7rem 1.5rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: background-color 0.2s, transform 0.15s;
+}
+.btn-primary:hover:not(:disabled) {
+  background-color: #1d4ed8;
+  transform: translateY(-1px);
+}
+.btn-primary:disabled {
+  background-color: #93c5fd;
+  cursor: not-allowed;
+}
+.btn-secondary {
+  background-color: #0284c7;
+  color: #ffffff;
+  border: none;
+  padding: 0.7rem 1.5rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: background-color 0.2s, transform 0.15s;
+}
+.btn-secondary:hover:not(:disabled) {
+  background-color: #0369a1;
+  transform: translateY(-1px);
+}
+.btn-secondary:disabled {
+  background-color: #7dd3fc;
+  cursor: not-allowed;
+}
+
+/* --- TOAST ÉXITO --- */
+.ft-success-toast {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-left: 4px solid #16a34a;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  color: #166534;
+  font-weight: 500;
+  animation: fadeIn 0.3s ease;
+}

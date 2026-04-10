@@ -1,0 +1,240 @@
+<div class="form-container fade-in" style="max-width: 1000px; margin: 0 auto; padding-bottom: 50px;">
+  
+  <!-- ALERTA F1 -->
+  <div *ngIf="!cargandoF1 && f1Bloqueado" class="alert-info" style="border-left-color: #ef4444; background-color: #fef2f2; color: #991b1b;">
+    <h3 style="margin:0 0 5px 0;">Entrevista no realizada por Psicología</h3>
+    <p style="margin:0;">No se puede proceder con el Estudio de Trabajo Social porque no existe un registro previo de la entrevista clínica (F1). Por favor, contacte con el departamento de Psicología.</p>
+  </div>
+
+  <div *ngIf="cargandoF1" class="alert-info">
+    <span>Verificando disponibilidad de entrevista psicológica (F1)...</span>
+  </div>
+
+  <!-- CONTENIDO PRINCIPAL -->
+  <div *ngIf="!cargandoF1 && !f1Bloqueado">
+    
+    <div style="background: #334155; color: white; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+      <h2 style="margin: 0;">ESTUDIO DE TRABAJO SOCIAL CÍVICO</h2>
+      <p style="margin: 5px 0 0 0; font-size: 0.9em; opacity: 0.9;">Revisión de expediente y captura del dictamen sociológico</p>
+    </div>
+
+    <!-- ============================================== -->
+    <!-- PANEL DE LECTURA (DATOS IMPORTADOS DE PSICOLOGÍA) -->
+    <!-- ============================================== -->
+    <div class="panel-lectura" style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 20px; margin-bottom: 30px;">
+      <h3 style="margin-top:0; color: #334155; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;">
+        <span style="font-size: 1.2em;">📖</span> Información Existente en el Expediente (Solo Lectura)
+      </h3>
+      <p style="font-size: 0.85em; color: #64748b; margin-top: -5px; margin-bottom: 15px;">*Estos datos fueron importados de instancias previas para evitar duplicidad de captura.</p>
+
+      <div class="form-grid">
+        <div style="grid-column: 1 / -1;"><strong>Nombre:</strong> {{ datosF1?.nombre }}</div>
+        <div><strong>Sobrenombre:</strong> {{ datosF1?.sobrenombre }}</div>
+        <div><strong>Edad:</strong> {{ datosF1?.edad }}</div>
+        <div><strong>Fecha de Nac:</strong> {{ datosF1?.fechaNacimiento }}</div>
+        <div><strong>Originario de:</strong> {{ datosF1?.originario }}</div>
+        <div><strong>Teléfono:</strong> {{ datosF1?.telefono }}</div>
+        <div><strong>Escolaridad:</strong> {{ datosF1?.escolaridad }}</div>
+        <div><strong>Ocupación:</strong> {{ datosF1?.ocupacion }}</div>
+        <div><strong>Estado Civil:</strong> {{ datosF1?.estadoCivil }}</div>
+        <div><strong>Religión:</strong> {{ datosF1?.religion }}</div>
+        <div><strong>Nacionalidad:</strong> {{ datosF1?.nacionalidad }}</div>
+        <div><strong>Lengua/Idioma:</strong> {{ datosF1?.lenguaIndigena }}</div>
+        
+        <div style="grid-column: 1 / -1;"><strong>Domicilio:</strong> {{ datosF1?.domicilio }}</div>
+      </div>
+
+      <h4 style="margin-top: 15px; margin-bottom: 5px; color: #475569;">Situación Jurídica (Base)</h4>
+      <div class="form-grid">
+         <div><strong>Falta/Delito:</strong> {{ datosF1?.faltaCivica }}</div>
+         <div><strong>Fecha de Detención:</strong> {{ datosF1?.fechaDetencion }}</div>
+         <div style="grid-column: 1 / -1; background: #fff; padding: 10px; border: 1px solid #e2e8f0;">
+           <strong>Relato de los Hechos (Psiquiatría):</strong><br>
+           <span style="color: #475569;">{{ datosF1?.relatoHechos }}</span>
+         </div>
+      </div>
+
+      <h4 style="margin-top: 15px; margin-bottom: 5px; color: #475569;">Adicciones y Ayuda</h4>
+      <div class="form-grid">
+        <div><strong>Refiere Consumo:</strong> {{ datosF1?.adicciones }}</div>
+        <div><strong>Historial Terapéutico:</strong> {{ datosF1?.terapias }}</div>
+        <div><strong>Asistencia a Grupos AA:</strong> {{ datosF1?.gruposAA }}</div>
+        <div style="grid-column: 1 / -1;"><strong>Detalle adicciones:</strong> {{ datosF1?.detalleAdicciones }}</div>
+      </div>
+    </div>
+
+    <!-- ============================================== -->
+    <!-- FORMULARIO EDITABLE TS (F2)                    -->
+    <!-- ============================================== -->
+    <form [formGroup]="tsForm" (ngSubmit)="guardarF2()">
+      
+      <!-- SECCIÓN A: JURÍDICO -->
+      <h3 class="section-title">A. Situación Jurídica (Control TS)</h3>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Juzgado Radicado</label>
+          <input type="text" class="form-control" formControlName="juzgado" placeholder="Ej. Juzgado 3° Cívico...">
+        </div>
+        <div class="form-group">
+          <label>Expediente Penal / Carpeta</label>
+          <input type="text" class="form-control" formControlName="expedientePenal" placeholder="Número de expediente...">
+        </div>
+      </div>
+
+      <!-- SECCIÓN B: FAMILIA -->
+      <h3 class="section-title">B. Estructura Familiar</h3>
+      
+      <div style="background: #fff; padding: 15px; border: 1px solid #e2e8f0; margin-bottom: 15px;">
+        <label style="font-weight: bold; display:block; margin-bottom: 10px;">Núcleo Familiar Primario (Importado)</label>
+        <div *ngIf="datosF1?.familiaPrimaria?.length === 0" style="color: #94a3b8; font-style: italic;">Sin familiares documentados en Psicología.</div>
+        <table *ngIf="datosF1?.familiaPrimaria?.length > 0" style="width: 100%; text-align: left; border-collapse: collapse; margin-bottom: 15px; font-size: 0.9em;">
+          <tr style="border-bottom: 2px solid #cbd5e1;"><th style="padding: 5px;">Nombre</th><th style="padding: 5px;">Parentesco</th><th style="padding: 5px;">Edad</th><th style="padding: 5px;">Ocupación</th></tr>
+          <tr *ngFor="let f of datosF1.familiaPrimaria" style="border-bottom: 1px solid #f1f5f9;">
+            <td style="padding: 5px;">{{ f.nombre }}</td><td style="padding: 5px;">{{ f.parentesco }}</td><td style="padding: 5px;">{{ f.edad }}</td><td style="padding: 5px;">{{ f.ocupacion }}</td>
+          </tr>
+        </table>
+        <div><strong>Observación Primaria (Psicología):</strong> {{ datosF1?.observacionesFamiliaPrimaria }}</div>
+      </div>
+
+      <div formArrayName="familiaresSecundarios">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+          <label style="font-weight: bold;">Núcleo Familiar Secundario (Extendida)</label>
+          <button type="button" class="btn-primary" style="background:#0284c7; padding: 5px 10px; font-size: 0.85em;" (click)="addFamiliar()" *ngIf="puedeEditar">+ Agregar Familiar</button>
+        </div>
+        
+        <div *ngFor="let fam of familiaresSecundarios.controls; let i=index" [formGroupName]="i" style="display: flex; gap: 10px; margin-bottom: 10px; padding: 10px; background: #f8fafc; border: 1px dashed #cbd5e1; align-items: center;">
+          <input type="text" class="form-control" formControlName="nombre" placeholder="Nombre completo" style="flex: 2;">
+          <input type="text" class="form-control" formControlName="parentesco" placeholder="Parentesco" style="flex: 1;">
+          <input type="number" class="form-control" formControlName="edad" placeholder="Edad" style="flex: 0.5;">
+          <input type="text" class="form-control" formControlName="ocupacion" placeholder="Ocupación" style="flex: 1.5;">
+          <button type="button" (click)="removeFamiliar(i)" style="background: #ef4444; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;" *ngIf="puedeEditar">-</button>
+        </div>
+        <div *ngIf="familiaresSecundarios.controls.length === 0" style="color: #64748b; font-size: 0.9em;">Añade familiares extendidos relevantes a la dinámica social.</div>
+      </div>
+
+      <div class="form-grid" style="margin-top: 15px;">
+        <div class="form-group">
+          <label>Dinámica de Grupo Familiar</label>
+          <select class="form-control" formControlName="tipoFamilia">
+            <option value="">Seleccione...</option>
+            <option value="FUNCIONAL">Funcional</option>
+            <option value="DISFUNCIONAL">Disfuncional</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group" style="margin-bottom: 15px;">
+        <label>Relaciones Interfamiliares</label>
+        <textarea class="form-control" formControlName="relacionesInterfamiliares" placeholder="Describa la comunicación, jerarquías y conflictos internos..."></textarea>
+      </div>
+
+      <div class="form-group" style="margin-bottom: 15px;">
+        <label>Violencia Intrafamiliar</label>
+        <textarea class="form-control" formControlName="violenciaIntrafamiliar" placeholder="Especifique si existe presencia de violencia, tipos e involucrados (o escriba 'No se detecta')..."></textarea>
+      </div>
+
+      <!-- SECCIÓN C: LADORAL Y ECONÓMICA -->
+      <h3 class="section-title">C. Situación Laboral y Económica</h3>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Lugar de Trabajo Actual</label>
+          <input type="text" class="form-control" formControlName="lugarTrabajo" placeholder="Empresa o giro independiente...">
+        </div>
+        <div class="form-group">
+          <label>Antigüedad Laboral</label>
+          <input type="text" class="form-control" formControlName="antiguedad" placeholder="Años/Meses...">
+        </div>
+        <div class="form-group">
+          <label>Responsable Económico del Hogar</label>
+          <input type="text" class="form-control" formControlName="responsableHogar" placeholder="Parentesco o Nombre...">
+        </div>
+        <div class="form-group">
+          <label>Nivel Socioeconómico</label>
+          <select class="form-control" formControlName="nivelSocioeconomico">
+            <option value="">Seleccione...</option>
+            <option value="ALTO">Alto</option>
+            <option value="MEDIO">Medio</option>
+            <option value="BAJO">Bajo</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Ingresos Totales (Hogar/Mensual)</label>
+          <input type="number" class="form-control" formControlName="ingresos" placeholder="$">
+        </div>
+        <div class="form-group">
+          <label>Egresos Totales (Hogar/Mensual)</label>
+          <input type="number" class="form-control" formControlName="egresos" placeholder="$">
+        </div>
+      </div>
+
+      <!-- SECCIÓN D: VIVIENDA -->
+      <h3 class="section-title">D. Vivienda y Entorno Social</h3>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Situación de la Vivienda</label>
+          <select class="form-control" formControlName="tipoVivienda">
+            <option value="">Seleccione...</option>
+            <option value="PROPIA">Propia</option>
+            <option value="RENTADA">Rentada</option>
+            <option value="PRESTADA">Prestada / Familiar</option>
+            <option value="IRREGULAR">Asentamiento Irregular</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Zona / Región</label>
+          <select class="form-control" formControlName="tipoZona">
+            <option value="">Seleccione...</option>
+            <option value="URBANA">Urbana</option>
+            <option value="SUB-URBANA">Sub-urbana</option>
+            <option value="RURAL">Rural</option>
+            <option value="CRIMINOGENA">Criminógena / Alto Riesgo</option>
+          </select>
+        </div>
+      </div>
+      
+      <div class="form-group" style="margin-bottom: 15px;">
+        <label>Servicios Públicos (Luz, Agua, Drenaje)</label>
+        <textarea class="form-control" formControlName="serviciosPublicos" placeholder="Especifique carencias o infraestructura básica..."></textarea>
+      </div>
+
+      <div class="form-group" style="margin-bottom: 15px;">
+        <label>Medios de Transporte y Comodidades</label>
+        <textarea class="form-control" formControlName="transporte" placeholder="Carro propio, transporte público, distancias..."></textarea>
+      </div>
+
+      <div class="form-group" style="margin-bottom: 15px;">
+        <label>Mobiliario General (Calidad de vida interna)</label>
+        <textarea class="form-control" formControlName="mobiliario" placeholder="Mobiliario básico, carencias internas, electrodomésticos importantes..."></textarea>
+      </div>
+
+      <!-- SECCIÓN E: DICTAMEN FINAL -->
+      <h3 class="section-title">E. Dictamen y Conclusiones TS</h3>
+      <div class="form-group" style="margin-bottom: 15px;">
+        <label>Opinión sobre pertinencia al Programa (Reconecta)</label>
+        <textarea class="form-control" formControlName="opinionPrograma" style="min-height: 80px;" placeholder="¿Es viable el caso para su adherencia social?"></textarea>
+      </div>
+
+      <div class="form-group" style="margin-bottom: 20px;">
+        <label>Diagnóstico Social General</label>
+        <textarea class="form-control" formControlName="diagnostico" style="min-height: 120px;" placeholder="Dictamen del estudio completo, observaciones criminológicas y familiares clave..."></textarea>
+      </div>
+
+      <!-- PANEL DE ACCIONES -->
+      <div class="actions-bar" style="position: sticky; bottom: 0; background: #fff; padding: 15px; border-top: 1px solid #e2e8f0; border-radius: 0 0 8px 8px; z-index: 10;">
+        <span *ngIf="guardadoExito" style="color: var(--success-text, #15803d); align-self: center; font-weight: 500;">
+          ¡Guardado correctamente!
+        </span>
+        
+        <!-- BOTÓN IMPRIMIR PDF -->
+        <button type="button" class="btn-primary" style="background-color: #475569;" (click)="generarPDF()" [disabled]="generandoPDF">
+          {{ generandoPDF ? 'Generando Papelería...' : '📄 Generar Documento PDF Oficial' }}
+        </button>
+
+        <button type="submit" class="btn-primary" [disabled]="tsForm.invalid || guardando" *ngIf="puedeEditar">
+          {{ guardando ? 'Guardando...' : (f2Existente ? 'Actualizar Estudio' : 'Guardar Estudio') }}
+        </button>
+      </div>
+
+    </form>
+  </div>
+</div>

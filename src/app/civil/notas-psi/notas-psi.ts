@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Civico } from '../../services/civico';
 import { SessionDetalleC } from '../session-detalle-c/session-detalle-c';
+import { SessionService } from '../../services/session';
 @Component({
   standalone:true,
   selector: 'app-notas-psi',
@@ -25,7 +26,15 @@ notaSeleccionada: any = null;
 mostrarModal = false;
 
 
-constructor(private civico: Civico, private router: Router){}
+constructor(
+  private civico: Civico, 
+  private router: Router,
+  private session: SessionService
+){}
+
+get puedeEditar(): boolean {
+  return this.session.esPsicologo(); // Admin solo visualiza
+}
 ngOnInit() {
   this.cargar();
 }
@@ -33,11 +42,20 @@ ngOnInit() {
 cargar() {
   const id = this.expediente?.idUUID;
 
-  this.civico.listarSesiones(id).subscribe(res => {
-    this.notas = res;
+  this.civico.listarSesiones(id).subscribe({
+    next: res => this.notas = res,
+    error: err => {
+      if (err.status !== 403) console.error(err);
+      this.notas = [];
+    }
   });
-  this.civico.contarSesiones(id).subscribe(res => {
-    this.total = res.total ?? res ?? 0;
+
+  this.civico.contarSesiones(id).subscribe({
+    next: res => this.total = res.total ?? res ?? 0,
+    error: err => {
+      if (err.status !== 403) console.error(err);
+      this.total = 0;
+    }
   });
 }
 
@@ -79,5 +97,25 @@ console.log(this.notaSeleccionada);
 //  NUEVA NOTA
 nuevaNota() {
   this.router.navigate(['/segui-psi', this.expediente.idUUID]);
+}
+
+descargarPDF() {
+  const id = this.expediente?.idUUID;
+  if (!id) return;
+
+  this.civico.generarDocumentoPDF('nota-evolucion', id).subscribe({
+    next: (blob) => {
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Nota_Evolucion_${this.expediente.beneficiario?.nombre || 'Paciente'}.pdf`;
+      a.click();
+    },
+    error: (err) => {
+      let msg = err.error?.message || err.message;
+      if (Array.isArray(msg)) msg = msg.join(', ');
+      alert(`Aún no se puede realizar esta acción: ${msg}`);
+    }
+  });
 }
 }

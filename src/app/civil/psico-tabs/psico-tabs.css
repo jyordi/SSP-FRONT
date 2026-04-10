@@ -1,22 +1,38 @@
 .acciones {
   display: flex;
   gap: 12px;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
+  background: rgba(15, 23, 42, 0.05);
+  padding: 8px;
+  border-radius: 16px;
+  backdrop-filter: blur(10px);
 }
 
 .acciones button {
   flex: 1;
-  padding: 12px;
+  padding: 12px 20px;
   border-radius: 12px;
-  border: none;
-  background: #0f172a;
-  color: white;
+  border: 1px solid transparent;
+  background: transparent;
+  color: #64748b;
   font-weight: 600;
   cursor: pointer;
-  transition: 0.2s;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 
 .acciones button:hover {
-  background: #1e293b;
-  transform: translateY(-2px);
+  background: white;
+  color: #0f172a;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  transform: translateY(-1px);
+}
+
+.acciones button.active {
+  background: #0f172a;
+  color: white;
+  box-shadow: 0 10px 15px -3px rgba(15, 23, 42, 0.3);
 }

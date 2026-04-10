@@ -9,9 +9,15 @@ import { Civico } from '../../services/civico';
 import { HttpClient } from '@angular/common/http';
 import { SessionDetalleC } from '../../civil/session-detalle-c/session-detalle-c';
 import { PsicoTabs } from "../../civil/psico-tabs/psico-tabs";
+import { EstudioTsCivicoComponent } from '../../civil/estudio-ts-civico/estudio-ts-civico';
+import { PlanIndividualComponent } from '../../civil/plan-ts-civico/plan-ts-civico';
+import { GuiaTabsComponent } from '../../civil/guia-tabs/guia-tabs';
+import { FichaTecnica } from '../../civil/ficha-tecnica/ficha-tecnica';
+
 @Component({
   standalone: true,
-  imports: [CommonModule, FormsModule, PsicoTabs],
+  imports: [CommonModule, FormsModule, PsicoTabs, EstudioTsCivicoComponent, PlanIndividualComponent, GuiaTabsComponent, FichaTecnica],
+
   templateUrl: './detalle-civico.html',
   styleUrls: ['./detalle-civico.css']  
 })
@@ -20,6 +26,7 @@ notaSeleccionada: any = null;
 
 
   tabActual: string = 'psicologia';
+  tsSubTab: string = 'estudio';
   expediente: any;
   loading = true;
   guardando = false;
@@ -27,6 +34,9 @@ notaSeleccionada: any = null;
 
   //  NUEVO
   notas: any[] = [];
+  historialDocumentos: any[] = [];
+  cargandoHistorial = false;
+  subiendoFirmado = false;
   
 
   constructor(
@@ -56,11 +66,18 @@ notaSeleccionada: any = null;
 
     if (this.esPsicologo()) {
       this.tabActual = 'psicologia';
+    } else if (this.esTrabajadorSocial()) {
+      this.tabActual = 'trabajosocial';
+    } else if (this.esGuia()) {
+      this.tabActual = 'guias';
     }
   }
 
   cambiarTab(tab: string) {
     this.tabActual = tab;
+    if (tab === 'oficio') {
+      this.cargarHistorial();
+    }
   }
 
   //  LISTAR SESIONES
@@ -68,12 +85,75 @@ notaSeleccionada: any = null;
     const id = this.expediente?.idUUID;
     if (!id) return;
 
+    // Solo cargamos notas si somos psicologo o admin, de lo contrario el backend puede rechazar
+    if (!this.esPsicologo() && !this.esAdmin()) return;
+
     this.civico.listarSesiones(id).subscribe({
       next: (res) => {
-        console.log(" NOTAS:", res);
         this.notas = res;
       },
-      error: (err) => console.error(err)
+      error: (err) => {
+        if (err.status !== 403) console.error("Error cargando notas en detalle:", err);
+      }
+    });
+  }
+
+  cargarHistorial() {
+    const id = this.expediente?.idUUID;
+    if (!id) return;
+    this.cargandoHistorial = true;
+    this.civico.obtenerHistorialDocumentos(id).subscribe({
+      next: (res) => {
+        this.historialDocumentos = res;
+        this.cargandoHistorial = false;
+      },
+      error: () => {
+        this.cargandoHistorial = false;
+      }
+    });
+  }
+
+  generarPDF(tipo: string) {
+    const id = this.expediente?.idUUID;
+    if (!id) return;
+
+    this.civico.generarDocumentoPDF(tipo, id).subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        window.open(url);
+        this.cargarHistorial(); // Refrescar para ver el nuevo registro
+      },
+      error: (err) => {
+        let msg = err.error?.message || err.message;
+        if (Array.isArray(msg)) msg = msg.join(', ');
+        alert(`Aún no se puede realizar esta acción: ${msg}`);
+      }
+    });
+  }
+
+  subirFirmado(event: any, tipo: 'CANALIZACION' | 'INCORPORACION') {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const id = this.expediente?.idUUID;
+    if (!id) return;
+
+    this.subiendoFirmado = true;
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('expedienteId', id);
+    formData.append('tipo', tipo);
+
+    this.civico.subirDocumentoEscaneado(formData).subscribe({
+      next: () => {
+        this.subiendoFirmado = false;
+        alert("Documento subido y vinculado correctamente.");
+        this.cargarHistorial();
+      },
+      error: (err) => {
+        this.subiendoFirmado = false;
+        alert("Error al subir: " + (err.error?.message || "Archivo no válido o error de red"));
+      }
     });
   }
 
@@ -99,8 +179,14 @@ notaSeleccionada: any = null;
     this.router.navigate(['/expedientes']);
   }
 
-  esAdmin() { return this.role === 'admin'; }
-  esPsicologo() { return this.role === 'psicologo'; }
+  esAdmin(): boolean { return this.session.esAdmin(); }
+  esPsicologo(): boolean { return this.session.esPsicologo(); }
+  esTrabajadorSocial(): boolean { return this.session.esTrabajadorSocial(); }
+  esGuia(): boolean { return this.session.esGuia(); }
+
+  get puedeEditarGeneral(): boolean {
+    return this.esAdmin();
+  }
 
   //  NAVEGACIÓN
   irPsico(tipo: string) {

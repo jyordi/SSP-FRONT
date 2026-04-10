@@ -230,3 +230,39 @@
 .btn-add:hover {
   background-color: #fdf2f4 !important;
 }
+select, input, textarea {
+  width: 100%;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  transition: 0.2s;
+}
+
+input:focus, textarea:focus, select:focus {
+  border-color: #00c896;
+  outline: none;
+}
+
+.radio-group {
+  display: flex;
+  gap: 15px;
+  margin-top: 5px;
+}
+
+.error {
+  color: #ff4d4d;
+  font-size: 12px;
+  margin-top: 5px;
+}
+
+input.ng-invalid.ng-touched,
+textarea.ng-invalid.ng-touched,
+select.ng-invalid.ng-touched {
+  border: 1px solid #ff4d4d;
+}
+
+
+button:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}

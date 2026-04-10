@@ -1,7 +1,39 @@
-<div *ngIf="!expediente.psicologia">
-  <button>➕ Crear Entrevista</button>
-</div>
+<div class="container">
 
-<div *ngIf="expediente.psicologia">
-  <p>Entrevista existente</p>
+  <!-- SI NO EXISTE -->
+  <div *ngIf="!expediente?.psicologia && !mostrarForm">
+    <button class="btn-primary" (click)="abrirFormulario()" *ngIf="puedeEditar">
+      ➕ Crear Entrevista
+    </button>
+  </div>
+
+  <!-- FORMULARIO -->
+  <app-formu-psico
+    *ngIf="mostrarForm"
+    [expedienteId]="expediente?.idUUID"
+    (entrevistaGuardada)="onEntrevistaGuardada($event)"
+    [datosF1]="expediente?.psicologia" 
+    [datosAdmin]="expediente" (entrevistaGuardada)="onEntrevistaGuardada($event)">
+  </app-formu-psico>
+
+  <!-- ENTREVISTA EXISTENTE -->
+  <div *ngIf="expediente.psicologia">
+    <p class="ready-text">✅ La entrevista psicológica ya ha sido capturada para este expediente.</p>
+  </div>
+
+  <div *ngIf="expediente?.psicologia && !mostrarForm" class="card">
+
+    <h3> Entrevista Psicológica</h3>
+
+    <p><b>Motivo:</b> {{ expediente.psicologia.motivoConsulta }}</p>
+    <p><b>Diagnóstico:</b> {{ expediente.psicologia.impresionDiagnostica }}</p>
+    <p><b>Consume sustancias:</b> {{ expediente.psicologia.consumeSustancias ? 'Sí' : 'No' }}</p>
+    <p><b>Apoyo psicológico:</b> {{ expediente.psicologia.necesitaApoyoPsicologico ? 'Sí' : 'No' }}</p>
+
+    <button class="btn-secondary" (click)="abrirFormulario()">
+      {{ puedeEditar ? 'Ver y Editar' : 'Ver Detalles' }}
+    </button>
+
+  </div>
+
 </div>

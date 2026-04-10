@@ -1,0 +1,216 @@
+
+<div class="tabs-container">
+  <button class="tab" [class.active]="tabActual === 'horas' || tabActual === 'asistencia'" (click)="cambiarTab('horas')">
+     ✨ Bitácora y Progreso
+  </button>
+</div>
+
+<!-- ================= BITÁCORA / CONTROL DE HORAS ================= -->
+@if (tabActual === 'horas' || tabActual === 'asistencia') {
+  <div class="tab-content fade-in">
+    
+    <!-- DASHBOARD DE PROGRESO Y STRIKES (RF-011, RF-013) -->
+    <div class="bitacora-dashboard fade-in">
+      
+      <!-- CARD: PROGRESO -->
+      <div class="dash-card glass">
+        <div class="dash-icon">📊</div>
+        <div class="dash-body">
+          <span class="dash-label">Progreso del Expediente</span>
+          <div class="progress-container">
+            <div class="progress-bar-fill" [style.width.%]="resumenHoras.porcentajeAvance"></div>
+          </div>
+          <div class="dash-footer">
+            <span class="dash-value">{{ resumenHoras.porcentajeAvance }}% Completado</span>
+            <span class="dash-sub">{{ resumenHoras.horasAcumuladas }} / {{ resumenHoras.horasSentencia }} hrs</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- CARD: STRIKES (RF-013) -->
+      <div class="dash-card glass strike-card" [class.strike-warning]="totalFaltas === 2" [class.strike-danger]="totalFaltas >= 3">
+        <div class="dash-icon">{{ totalFaltas >= 3 ? '🛑' : '⚠️' }}</div>
+        <div class="dash-body">
+          <span class="dash-label">Faltas Injustificadas (Strikes)</span>
+          <div class="strike-indicators">
+            <div class="strike-dot" [class.active]="totalFaltas >= 1"></div>
+            <div class="strike-dot" [class.active]="totalFaltas >= 2"></div>
+            <div class="strike-dot" [class.active]="totalFaltas >= 3"></div>
+          </div>
+          <div class="dash-footer">
+            <span class="dash-value">{{ totalFaltas }} de 3 permitidas</span>
+            <span class="dash-sub">{{ totalFaltas >= 3 ? 'BAJA POR INCIDENCIAS' : 'Expediente Activo' }}</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ALERTA DE BAJA AUTOMÁTICA -->
+    <div class="alert-baja-global fade-in" *ngIf="totalFaltas >= 3">
+      <div class="alert-icon">🚫</div>
+      <div class="alert-text">
+        <strong>EXPEDIENTE EN ESTADO DE BAJA</strong>
+        <p>Se han acumulado {{ totalFaltas }} faltas injustificadas. Según la regla RF-013, este expediente debe ser turnado para baja definitiva.</p>
+      </div>
+    </div>
+
+    <!-- BOTONES DE ACCIÓN -->
+    <div class="bitacora-actions">
+      <div class="doc-btns" *ngIf="esGuia">
+        <button class="btn-ghost" (click)="descargarPDF('ficha-incidencias')">📄 Ficha Incidencias</button>
+        <button class="btn-ghost" (click)="descargarPDF('lista-asistencia')">📄 Plantilla Asistencia</button>
+        <button class="btn-ghost" (click)="descargarPDF('reporte-semanal')">📄 Planilla Semanal</button>
+      </div>
+      <button class="btn-primary-premium" (click)="abrirModalBitacora()" *ngIf="puedeRegistrar">
+        <span class="plus-icon">+</span> Registrar en Bitácora
+      </button>
+    </div>
+
+    <!-- TABLA DE REGISTROS -->
+    <div class="table-container glass">
+      <table class="premium-table">
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Asistencia</th>
+            <th>Hrs</th>
+            <th>Actividad / Incidencia</th>
+            <th>Evidencia</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let reg of registrosHoras; let i = index">
+            <td>
+              <div class="date-cell">
+                <span class="day">{{ reg.fechaActividad | date:'dd' }}</span>
+                <span class="month">{{ reg.fechaActividad | date:'MMM' }}</span>
+              </div>
+            </td>
+            <td>
+              <span class="badge-status" [attr.data-status]="reg.asistencia">
+                {{ reg.asistencia }}
+              </span>
+            </td>
+            <td class="hours-cell">{{ reg.horasCubiertas }}h</td>
+            <td>
+              <div class="info-cell">
+                <span class="sede-text" *ngIf="reg.sede">{{ reg.sede }}</span>
+                <span class="incidencia-text" *ngIf="reg.incidencia"> {{ reg.incidencia }}</span>
+                <p class="obs-text">{{ reg.detalleIncidencia || reg.observaciones }}</p>
+              </div>
+            </td>
+            <td style="display: flex; gap: 10px; align-items: center; justify-content: space-between;">
+              <div style="display: flex; gap: 10px; align-items: center;">
+                <div class="evidence-wrapper" *ngIf="reg.evidenciaUrl">
+                  <img [src]="reg.evidenciaUrl" (click)="verImagen(reg.evidenciaUrl)" alt="Evidencia">
+                  <div class="img-overlay"><i class="eye-icon">👁️</i></div>
+                </div>
+                <span class="no-evidence" *ngIf="!reg.evidenciaUrl">-</span>
+              </div>
+              
+              <button *ngIf="esAdmin" class="btn-delete-icon" (click)="eliminarRegistro(reg.id)" style="background: none; border: none; font-size: 1.2em; cursor: pointer; color: #ef4444;" title="Eliminar Registro">
+                🗑️
+              </button>
+            </td>
+          </tr>
+          <tr *ngIf="registrosHoras.length === 0">
+            <td colspan="5" class="empty-row">No hay registros en la bitácora aún.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+}
+
+<!-- MODAL DE REGISTRO UNIFICADO -->
+<div class="modal-premium-overlay" *ngIf="mostrarModalBitacora">
+  <div class="modal-glass">
+    <div class="modal-header">
+      <div class="header-title">
+        <span class="header-icon">📓</span>
+        <h3>Registro de Bitácora</h3>
+      </div>
+      <button class="btn-close" (click)="cerrarModalBitacora()">×</button>
+    </div>
+
+    <form [formGroup]="bitacoraForm" (ngSubmit)="guardarBitacora()">
+      <div class="modal-body">
+        <div class="form-grid">
+          <!-- Fecha y Horas -->
+          <div class="form-group">
+            <label>Fecha de Actividad</label>
+            <input type="date" formControlName="fechaActividad" class="input-premium">
+          </div>
+
+          <div class="form-group">
+            <label>Horas Cubiertas</label>
+            <input type="number" formControlName="horasCubiertas" class="input-premium" placeholder="0-8">
+          </div>
+
+          <!-- Asistencia -->
+          <div class="form-group full">
+            <label>Tipo de Asistencia</label>
+            <div class="chip-group">
+              <label *ngFor="let val of VALORES_ASISTENCIA" class="chip-label">
+                <input type="radio" [value]="val" formControlName="asistencia" hidden>
+                <div class="chip-content">{{ val }}</div>
+              </label>
+            </div>
+          </div>
+
+          <!-- Incidencias -->
+          <div class="form-group full" *ngIf="bitacoraForm.get('asistencia')?.value !== 'PRESENTE'">
+            <label>Incidencia Específica</label>
+            <select formControlName="incidencia" class="input-premium">
+              <option [ngValue]="null">-- Sin Incidencia --</option>
+              <option *ngFor="let inc of VALORES_INCIDENCIA" [value]="inc">{{ inc }}</option>
+            </select>
+          </div>
+
+          <div class="form-group full" *ngIf="bitacoraForm.get('incidencia')?.value">
+            <label>Detalle de lo ocurrido</label>
+            <textarea formControlName="detalleIncidencia" rows="2" class="input-premium" placeholder="Describa brevemente..."></textarea>
+          </div>
+
+          <!-- Sede -->
+          <div class="form-group">
+            <label>Sede / Lugar</label>
+            <input type="text" formControlName="sede" class="input-premium" placeholder="Ej: Auditorio Municipal">
+          </div>
+
+          <div class="form-group">
+            <label>Observaciones Generales</label>
+            <textarea formControlName="observaciones" rows="1" class="input-premium"></textarea>
+          </div>
+
+          <!-- Evidencia -->
+          <div class="form-group full">
+            <label>Evidencia Fotográfica</label>
+            <div class="upload-zone-premium">
+              <div class="preview-active" *ngIf="previewUrl">
+                <img [src]="previewUrl" alt="Preview">
+                <button type="button" class="btn-delete-photo" (click)="quitarFoto()">Eliminar</button>
+              </div>
+              <div class="upload-trigger" *ngIf="!previewUrl">
+                <input type="file" (change)="onFileChange($event)" accept="image/*" id="modalFile" hidden>
+                <label for="modalFile" class="upload-label-premium">
+                  <span class="up-icon">📷</span>
+                  <div class="up-text">
+                    <strong>Subir Evidencia</strong>
+                    <p>Click para seleccionar o capturar</p>
+                  </div>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer-premium">
+        <button type="button" class="btn-cancel-premium" (click)="cerrarModalBitacora()">Cancelar</button>
+        <button type="submit" class="btn-save-confirm" [disabled]="bitacoraForm.invalid">Guardar en Bitácora</button>
+      </div>
+    </form>
+  </div>
+</div>
