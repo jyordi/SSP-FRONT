@@ -2,15 +2,15 @@ import { Component,OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormGroup, ReactiveFormsModule, FormsModule, Validators, FormBuilder } from '@angular/forms';
 import { Router } from '@angular/router';
-import { Busqueda } from '../busqueda/busqueda';
 import { Civico } from '../../services/civico';
 import { SessionService } from '../../services/session';
 import { GuiaTabsComponent } from '../guia-tabs/guia-tabs';
+import { NavbarReconectaComponent } from "../../shared/navbar-reconecta/navbar-reconecta";
 
 @Component({
   selector: 'app-perfil-guia',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule, Busqueda, GuiaTabsComponent],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, GuiaTabsComponent, NavbarReconectaComponent],
   templateUrl: './perfil-guia.html',
   styleUrl: './perfil-guia.css',
 })

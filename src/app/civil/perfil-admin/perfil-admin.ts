@@ -2,10 +2,10 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { Busqueda } from '../busqueda/busqueda';
+import { NavbarReconectaComponent } from "../../shared/navbar-reconecta/navbar-reconecta";
 @Component({
   selector: 'app-perfil-admin',
-  imports: [CommonModule, FormsModule,Busqueda],
+  imports: [CommonModule, FormsModule, NavbarReconectaComponent],
   templateUrl: './perfil-admin.html',
   styleUrl: './perfil-admin.css',
 }) 

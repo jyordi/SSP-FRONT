@@ -20,6 +20,7 @@
   width: 100%;
   font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   background-color: var(--bg-page);
+  padding-top: 70px;
 }
 
 .main-content {
@@ -679,6 +680,7 @@
   width: 100%;
   font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   background-color: var(--bg-page);
+  padding-top: 70px;
 }
 
 .main-content {

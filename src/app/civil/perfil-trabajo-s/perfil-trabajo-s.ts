@@ -1,14 +1,13 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Busqueda } from "../busqueda/busqueda";
 import { Router } from '@angular/router';
-
 import { EstudioTsCivicoComponent } from '../estudio-ts-civico/estudio-ts-civico';
+import { NavbarReconectaComponent } from "../../shared/navbar-reconecta/navbar-reconecta";
 
 @Component({
   selector: 'app-perfil-trabajo-s',
-  imports: [CommonModule, FormsModule, Busqueda, EstudioTsCivicoComponent],
+  imports: [CommonModule, FormsModule, EstudioTsCivicoComponent, NavbarReconectaComponent],
   templateUrl: './perfil-trabajo-s.html',
   styleUrl: './perfil-trabajo-s.css',
 })

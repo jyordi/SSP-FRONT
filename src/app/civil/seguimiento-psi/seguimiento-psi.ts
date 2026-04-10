@@ -5,10 +5,12 @@ import { SessionService } from '../../services/session';
 import { Civico } from '../../services/civico';
 import { CommonModule, Location } from '@angular/common';
 import Swal from 'sweetalert2';
+import { NavbarReconectaComponent } from "../../shared/navbar-reconecta/navbar-reconecta";
+
 @Component({
   standalone:true,
   selector: 'app-seguimiento-psi',
-  imports: [ ReactiveFormsModule,CommonModule],
+  imports: [ ReactiveFormsModule,CommonModule, NavbarReconectaComponent],
   templateUrl: './seguimiento-psi.html',
   styleUrls: ['./seguimiento-psi.css'],
 })

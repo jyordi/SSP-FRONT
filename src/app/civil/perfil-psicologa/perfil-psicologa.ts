@@ -3,13 +3,13 @@ import { CommonModule } from '@angular/common';
 import { FormuPsico } from '../formu-psico/formu-psico';
 import { SeguimientoPsi } from '../seguimiento-psi/seguimiento-psi';
 import { FormsModule } from '@angular/forms';
-import { Busqueda } from '../busqueda/busqueda';
+import { NavbarReconectaComponent } from "../../shared/navbar-reconecta/navbar-reconecta";
 
 import { Router } from '@angular/router';
 @Component({
   standalone: true,
   selector: 'app-perfil-psicologa',
-  imports: [CommonModule, FormuPsico, SeguimientoPsi, FormsModule, Busqueda],
+  imports: [CommonModule, FormuPsico, SeguimientoPsi, FormsModule, NavbarReconectaComponent],
   templateUrl: './perfil-psicologa.html',
   styleUrl: './perfil-psicologa.css',
 })

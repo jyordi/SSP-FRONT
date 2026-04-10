@@ -2,11 +2,12 @@ import { Component, ViewEncapsulation, Input, Output, EventEmitter } from '@angu
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormArray } from '@angular/forms';
 import { Civico } from '../../services/civico';
 import { CommonModule } from '@angular/common';
+import { NavbarReconectaComponent } from "../../shared/navbar-reconecta/navbar-reconecta";
 
 @Component({
   selector: 'app-formu-psico',
   standalone: true,
-  imports: [ReactiveFormsModule, CommonModule],
+  imports: [ReactiveFormsModule, CommonModule, NavbarReconectaComponent],
   templateUrl: './formu-psico.html',
   styleUrls: ['./formu-psico.css'],
   encapsulation: ViewEncapsulation.Emulated

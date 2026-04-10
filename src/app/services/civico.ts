@@ -261,9 +261,16 @@ obtenerIncidenciasPorExpediente(expedienteId: string): Observable<any> {
   }
 
 
-// ================= OBTENER EXPEDIENTE =================
+  // ================= OBTENER EXPEDIENTE =================
   getExpedienteCivico(idUUID: string): Observable<any> {
     return this.http.get(`${this.API_CIVICO}/${idUUID}`, {
+      headers: this._headers(),
+    });
+  }
+
+  // ================= ACTUALIZAR EXPEDIENTE CÍVICO (UUID) =================
+  actualizarExpedienteCivico(idUUID: string, data: any): Observable<any> {
+    return this.http.patch(`${this.API_CIVICO}/${idUUID}`, data, {
       headers: this._headers(),
     });
   }

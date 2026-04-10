@@ -1,29 +1,9 @@
+<app-navbar-reconecta></app-navbar-reconecta>
+
 <div class="dashboard-layout">
   <main class="main-content">
     
-    <header class="topbar">
-      <div class="topbar-left">
-        <h3 class="topbar-title">Portal Institucional <br></h3>
-      </div>
-      
-      <div class="topbar-center">
-        @if (vistaPrincipal === 'lista') {
-          <app-busqueda></app-busqueda>
-        }
-      </div>
-
-      <div class="topbar-right">
-        <button class="btn-logout user-profile" (click)="openLogoutModal()" title="Cerrar sesión">
-          <div class="avatar">👩‍💼</div>
-          <div class="user-info">
-            <strong>Trabajo Social</strong>
-            <span class="status-online">En línea </span>
-          </div>
-        </button>
-
-        
-      </div>
-    </header>
+    <!-- HEADER REEMPLAZADO POR NAVBAR -->
 
     <!-- MODAL  -->
 @if (showLogoutModal) {

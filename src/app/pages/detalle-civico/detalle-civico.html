@@ -1,3 +1,5 @@
+<app-navbar-reconecta></app-navbar-reconecta>
+
 <div *ngIf="loading" class="overlay">
   <div class="loader"></div>
   <p>Cargando expediente...</p>
@@ -109,6 +111,7 @@
     <app-ficha-tecnica
       [expedienteId]="expediente?.idUUID || expediente?.id"
       [datosExpediente]="expediente"
+      [datosCompletos]="datosCompletos"
       [modoSoloLectura]="!esAdmin()">
     </app-ficha-tecnica>
   </div>

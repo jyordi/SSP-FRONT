@@ -1,34 +1,10 @@
+<app-navbar-reconecta></app-navbar-reconecta>
+
 <div class="dashboard-layout">
 
   <main class="main-content">
     
-    <!-- HEADER -->
-    <header class="topbar">
-
-      <!-- IZQUIERDA -->
-      <div class="topbar-left">
-        <h3 class="topbar-title">Portal Institucional - Guías</h3>
-      </div>
-
-      <!-- CENTRO (BUSCADOR) -->
-      <div class="topbar-center">
-        @if (vistaPrincipal === 'lista') {
-          <app-busqueda></app-busqueda>
-        }
-      </div>
-
-      <!-- DERECHA -->
-      <div class="topbar-right">
-        <button class="user-profile logout-btn" (click)="openLogoutModal()">
-          <div class="avatar">🧭</div>
-          <div class="user-info">
-            <strong>Guía Asignado</strong>
-            <span>En línea</span>
-          </div>
-        </button>
-      </div>
-
-    </header>
+    <!-- HEADER REEMPLAZADO POR NAVBAR -->
 
     <!-- MODAL -->
     @if (showLogoutModal) {

@@ -18,6 +18,7 @@
   font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   overflow: hidden;
   background-color: var(--bg-page);
+  padding-top: 70px;
 }
 
 /* =========================================

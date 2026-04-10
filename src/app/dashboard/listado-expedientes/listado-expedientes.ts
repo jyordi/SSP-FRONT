@@ -30,7 +30,7 @@ export class ListadoExpedientesComponent implements OnInit {
     private router: Router,
     private sessionService: SessionService,
     private expedientesService: ExpedientesService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.role = this.sessionService.getRole();
@@ -54,30 +54,46 @@ export class ListadoExpedientesComponent implements OnInit {
     this.loading = true;
     forkJoin({
       penal: this.expedientesService.getPenal(),
-      civico: this.expedientesService.getCivico()
+      civico: this.expedientesService.getCivico(),
+      beneficiarios: this.expedientesService.getBeneficiarios()
     }).subscribe({
-      next: ({ penal, civico }) => {
+      next: ({ penal, civico, beneficiarios }) => {
+        // Mapa de beneficiarios para acceso rápido
+        const bMap = new Map();
+        (beneficiarios || []).forEach((b: any) => bMap.set(b.id, b));
         const listPenal = (penal || []).map((e: any) => ({
-          id: e.id,
+          id: e.id || e.idUUID,
           nombre: e.beneficiario?.nombre || 'Sin nombre',
           tipo: 'Penal',
           folio: e.folioExpediente || e.folio || '—',
           delito: e.delito || 'Sin especificar',
           estatus: e.estatus || 'REGISTRADO',
           createdAt: e.creadoEn || e.createdAt,
+          urlFoto: e.beneficiario?.urlFoto || null,
           original: e
         }));
 
-        const listCivico = (civico || []).map((e: any) => ({
-          id: e.id,
-          nombre: e.beneficiario?.nombre || e.nombre || 'Sin nombre',
-          tipo: 'Cívico',
-          folio: e.folioExpediente || e.folio || '—',
-          delito: e.delito || e.falta || 'Sin especificar',
-          estatus: e.estatus || 'REGISTRADO',
-          createdAt: e.creadoEn || e.createdAt,
-          original: e
-        }));
+        const listCivico = (civico || []).map((e: any) => {
+          // Buscamos el beneficiario en el mapa si no viene poblado
+          const b = e.beneficiario || bMap.get(e.beneficiarioId);
+          
+          return {
+            id: e.id || e.idUUID,
+            nombre: b?.nombre || e.nombre || 'Sin nombre',
+            tipo: 'Cívico',
+            folio: e.folioExpediente || e.folio || '—',
+            delito: e.delito || e.falta || 'Sin especificar',
+            estatus: e.estatus || 'REGISTRADO',
+            createdAt: e.creadoEn || e.createdAt,
+            // Nuevos campos informativos
+            curp: e.curp || b?.curp || '—',
+            municipio: e.municipio || b?.municipio || '—',
+            horasSentencia: e.horasSentencia || 0,
+            juzgado: e.numJuzgadoCivico || '—',
+            urlFoto: b?.urlFoto || e.urlFoto || null,
+            original: e
+          };
+        });
 
         // Ordenamos los más recientes primero
         this.expedientes = [...listPenal, ...listCivico].sort((a, b) => {
@@ -108,11 +124,14 @@ export class ListadoExpedientesComponent implements OnInit {
         matchEstatus = !this.esIncompleto(e);
       }
 
-      // Búsqueda
-      const matchSearch = !this.searchTerm 
-        || e.nombre.toLowerCase().includes(this.searchTerm.toLowerCase())
-        || e.folio.toLowerCase().includes(this.searchTerm.toLowerCase())
-        || e.delito.toLowerCase().includes(this.searchTerm.toLowerCase());
+      // Búsqueda expandida (Nombre, Folio, Delito, CURP, Municipio)
+      const term = this.searchTerm?.toLowerCase();
+      const matchSearch = !term
+        || e.nombre.toLowerCase().includes(term)
+        || e.folio.toLowerCase().includes(term)
+        || e.delito.toLowerCase().includes(term)
+        || (e.curp && e.curp.toLowerCase().includes(term))
+        || (e.municipio && e.municipio.toLowerCase().includes(term));
 
       return matchTipo && matchSearch && matchEstatus;
     });
@@ -134,68 +153,25 @@ export class ListadoExpedientesComponent implements OnInit {
     this.router.navigate(['/nuevo-usuario']);
   }
 
-<<<<<<< HEAD
-  
-
-  cargarPenal() {
-    this.expedientesService.getPenal().subscribe({
-      next: (res) => {
-        this.expedientes = res.map((e: any) => ({
-          id: e.id,
-          nombre: e.beneficiario?.nombre || 'Sin nombre',
-          tipo: 'Penal',
-          folio: e.folio || 'N/A',
-          delito: e.delito || 'Sin especificar',
-          estatus: e.estatus || 'Pendiente',
-          avance: e.avance || 0,
-          faseActual: e.faseActual || 'N/A',
-          original: e
-        }));
-      },
-      error: (err) => console.error(err)
-    });
-  }
-
-  cargarCivico() {
-    this.expedientesService.getCivico().subscribe({
-      next: (res) => {
-        this.expedientes = res.map((e: any) => ({
-          id: e.id|| e.idUUID,
-          nombre: e.nombre || e.beneficiario?.nombre || 'Sin nombre',
-          tipo: 'Civico',
-          folio: e.folio || 'N/A',
-          delito: e.delito || 'Sin especificar',
-          estatus: e.estatus || 'Pendiente',
-          avance: e.avance || 0,
-          faseActual: e.faseActual || 'N/A',
-          original: e
-        }));
-      },
-      error: (err) => console.error(err)
-    });
-  }
-
-  cargarVoluntario() {
-=======
   irVoluntarios() {
->>>>>>> 0dc90e3b72ebc5ab622964312cc75874ba2b33ad
     this.router.navigate(['/voluntarios/personas']);
   }
 
   continuarSeguimiento(expediente: any) {
+    if (!expediente || !expediente.id) {
+      console.error('ID inválido:', expediente);
+      alert('Error: Este expediente no tiene un identificador válido.');
+      return;
+    }
+
     if (expediente.tipo === 'Penal') {
       this.router.navigate(['/detalle-penal', expediente.id]);
     } else if (expediente.tipo === 'Cívico') {
       this.router.navigate(['/detalle-civico', expediente.id]);
+    } else {
+      console.error('Tipo desconocido:', expediente.tipo);
+      alert('Error: Tipo de expediente no reconocido.');
     }
-
-    if (!expediente.id) {
-    console.error('ID inválido:', expediente);
-    alert('Este expediente no tiene ID válido');
-    return;
-  }
-
-  
   }
 
   formatEstatus(s: string): string {
@@ -210,7 +186,7 @@ export class ListadoExpedientesComponent implements OnInit {
   // Determina qué falta según el flujo secuencial
   getFaltaAlgo(exp: any): string {
     if (exp.tipo === 'Cívico') return 'Falta completar proceso cívico';
-    
+
     switch (exp.estatus) {
       case 'REGISTRADO': return 'Falta F1 (Psicología)';
       case 'F1_COMPLETO': return 'Falta F2 (Trabajo Social)';
@@ -222,7 +198,6 @@ export class ListadoExpedientesComponent implements OnInit {
 
   // Funciones de permisos por rol
   puedeCrear(): boolean {
-    // Solo administrador y quizas trabajo social pueden crear nuevos ingresos
     return this.role === 'admin' || this.role === 'trabajo_social';
   }
 

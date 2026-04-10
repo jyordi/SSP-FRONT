@@ -3,7 +3,6 @@ import { CommonModule } from '@angular/common';
 import { FormGroup, ReactiveFormsModule, FormsModule, Validators, FormBuilder } from '@angular/forms';
 import { Civico } from '../../services/civico';
 import { SessionService } from '../../services/session';
-import { PlanIndividualComponent } from '../plan-ts-civico/plan-ts-civico';
 
 @Component({
   selector: 'app-guia-tabs',
@@ -11,8 +10,7 @@ import { PlanIndividualComponent } from '../plan-ts-civico/plan-ts-civico';
   imports: [
     CommonModule, 
     ReactiveFormsModule, 
-    FormsModule, 
-    PlanIndividualComponent 
+    FormsModule
   ],
   templateUrl: './guia-tabs.html',
   styleUrl: './guia-tabs.css'
