@@ -1,53 +1,153 @@
+<app-navbar-reconecta></app-navbar-reconecta>
 
-<div class="page">
+<div class="main-container">
 
-  <!-- 🔥 NAV SUPERIOR -->
-  <div class="top-bar">
-    <div>
-      <strong>{{userName}}</strong>
-      <span class="role">({{role}})</span>
-    </div>
+<div class="container">
+
+  <!-- LOADING -->
+  <div class="overlay" *ngIf="loading">
+    <div class="loader"></div>
+    <p>Procesando...</p>
   </div>
 
+  <!--  STEPS -->
+  <div class="steps">
+    <div [class.active]="paso === 1">1. Beneficiario</div>
+    <div [class.active]="paso === 2">2. Expediente</div>
+  </div>
 
+  <!--  PASO 1 -->
+  <div *ngIf="paso === 1" class="card fade">
 
-  <!-- FORM -->
-  <div class="card">
-    <h2>Nuevo Expediente Cívico</h2>
+    <h2> Registro de Beneficiario</h2>
 
-    <form [formGroup]="form">
+    <form [formGroup]="beneficiarioForm">
 
-      <div class="grid">
+      <label>Nombre completo</label>
+      <input formControlName="nombre">
 
-        <input placeholder="Beneficiario ID *" formControlName="beneficiarioId">
-        <input placeholder="Folio *" formControlName="folioExpediente">
-        <input placeholder="Causa Penal *" formControlName="causaPenal">
-        <input placeholder="Juez Cívico *" formControlName="juezCivico">
-        <input type="date" formControlName="fechaInicioSentencia" title="fecha">
-        <input placeholder="Horas *" formControlName="horasSentencia">
+      <label>Tiempo asignado</label>
+      <input type="number" formControlName="tiempoAsignado">
 
-        <input placeholder="Nombre Madre *" formControlName="madreNombre" class="full">
-        <input placeholder="Teléfono Madre *" formControlName="madreTelefono" class="full">
+      <label>Unidad de tiempo</label>
+      <select formControlName="unidadTiempo">
+        <option value="HORAS">Horas</option>
+        <option value="DIAS">Días</option>
+      </select>
 
+      <!-- FOTO -->
+      <label class="file-label">Fotografía</label>
+      <input type="file" (change)="onFileChange($event)" accept="image/*">
+
+      <div *ngIf="previewUrl" class="preview">
+        <img [src]="previewUrl">
       </div>
 
-      <button (click)="submit()" [disabled]="loading">
-        Guardar Expediente
+      <button type="button" (click)="crearBeneficiario()">
+        Siguiente →
       </button>
 
     </form>
   </div>
 
-  <!-- LOADING -->
-  <div *ngIf="loading" class="overlay">
-    <div class="spinner"></div>
-    <p>Guardando...</p>
-  </div>
+  <!--  PASO 2 -->
+  <div *ngIf="paso === 2" class="card fade">
 
-  <!-- SUCCESS -->
-  <div *ngIf="success" class="overlay success">
-    ✔ Expediente creado
+    <h2>⚖️ Expediente Cívico</h2>
+
+    <form [formGroup]="civicoForm">
+
+      <!--  DATOS PERSONALES -->
+      <h3> Datos Personales</h3>
+
+      <label>CURP</label>
+      <input formControlName="curp" (input)="onCurpChange()">
+
+      <label>Fecha de nacimiento</label>
+      <input type="date" formControlName="fechaNacimiento" >
+
+      <label>Género</label>
+      <select formControlName="genero" [disabled]="true">
+        <option value="masculino">Masculino</option>
+        <option value="femenino">Femenino</option>
+      </select>
+
+      <label>Domicilio completo</label>
+      <input formControlName="domicilioCompleto">
+
+      <label>Municipio</label>
+      <input formControlName="municipio">
+
+      <label>Código Postal</label>
+      <input formControlName="codigoPostal">
+
+      <label>Teléfono</label>
+      <input formControlName="telefonoContacto">
+
+      <!--  FAMILIA -->
+      <h3>Contactos Familiares</h3>
+
+      <label>Nombre de la madre</label>
+      <input formControlName="madreNombre">
+
+      <label>Teléfono de la madre</label>
+      <input formControlName="madreTelefono">
+
+      <label>Nombre del padre</label>
+      <input formControlName="padreNombre">
+
+      <label>Teléfono del padre</label>
+      <input formControlName="padreTelefono">
+
+      <!--  EXPEDIENTE -->
+      <h3> Información del Expediente</h3>
+
+      <label>Folio del expediente</label>
+      <input formControlName="folioExpediente">
+
+      <label>Juzgado Cívico</label>
+      <input formControlName="numJuzgadoCivico">
+
+      <label>Juez de control</label>
+      <input formControlName="juezControl">
+
+      <label>Causa penal</label>
+      <input formControlName="causaPenal">
+
+      <label>Delito imputado</label>
+      <input formControlName="delitoImputado">
+
+      <label>Agraviado</label>
+      <input formControlName="agraviado">
+
+      <!--  SENTENCIA -->
+      <h3> Sentencia</h3>
+
+      <label>Horas de sentencia</label>
+      <input formControlName="horasSentencia" readonly>
+
+      <label>Horas por día</label>
+      <input formControlName="horasPorDia">
+
+      <!--  FECHAS -->
+      <h3> Fechas</h3>
+
+      <label>Fecha de detención</label>
+      <input type="date" formControlName="fechaDetencion">
+
+      <label>Inicio de beneficio</label>
+      <input type="date" formControlName="fechaInicioBeneficio">
+
+      <label>Término de beneficio</label>
+      <input type="date" formControlName="fechaTerminoBeneficio">
+
+      <!-- BOTÓN -->
+      <button type="button" (click)="crearExpediente()">
+        Guardar Expediente
+      </button>
+
+    </form>
+
   </div>
 
 </div>
-

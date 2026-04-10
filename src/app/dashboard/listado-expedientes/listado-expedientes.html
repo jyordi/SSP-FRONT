@@ -70,7 +70,10 @@
            [ngClass]="'c-' + exp.tipo.toLowerCase()">
         
         <div class="card-head">
-          <span class="badge-tipo">{{ exp.tipo }}</span>
+          <div class="head-left">
+            <img class="card-avatar" [src]="exp.urlFoto || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'" alt="avatar">
+            <span class="badge-tipo">{{ exp.tipo }}</span>
+          </div>
           <span class="folio-txt">{{ exp.folio }}</span>
         </div>
 
@@ -79,6 +82,21 @@
           <p class="exp-delito">{{ exp.delito }}</p>
           
           <div class="exp-meta">
+            <div class="card-details-grid">
+              <div class="detail-item" *ngIf="exp.curp !== '—'">
+                <span class="detail-label">CURP</span>
+                <span class="detail-val">{{ exp.curp }}</span>
+              </div>
+              <div class="detail-item" *ngIf="exp.tipo === 'Cívico'">
+                <span class="detail-label">Municipio</span>
+                <span class="detail-val">{{ exp.municipio }}</span>
+              </div>
+              <div class="detail-item" *ngIf="exp.horasSentencia > 0">
+                <span class="detail-label">Horas</span>
+                <span class="detail-val">{{ exp.horasSentencia }} hrs</span>
+              </div>
+            </div>
+
             <div class="status-wrap" [class.alert]="esIncompleto(exp)">
               <span class="status-dot"></span>
               <span class="status-txt">{{ formatEstatus(exp.estatus) }}</span>

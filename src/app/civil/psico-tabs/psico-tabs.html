@@ -1,0 +1,27 @@
+<div class="acciones">
+  <button [class.active]="tab==='entrevista'" (click)="tab='entrevista'"> Entrevista</button>
+  <button [class.active]="tab==='notas'" (click)="tab='notas'"> Notas de Evaluación</button>
+  <button [class.active]="tab==='plan-vida'" (click)="tab='plan-vida'"> 🌟 Plan de Vida</button>
+</div>
+
+<app-entrevista-psi 
+  *ngIf="tab==='entrevista'" 
+  [expediente]="expediente">
+</app-entrevista-psi>
+
+<!-- NOTAS -->
+<app-notas-psi 
+  *ngIf="tab==='notas'" 
+  [expediente]="expediente">
+</app-notas-psi>
+
+<!-- PLAN DE VIDA -->
+<app-plan-vida
+  *ngIf="tab==='plan-vida'"
+  [expediente]="expediente">
+</app-plan-vida>
+
+
+
+
+ 

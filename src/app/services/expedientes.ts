@@ -49,5 +49,9 @@ getCivicoById(id: number): Observable<any> {
     return this.http.get(`${this.API_URL}/voluntarios/personas`);
   }
 
+  // BENIFICIARIOS
+  getBeneficiarios(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.API_URL}/beneficiarios`);
+  }
 }
 

@@ -1,31 +1,10 @@
+<app-navbar-reconecta></app-navbar-reconecta>
+
 <div class="dashboard-layout">
 
   <main class="main-content">
     
-    <!-- HEADER -->
-    <header class="topbar">
-
-      <div class="topbar-left">
-        <h3 class="topbar-title">Portal Institucional</h3>
-      </div>
-
-      <div class="topbar-center">
-        @if (vistaActual === 'historial') {
-          <app-busqueda></app-busqueda>
-        }
-      </div>
-
-      <div class="topbar-right">
-        <button class="user-profile logout-btn" (click)="openLogoutModal()">
-          <div class="avatar" style="border-color: #0369a1;">👩‍⚕️</div>
-          <div class="user-info">
-            <strong>Psicólog@ En Turno</strong>
-            <span>En línea</span>
-          </div>
-        </button>
-      </div>
-
-    </header>
+    <!-- HEADER REEMPLAZADO POR NAVBAR -->
 
     <!-- MODAL -->
     @if (showLogoutModal) {

@@ -1,74 +1,152 @@
-import { Component, OnInit, inject} from '@angular/core';
+import { Component, OnInit, inject,} from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule} from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
+import { SessionService } from '../../services/session';
+import { Civico } from '../../services/civico';
+import { CommonModule, Location } from '@angular/common';
+import Swal from 'sweetalert2';
+import { NavbarReconectaComponent } from "../../shared/navbar-reconecta/navbar-reconecta";
 
 @Component({
+  standalone:true,
   selector: 'app-seguimiento-psi',
-  imports: [ ReactiveFormsModule],
+  imports: [ ReactiveFormsModule,CommonModule, NavbarReconectaComponent],
   templateUrl: './seguimiento-psi.html',
-  styleUrl: './seguimiento-psi.css',
+  styleUrls: ['./seguimiento-psi.css'],
 })
 export class SeguimientoPsi {
-
-  // Declaramos nuestro formulario
-  notaEvolucionForm!: FormGroup;
   
-  // Inyectamos el FormBuilder de Angular
-  private fb = inject(FormBuilder);
+   notaEvolucionForm!: FormGroup;
+  expedienteId!: string;
+  loading = false;
+
+  constructor(
+    private fb: FormBuilder,
+    private route: ActivatedRoute,
+    private notaService: Civico,
+    private sessionService: SessionService,
+    private location: Location
+  ) {}
 
   ngOnInit(): void {
-    this.iniciarFormulario();
+    this.expedienteId = this.route.snapshot.paramMap.get('id') || '';
+
+    if (!this.expedienteId) {
+      alert("Error: expediente no encontrado");
+      return;
+    }
+
+    this.initForm();
   }
 
-  iniciarFormulario(): void {
+  initForm() {
     this.notaEvolucionForm = this.fb.group({
-      // =====================
-      // 1. Datos del Usuario
-      // =====================
-      numExpediente: ['', Validators.required],
-      nombreUsuario: ['', Validators.required],
-      edad: ['', [Validators.required, Validators.min(0)]],
-      sexo: ['', Validators.required],
-
-      // =====================
-      // 2. Datos de la Sesión
-      // =====================
+      numSesion: [1, Validators.required],
       fecha: ['', Validators.required],
       hora: ['', Validators.required],
-      numSesion: ['', [Validators.required, Validators.min(1)]],
-      fechaProximaSesion: [''], // Opcional, por si no hay próxima cita programada aún
-
-      // =====================
-      // 3. Desarrollo de la Sesión
-      // =====================
+      fechaProximaSesion: [''],
       objetivoSesion: ['', Validators.required],
       conductaDisposicion: ['', Validators.required],
       tema: ['', Validators.required],
-      estrategia: ['', Validators.required],
+      estrategia: [''],
       resumenSesion: ['', Validators.required],
-
-      // =====================
-      // 4. Plan y Observaciones
-      // =====================
-      planTerapeutico: ['', Validators.required],
-      actividadesAsignadas: [''], // Opcional
-      observaciones: ['']         // Opcional
+      planTerapeutico: [''],
+      actividadesAsignadas: [''],
+      observaciones: [''],
+      avancePercibido: ['INICIAL', Validators.required],
+      esCierre: [false] 
     });
   }
 
-  // Método que se ejecuta al presionar "Guardar Nota de Evolución"
-  onSubmit(): void {
-    if (this.notaEvolucionForm.valid) {
-      // Aquí el formulario está correcto, listo para enviar a tu API
-      console.log('✅ Formulario válido. Datos a guardar:', this.notaEvolucionForm.value);
-      
-      // Ejemplo: this.http.post('tu-api/notas', this.notaEvolucionForm.value).subscribe(...)
-      
-    } else {
-      // Si falta algún campo obligatorio, marcamos todos como "tocados" 
-      // para que se disparen las validaciones visuales si decides agregarlas
-      console.warn('❌ Formulario inválido. Revisa los campos requeridos.');
-      this.notaEvolucionForm.markAllAsTouched();
-    }
+  get f() {
+    return this.notaEvolucionForm.controls;
   }
 
+  onSubmit() {
+
+    Swal.fire({
+      title: '¿Guardar nota?',
+      text: 'Verifica que la información sea correcta',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Sí, guardar',
+      cancelButtonText: 'Cancelar'
+    }).then((result) => {
+
+      if (!result.isConfirmed) return;
+
+      this.guardarNota();
+    });
+  }
+
+  guardarNota() {
+    if (this.notaEvolucionForm.invalid) {
+      this.notaEvolucionForm.markAllAsTouched();
+      return;
+    }
+
+    this.loading = true;
+
+    const form = this.notaEvolucionForm.value;
+
+    //  auto avance si es cierre
+    if (form.esCierre) {
+      form.avancePercibido = 'EXCELENTE';
+    }
+
+    const payload = this.construirPayload(form);
+
+    console.log(" PAYLOAD:", payload);
+
+    this.notaService.crearnota(payload).subscribe({
+      next: () => {
+        this.loading = false;
+
+        Swal.fire('Guardado', 'Nota guardada correctamente', 'success').then(() => {
+          this.location.back();
+        });
+
+        this.notaEvolucionForm.reset({
+          avancePercibido: 'INICIAL',
+          numSesion: form.numSesion + 1,
+          esCierre: false
+        });
+      },
+      error: (err) => {
+        this.loading = false;
+        console.error(err);
+        Swal.fire('Error', 'No se pudo guardar', 'error');
+      }
+    });
+  }
+
+  //  payload dinámico
+  construirPayload(form: any) {
+
+    const base = {
+      expedienteId: this.expedienteId,
+      psicologoId: this.sessionService.getUserId(),
+      numSesion: form.numSesion,
+      fechaSesion: form.fecha,
+      horaSesion: form.hora,
+      objetivoSesion: form.objetivoSesion,
+      conductaDisposicion: form.conductaDisposicion,
+      descripcionIntervencion: form.resumenSesion,
+      temaSesion: form.tema,
+      avancePercibido: form.avancePercibido,
+      observaciones: form.observaciones
+    };
+
+    if (form.esCierre) {
+      return base; //  cierre = menos campos
+    }
+
+    return {
+      ...base,
+      fechaProximaSesion: form.fechaProximaSesion,
+      estrategiaAplicada: form.estrategia,
+      planTerapeutico: form.planTerapeutico,
+      actividadesAsignadasUsuario: form.actividadesAsignadas
+    };
+  }
 }

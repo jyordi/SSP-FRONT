@@ -1,29 +1,9 @@
+<app-navbar-reconecta></app-navbar-reconecta>
+
 <div class="dashboard-layout">
   <main class="main-content">
     
-    <header class="topbar">
-      <div class="topbar-left">
-        <h3 class="topbar-title">Portal Institucional <br></h3>
-      </div>
-      
-      <div class="topbar-center">
-        @if (vistaPrincipal === 'lista') {
-          <app-busqueda></app-busqueda>
-        }
-      </div>
-
-      <div class="topbar-right">
-        <button class="btn-logout user-profile" (click)="openLogoutModal()" title="Cerrar sesión">
-          <div class="avatar">👩‍💼</div>
-          <div class="user-info">
-            <strong>Trabajo Social</strong>
-            <span class="status-online">En línea </span>
-          </div>
-        </button>
-
-        
-      </div>
-    </header>
+    <!-- HEADER REEMPLAZADO POR NAVBAR -->
 
     <!-- MODAL  -->
 @if (showLogoutModal) {
@@ -173,40 +153,20 @@
             <button class="tab"
                     [class.active]="tabActual === 'estudio'"
                     (click)="cambiarTab('estudio')">
-              📄 Estudio de Trabajo Social
+               Estudio de Trabajo Social
             </button>
 
             <button class="tab"
                     [class.active]="tabActual === 'plan'"
                     (click)="cambiarTab('plan')">
-              🎯 Plan de Trabajo Individual
+              Plan de Trabajo Individual
             </button>
           </div>
 
           <!-- ESTUDIO -->
           @if (tabActual === 'estudio') {
-            <div class="tab-content fade-in editor-container">
-              <div class="word-document">
-
-                <div style="text-align: center; margin-bottom: 2rem;">
-                  <h2 style="margin: 0;">ESTUDIO DE TRABAJO SOCIAL</h2>
-                  <p style="color: var(--text-secondary); margin-top: 0.5rem;">
-                    SUBSECRETARÍA DE PREVENCIÓN Y REINSERCIÓN SOCIAL
-                  </p>
-                </div>
-                
-                <div>
-                  <p><strong>Nombre:</strong> {{ personaSeleccionada.nombre }}</p>
-                  <p><strong>Expediente:</strong> {{ personaSeleccionada.expediente }}</p>
-
-                  <hr style="margin: 1.5rem 0; border: 0; border-top: 1px solid var(--border-primary);">
-                  
-                  <textarea [(ngModel)]="personaSeleccionada.estudioWord"
-                            class="word-textarea"
-                            placeholder="Comience a redactar el estudio social aquí...">
-                  </textarea>
-                </div>
-              </div>
+            <div class="tab-content fade-in">
+              <app-estudio-ts-civico [expedienteId]="personaSeleccionada.id.toString()"></app-estudio-ts-civico>
             </div>
           }
 

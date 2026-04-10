@@ -1,0 +1,115 @@
+<div class="form-container fade-in" style="max-width: 1000px; margin: 0 auto; padding-bottom: 50px;">
+
+  <!-- CONTENIDO PRINCIPAL -->
+  <div style="background: #334155; color: white; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+    <h2 style="margin: 0;">PLAN DE TRABAJO INDIVIDUAL CÍVICO</h2>
+    <p style="margin: 5px 0 0 0; font-size: 0.9em; opacity: 0.9;">Proceso de seguimiento de actividades del programa "RECONECTA CON LA PAZ"</p>
+  </div>
+
+  <div class="panel-lectura" style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 20px; margin-bottom: 30px;">
+    <h3 style="margin-top:0; color: #334155; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;">
+      <span style="font-size: 1.2em;">📖</span> Datos Personales (Importados)
+    </h3>
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; font-size: 0.9em;">
+      <div style="grid-column: 1 / -1;"><strong>Nombre:</strong> {{ datosExpediente?.nombre || '---' }}</div>
+      <div><strong>Folio:</strong> {{ datosExpediente?.folioExpediente || '---' }}</div>
+      <div><strong>CURP:</strong> {{ datosExpediente?.curp || '---' }}</div>
+      <div><strong>Municipio:</strong> {{ datosExpediente?.municipio || '---' }}</div>
+      <div style="grid-column: 1 / -1;"><strong>Delito/Falta:</strong> {{ datosExpediente?.delitoImputado || '---' }}</div>
+    </div>
+  </div>
+
+  <form [formGroup]="planForm" (ngSubmit)="guardarF3()">
+    
+    <!-- MENSAJE DE BLOQUEO POR FLUJO (CANDADO F3) -->
+    <div *ngIf="bloqueadoPorFlujo" style="background: #fef2f2; border: 1px solid #f87171; color: #b91c1c; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+      <span style="font-size: 1.5em;">⚠️</span>
+      <span style="font-weight: 500;">{{ mensajeBloqueo }}</span>
+    </div>
+
+    <!-- NUEVOS CAMPOS DEL DTO -->
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px;">
+      <div class="form-group">
+        <label style="font-weight: bold; font-size: 0.9em; display: block; margin-bottom: 5px;">Fecha Inicio Estimada</label>
+        <input type="date" formControlName="fechaInicioEstimada" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px;">
+      </div>
+      <div class="form-group">
+        <label style="font-weight: bold; font-size: 0.9em; display: block; margin-bottom: 5px;">Fecha Término Estimada</label>
+        <input type="date" formControlName="fechaTerminoEstimada" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px;">
+      </div>
+      <div class="form-group">
+        <label style="font-weight: bold; font-size: 0.9em; display: block; margin-bottom: 5px;">Días Asignados</label>
+        <input type="number" formControlName="diasAsignados" placeholder="Ej. 30" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px;">
+      </div>
+    </div>
+
+    <div class="form-group" style="margin-bottom: 20px;">
+      <label style="font-weight: bold; font-size: 0.9em; display: block; margin-bottom: 5px;">Metas del Programa</label>
+      <textarea formControlName="metasPrograma" placeholder="Descripción de las metas..." style="width: 100%; min-height: 60px; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; resize: vertical;"></textarea>
+    </div>
+
+    <div class="table-wrapper">
+      <div class="table-header-title">
+        <h3 style="margin-bottom: 0; font-weight: 500;">
+          Tabla de Cumplimiento de Actividades
+        </h3>
+      </div>
+
+      <div class="table-responsive" style="overflow-x: auto;">
+        <table class="data-table" style="width: 100%; border-collapse: collapse; text-align: left;">
+          <thead>
+            <tr>
+              <th style="padding: 10px; border-bottom: 2px solid #ddd; width: 20%;">ACTIVIDAD</th>
+              <th style="padding: 10px; border-bottom: 2px solid #ddd; width: 20%;">ESTATUS</th>
+              <th style="padding: 10px; border-bottom: 2px solid #ddd; width: 30%;">OBJETIVO</th>
+              <th style="padding: 10px; border-bottom: 2px solid #ddd; width: 30%;">CUMPLIMIENTO</th>
+            </tr>
+          </thead>
+
+          <tbody formArrayName="actividades">
+            <tr *ngFor="let act of actividades.controls; let i=index" [formGroupName]="i">
+              <td class="cell-actividad" style="padding: 10px; border-bottom: 1px solid #eee;">
+                {{ act.get('nombre')?.value }}
+              </td>
+              <td class="cell-input" style="padding: 10px; border-bottom: 1px solid #eee;">
+                <input type="text" formControlName="estatus" style="width: 100%; padding: 5px; box-sizing: border-box;" placeholder="Ej. Cumplido">
+              </td>
+              <td class="cell-input" style="padding: 10px; border-bottom: 1px solid #eee;">
+                <textarea formControlName="objetivo" style="width: 100%; padding: 5px; box-sizing: border-box; resize: vertical;" placeholder="Descripción..."></textarea>
+              </td>
+              <td class="cell-input" style="padding: 10px; border-bottom: 1px solid #eee;">
+                <textarea formControlName="cumplimiento" style="width: 100%; padding: 5px; box-sizing: border-box; resize: vertical;" placeholder="Evidencia..."></textarea>
+              </td>
+            </tr>
+          </tbody>
+          
+          <tfoot>
+            <tr style="background-color: #f8fafc;">
+              <td class="cell-actividad" style="padding: 15px 10px; font-weight: bold; border-top: 2px solid #e2e8f0;">OBSERVACIONES GENERALES</td>
+              <td colspan="3" class="cell-input" style="padding: 15px 10px; border-top: 2px solid #e2e8f0;">
+                <textarea formControlName="observacionesPlan" style="width: 100%; min-height: 80px; padding: 5px; resize: vertical;"></textarea>
+              </td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+
+    <!-- PANEL DE ACCIONES -->
+    <div class="actions-bar" style="position: sticky; bottom: 0; background: #fff; padding: 15px; border-top: 1px solid #e2e8f0; border-radius: 0 0 8px 8px; z-index: 10; display: flex; gap: 15px; justify-content: flex-end; margin-top: 20px;">
+      <span *ngIf="guardadoExito" style="color: var(--success-text, #15803d); align-self: center; font-weight: 500;">
+        ¡Plan guardado correctamente!
+      </span>
+      
+      <!-- BOTÓN IMPRIMIR PDF -->
+      <button *ngIf="esAdmin()" type="button" class="btn-primary" style="background-color: #475569;" (click)="generarPDF()" [disabled]="generandoPDF || !f3Existente">
+        {{ generandoPDF ? 'Generando Papelería...' : '📄 Generar Documento PDF' }}
+      </button>
+
+      <button *ngIf="!modoSoloLectura" type="submit" class="btn-primary" [disabled]="planForm.invalid || guardando">
+        {{ guardando ? 'Guardando...' : (f3Existente ? 'Actualizar Plan' : 'Guardar Plan') }}
+      </button>
+    </div>
+
+  </form>
+</div>

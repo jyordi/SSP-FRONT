@@ -15,6 +15,11 @@ export class SessionService {
     localStorage.removeItem('token');
   }
 
+  logout() {
+    this.clearSession();
+    localStorage.clear();
+  }
+
   getPayload(): any {
     const token = this.getToken();
     if (!token) return null;
@@ -47,6 +52,12 @@ export class SessionService {
     const payload = this.getPayload();
     return payload?.rol || 'sin-rol';
   }
+
+  // Helpers de Roles
+  esAdmin(): boolean { return this.getRole().toLowerCase() === 'admin'; }
+  esGuia(): boolean { return this.getRole().toLowerCase() === 'guia'; }
+  esPsicologo(): boolean { return this.getRole().toLowerCase() === 'psicologo'; }
+  esTrabajadorSocial(): boolean { return this.getRole().toLowerCase() === 'trabajadorsocial'; }
 
   isTokenExpired(): boolean {
     const payload = this.getPayload();

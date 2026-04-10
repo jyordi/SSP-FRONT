@@ -236,6 +236,13 @@ html, body {
   padding: 16px 20px 8px;
   display: flex; justify-content: space-between; align-items: center;
 }
+.head-left {
+  display: flex; align-items: center; gap: 10px;
+}
+.card-avatar {
+  width: 32px; height: 32px; border-radius: 50%; object-fit: cover;
+  border: 1.5px solid var(--brd); background: var(--b0);
+}
 .badge-tipo {
   font-size: .65rem; font-weight: 800; letter-spacing: .6px;
   text-transform: uppercase; padding: 4px 10px; border-radius: 6px;
@@ -252,8 +259,41 @@ html, body {
 .exp-delito { margin: 0 0 16px; font-size: .85rem; color: var(--t5); font-weight: 500;}
 
 .exp-meta {
-  display: flex; align-items: center; justify-content: space-between;
-  background: var(--b0); padding: 10px 14px; border-radius: 8px; border: 1px solid var(--brd);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: var(--b0); padding: 14px; border-radius: 8px; border: 1px solid var(--brd);
+}
+
+.card-details-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  border-bottom: 1px solid var(--brd);
+  padding-bottom: 12px;
+}
+
+.detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.detail-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--t3);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.detail-val {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--t7);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .status-wrap { display: flex; align-items: center; gap: 8px; }

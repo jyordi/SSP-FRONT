@@ -1,3 +1,4 @@
+<app-navbar-reconecta></app-navbar-reconecta>
 <div class="container">
   <form [formGroup]="entrevistaForm" (ngSubmit)="onSubmit()" class="form-card">
 
@@ -10,59 +11,130 @@
       <div class="form-grid">
         <div class="form-group">
           <label>Nombre</label>
-          <input type="text" formControlName="nombre">
+          <input type="text"
+       formControlName="nombre"
+       (input)="soloLetras($event)">
+
+<div class="error"
+ *ngIf="entrevistaForm.get('nombre')?.invalid && entrevistaForm.get('nombre')?.touched">
+  Nombre obligatorio (solo letras)
+</div>
         </div>
         <div class="form-group">
           <label>Edad</label>
           <input type="number" formControlName="edad">
+          <div class="error"
+ *ngIf="entrevistaForm.get('edad')?.invalid && entrevistaForm.get('edad')?.touched">
+  Campo obligatorio
+</div>
         </div>
         <div class="form-group">
           <label>Sobrenombre</label>
           <input type="text" formControlName="sobrenombre">
+          <div class="error"
+ *ngIf="entrevistaForm.get('sobrenombre')?.invalid && entrevistaForm.get('sobrenombre')?.touched">
+  Campo obligatorio
+</div>
         </div>
         <div class="form-group">
           <label>Fecha de nacimiento</label>
           <input type="date" formControlName="fechaNacimiento">
+          <div class="error"
+ *ngIf="entrevistaForm.get('fechaNacimiento')?.invalid && entrevistaForm.get('fechaNacimiento')?.touched">
+  Campo obligatorio
+</div>
         </div>
         <div class="form-group">
           <label>CURP</label>
-          <input type="text" formControlName="curp">
+          <input type="text" formControlName="curp" maxlength="18">
+          <div class="error"
+ *ngIf="entrevistaForm.get('curp')?.invalid && entrevistaForm.get('curp')?.touched">
+   CURP inválida</div>
+
+  <div class="error"
+ *ngIf="entrevistaForm.get('curp')?.invalid && entrevistaForm.get('curp')?.touched">
+  Campo obligatorio
+</div>
         </div>
         <div class="form-group">
           <label>Originario</label>
           <input type="text" formControlName="originario">
+          <div class="error"
+ *ngIf="entrevistaForm.get('originario')?.invalid && entrevistaForm.get('originario')?.touched">
+  Campo obligatorio
+</div>
         </div>
         <div class="form-group">
           <label>Teléfono</label>
-          <input type="text" formControlName="telefono">
+<input type="text"
+       formControlName="telefono"
+       (input)="soloNumeros($event)">          
+       <div class="error"
+ *ngIf="entrevistaForm.get('telefono')?.invalid && entrevistaForm.get('telefono')?.touched">
+          Debe tener 10 dígitos</div>
         </div>
         <div class="form-group">
           <label>Escolaridad</label>
-          <input type="text" formControlName="escolaridad">
+         <select formControlName="escolaridad">
+                  <option value="">Selecciona</option>
+                  <option>Primaria</option>
+                  <option>Secundaria</option>
+                  <option>Preparatoria</option>
+                  <option>Licenciatura</option>
+                  <option>Posgrado</option>
+                  <option>Ninguna</option>
+                </select>
         </div>
         <div class="form-group">
           <label>Estado Civil</label>
-          <input type="text" formControlName="estadoCivil">
+         <select formControlName="estadoCivil">
+                  <option value="">Selecciona</option>
+                  <option value="Soltero">Soltero</option>
+                  <option value="Casado">Casado</option>
+                  <option value="Unión libre">Unión libre</option>
+                  <option value="Divorciado">Divorciado</option>
+                  <option value="Viudo">Viudo</option>
+                </select>
         </div>
         <div class="form-group">
           <label>Nacionalidad</label>
           <input type="text" formControlName="nacionalidad">
+          <div class="error"
+ *ngIf="entrevistaForm.get('nacionalidad')?.invalid && entrevistaForm.get('nacionalidad')?.touched">
+  Campo obligatorio
+</div>
         </div>
         <div class="form-group">
           <label>Lengua Indígena</label>
           <input type="text" formControlName="lenguaIndigena">
+          <div class="error"
+ *ngIf="entrevistaForm.get('lenguaIndigena')?.invalid && entrevistaForm.get('lenguaIndigena')?.touched">
+  Campo obligatorio
+</div>
         </div>
         <div class="form-group">
           <label>Religión</label>
           <input type="text" formControlName="religion">
+          <div class="error"
+ *ngIf="entrevistaForm.get('religion')?.invalid && entrevistaForm.get('religion')?.touched">
+  Campo obligatorio
+</div>
         </div>
         <div class="form-group full-width">
           <label>Ocupación</label>
           <input type="text" formControlName="ocupacion">
+          <div class="error"
+ *ngIf="entrevistaForm.get('ocupacion')?.invalid && entrevistaForm.get('ocupacion')?.touched">
+  Campo obligatorio
+</div>
         </div>
         <div class="form-group full-width">
           <label>Domicilio</label>
           <input type="text" formControlName="domicilio">
+          <div class="error"
+ *ngIf="entrevistaForm.get('domicilio')?.invalid && entrevistaForm.get('domicilio')?.touched">
+  Campo obligatorio
+</div>
         </div>
       </div>
     </div>
@@ -74,14 +146,26 @@
       <div class="form-group" style="margin-bottom: 1.5rem;">
         <label>Fecha de Detención</label>
         <input type="date" formControlName="fechaDetencion">
+        <div class="error"
+ *ngIf="entrevistaForm.get('fechaDetencion')?.invalid && entrevistaForm.get('fechaDetencion')?.touched">
+  Campo obligatorio
+</div>
       </div>
       <div class="form-group" style="margin-bottom: 1.5rem;">
         <label>Falta cívica</label>
         <textarea formControlName="faltaCivica"></textarea>
+        <div class="error"
+ *ngIf="entrevistaForm.get('faltaCivica')?.invalid && entrevistaForm.get('faltaCivica')?.touched">
+  Campo obligatorio
+</div>
       </div>
       <div class="form-group">
         <label>Relato de los hechos</label>
         <textarea formControlName="relatoHechos"></textarea>
+        <div class="error"
+ *ngIf="entrevistaForm.get('relatoHechos')?.invalid && entrevistaForm.get('relatoHechos')?.touched">
+  Campo obligatorio
+</div>
       </div>
     </div>
 
@@ -95,30 +179,64 @@
             <div class="family-grid">
               <div class="form-group">
                 <label>Nombre</label>
-                <input type="text" formControlName="nombre">
+                <input type="text"
+       formControlName="nombre"
+       (input)="soloLetras($event)">
+
+<div class="error"
+ *ngIf="familiar.get('nombre')?.invalid && familiar.get('nombre')?.touched">
+  Nombre obligatorio (solo letras)
+</div>
               </div>
               <div class="form-group">
                 <label>Parentesco</label>
                 <input type="text" formControlName="parentesco">
+                <div class="error"
+ *ngIf="entrevistaForm.get('parentesco')?.invalid && entrevistaForm.get('parentesco')?.touched">
+  Parentesco obligatorio
+</div>
               </div>
               <div class="form-group">
                 <label>Edad</label>
                 <input type="number" formControlName="edad">
+                <div class="error"
+ *ngIf="entrevistaForm.get('edad')?.invalid && entrevistaForm.get('edad')?.touched">
+  Edad obligatoria
+</div>
               </div>
               <div class="form-group">
                 <label>Estado Civil</label>
-                <input type="text" formControlName="estadoCivil">
+                <select formControlName="estadoCivil">
+                  <option value="">Selecciona</option>
+                  <option value="Soltero">Soltero</option>
+                  <option value="Casado">Casado</option>
+                  <option value="Unión libre">Unión libre</option>
+                  <option value="Divorciado">Divorciado</option>
+                  <option value="Viudo">Viudo</option>
+                </select>
               </div>
               <div class="form-group">
                 <label>Escolaridad</label>
-                <input type="text" formControlName="escolaridad">
+                <select formControlName="escolaridad">
+                  <option value="">Selecciona</option>
+                  <option>Primaria</option>
+                  <option>Secundaria</option>
+                  <option>Preparatoria</option>
+                  <option>Licenciatura</option>
+                  <option>Posgrado</option>
+                  <option>Ninguna</option>
+                </select>
               </div>
               <div class="form-group">
                 <label>Ocupación</label>
                 <input type="text" formControlName="ocupacion">
+                <div class="error"
+ *ngIf="entrevistaForm.get('ocupacion')?.invalid && entrevistaForm.get('ocupacion')?.touched">
+  Campo obligatorio
+</div>
               </div>
             </div>
-            <button type="button" class="btn-delete" (click)="removeFamiliar(i)">Eliminar</button>
+            <!-- <button type="button" class="btn-delete" (click)="removeFamiliar(i)">Eliminar</button> -->
           </div>
         }
       </div>
@@ -128,67 +246,138 @@
       <div class="form-group">
         <label>Observaciones</label>
         <textarea formControlName="observacionesFamilia"></textarea>
+        <div class="error"
+ *ngIf="entrevistaForm.get('observacionesFamilia')?.invalid && entrevistaForm.get('observacionesFamilia')?.touched">
+  Campo obligatorio
+</div>
       </div>
     </div>
 
-    <div class="section-header">
-      <h2>4. Uso de Sustancias</h2>
-    </div>
-    <div class="section-body">
-      <div class="form-grid">
-        <div class="form-group full-width">
-          <label>¿Consume bebidas embriagantes o algún psicotrópico?</label>
-          <div class="radio-group">
-            <label><input type="radio" value="si" formControlName="consumeAlcohol"> Sí</label>
-            <label><input type="radio" value="no" formControlName="consumeAlcohol"> No</label>
-          </div>
-          <textarea placeholder="Especifique" formControlName="especificaConsumo"></textarea>
-        </div>
+    
+<div class="section-header">
+  <h2>4. Uso de Sustancias</h2>
+</div>
 
-        <div class="form-group full-width">
-          <label>¿Ha recibido terapias psicológicas o de otra índole?</label>
-          <div class="radio-group">
-            <label><input type="radio" value="si" formControlName="haRecibidoTerapias"> Sí</label>
-            <label><input type="radio" value="no" formControlName="haRecibidoTerapias"> No</label>
-          </div>
-        </div>
+<div class="section-body">
+  <div class="form-grid">
 
-        <div class="form-group full-width">
-          <label>¿Necesita apoyo psicológico?</label>
-          <div class="radio-group">
-            <label><input type="radio" value="si" formControlName="necesitaApoyoPsicologico"> Sí</label>
-            <label><input type="radio" value="no" formControlName="necesitaApoyoPsicologico"> No</label>
-          </div>
-        </div>
-
-        <div class="form-group full-width">
-          <label>¿Acude a sesiones de grupos (AA, NA, etc.)?</label>
-          <div class="radio-group">
-            <label><input type="radio" value="si" formControlName="acudeSesionesGrupos"> Sí</label>
-            <label><input type="radio" value="no" formControlName="acudeSesionesGrupos"> No</label>
-          </div>
-          <textarea placeholder="Especifique en dónde" formControlName="especificadonde"></textarea>
-        </div>
-
-        <div class="form-group full-width">
-          <label>¿Ha estado en rehabilitación o anexo?</label>
-          <div class="radio-group">
-            <label><input type="radio" value="si" formControlName="haEstadoRehabilitacion"> Sí</label>
-            <label><input type="radio" value="no" formControlName="haEstadoRehabilitacion"> No</label>
-          </div>
-          <textarea placeholder="Especifique en cuál" formControlName="especificaencual"></textarea>
-        </div>
-
-        <div class="form-group full-width">
-          <label>¿Pertenece a algún grupo cultural, religioso o deportivo?</label>
-          <div class="radio-group">
-            <label><input type="radio" value="si" formControlName="perteneceGrupoCultural"> Sí</label>
-            <label><input type="radio" value="no" formControlName="perteneceGrupoCultural"> No</label>
-          </div>
-          <textarea placeholder="Especifique a cuál" formControlName="especifiquegrupo"></textarea>
-        </div>
+    <!-- CONSUMO -->
+    <div class="form-group full-width">
+      <label>¿Consume bebidas embriagantes o algún psicotrópico?</label>
+      <div class="radio-group">
+        <label><input type="radio" value="si" formControlName="consumeAlcohol"> Sí</label>
+        <label><input type="radio" value="no" formControlName="consumeAlcohol"> No</label>
+    <div class="error"
+ *ngIf="entrevistaForm.get('consumeAlcohol')?.invalid && entrevistaForm.get('consumeAlcohol')?.touched">
+  Campo obligatorio
+</div>
       </div>
+
+      <textarea *ngIf="consumeAlcohol"
+        placeholder="Especifique"
+        formControlName="especificaConsumo">
+      </textarea>
+      <div class="error"
+ *ngIf="entrevistaForm.get('especificaConsumo')?.invalid && entrevistaForm.get('especificaConsumo')?.touched">
+   Este campo es obligatorio
+</div>
     </div>
+
+    <!-- TERAPIAS -->
+    <div class="form-group full-width">
+      <label>¿Ha recibido terapias psicológicas o de otra índole?</label>
+      <div class="radio-group">
+        <label><input type="radio" value="si" formControlName="haRecibidoTerapias"> Sí</label>
+        <label><input type="radio" value="no" formControlName="haRecibidoTerapias"> No</label>
+      </div>
+
+      <textarea *ngIf="haRecibidoTerapias"
+        placeholder="Especifique"
+        formControlName="especificaTerapias">
+      </textarea>
+      <div class="error"
+ *ngIf="entrevistaForm.get('especificaTerapias')?.invalid && entrevistaForm.get('especificaTerapias')?.touched">
+   Este campo es obligatorio
+</div>
+    </div>
+
+    <!-- APOYO PSICOLÓGICO -->
+    <div class="form-group full-width">
+      <label>¿Necesita apoyo psicológico?</label>
+      <div class="radio-group">
+        <label><input type="radio" value="si" formControlName="necesitaApoyoPsicologico"> Sí</label>
+        <label><input type="radio" value="no" formControlName="necesitaApoyoPsicologico"> No</label>
+      </div>
+
+      <textarea *ngIf="necesitaApoyoPsicologico"
+        placeholder="Especifique"
+        formControlName="especificaApoyo">
+      </textarea>
+      <div class="error"
+ *ngIf="entrevistaForm.get('especificaApoyo')?.invalid && entrevistaForm.get('especificaApoyo')?.touched">
+   Este campo es obligatorio
+</div>
+    </div>
+
+    <!-- GRUPOS -->
+    <div class="form-group full-width">
+      <label>¿Acude a sesiones de grupos (AA, NA, etc.)?</label>
+      <div class="radio-group">
+        <label><input type="radio" value="si" formControlName="acudeSesionesGrupos"> Sí</label>
+        <label><input type="radio" value="no" formControlName="acudeSesionesGrupos"> No</label>
+      </div>
+
+      <textarea *ngIf="acudeSesionesGrupos"
+        placeholder="Especifique dónde"
+        formControlName="especificaDonde">
+      </textarea>
+      <div class="error"
+ *ngIf="entrevistaForm.get('especificaDonde')?.invalid && entrevistaForm.get('especificaDonde')?.touched">
+  Este campo es obligatorio
+</div>
+    </div>
+
+    <!-- REHABILITACIÓN -->
+    <div class="form-group full-width">
+      <label>¿Ha estado en rehabilitación o anexo?</label>
+      <div class="radio-group">
+        <label><input type="radio" value="si" formControlName="haEstadoRehabilitacion"> Sí</label>
+        <label><input type="radio" value="no" formControlName="haEstadoRehabilitacion"> No</label>
+      </div>
+
+      <textarea *ngIf="haEstadoRehabilitacion"
+        placeholder="Especifique en cuál"
+        formControlName="especificaEnCual">
+      </textarea>
+      <div class="error"
+ *ngIf="entrevistaForm.get('especificaEnCual')?.invalid && entrevistaForm.get('especificaEnCual')?.touched">
+   Este campo es obligatorio
+</div>
+    </div>
+
+    <!-- GRUPO CULTURAL -->
+    <div class="form-group full-width">
+      <label>¿Pertenece a algún grupo cultural, religioso o deportivo?</label>
+      <div class="radio-group">
+        <label><input type="radio" value="si" formControlName="perteneceGrupoCultural"> Sí</label>
+        <label><input type="radio" value="no" formControlName="perteneceGrupoCultural"> No</label>
+      </div>
+
+      <textarea *ngIf="perteneceGrupoCultural"
+        placeholder="Especifique"
+        formControlName="especificaGrupo">
+      </textarea>
+      <div class="error"
+ *ngIf="entrevistaForm.get('especificaGrupo')?.invalid && entrevistaForm.get('especificaGrupo')?.touched">
+   Este campo es obligatorio
+</div>
+    </div>
+
+  </div>
+</div>
+
+
+
 
     <div class="section-header">
       <h2>5. Emociones</h2>
@@ -291,7 +480,11 @@
 
     <div class="button-container">
       <button type="button" class="btn-secondary">Cancelar</button>
-      <button type="submit" class="btn-success">Guardar Evaluación</button>
+      <button type="submit"
+  class="btn-success"
+  >
+  Guardar Evaluación
+</button>
     </div>
 
   </form>

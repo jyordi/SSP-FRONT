@@ -1,0 +1,27 @@
+.container {
+  padding: 20px;
+}
+
+.card {
+  background: #1e1e2f;
+  padding: 20px;
+  border-radius: 12px;
+  color: white;
+  margin-top: 15px;
+}
+
+.btn-primary {
+  background: #00c896;
+  border: none;
+  padding: 12px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.btn-secondary {
+  margin-top: 10px;
+  background: #ffaa00;
+  border: none;
+  padding: 10px;
+  border-radius: 6px;
+}
