@@ -4,6 +4,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { PersonaService } from '../../../services/persona.service';
 import jsPDF from 'jspdf';
+import { Location } from '@angular/common';
 
 @Component({
   selector: 'app-persona-form',
@@ -18,6 +19,7 @@ export class PersonaForm implements OnInit {
   private router = inject(Router);
   private route  = inject(ActivatedRoute);
   private cdr    = inject(ChangeDetectorRef);
+  private location = inject(Location);
 
   editando  = false;
   personaId: string | null = null;
@@ -404,5 +406,8 @@ private traducirError(error: any): string {
 
   // Capitalizar la primera letra
   return traducido.charAt(0).toUpperCase() + traducido.slice(1);
+}
+volver() {
+  this.location.back();
 }
 }

@@ -341,7 +341,7 @@
   </div>
 
   <div class="form-actions">
-    <a routerLink="/voluntarios/personas" class="btn-cancel">Cancelar</a>
+    <a (click)="volver()" class="btn-cancel">Cancelar</a>
     @if (editando) {
       <button type="button" (click)="descargarPDF()" class="btn-download">
         📄 Descargar PDF

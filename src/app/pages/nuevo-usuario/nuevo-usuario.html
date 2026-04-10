@@ -1,7 +1,7 @@
 <app-navbar-reconecta></app-navbar-reconecta>
 
 <div class="page-container">
-  
+
   <!-- TOAST NOTIFICATION -->
   <div class="toast-wrap" *ngIf="toast">
     <div class="toast" [class.toast-ok]="toast.tipo==='ok'" [class.toast-err]="toast.tipo==='error'">
@@ -10,7 +10,7 @@
   </div>
 
   <main class="content-wrapper">
-    
+
     <!-- HEADER -->
     <header class="page-header slide-up">
       <div class="header-info">
@@ -26,7 +26,7 @@
     </header>
 
     <div class="main-grid">
-      
+
       <!-- FORM COLUMN -->
       <section class="form-section slide-up d1">
         <div class="card card-form">
@@ -54,6 +54,8 @@
                   <option value="psicologo">Psicólogo/a</option>
                   <option value="trabajo_social">Trabajador/a Social</option>
                   <option value="guia">Guía / Seguimiento</option>
+                  <option value="coordinador">Coordinación</option>
+                  <option value="tallerista">Tallerista</option>
                 </select>
               </div>
             </div>
@@ -89,7 +91,7 @@
                 <span class="u-login">@{{ u.nomUsuario }}</span>
               </div>
             </div>
-            
+
             <div class="user-meta">
               <span class="u-role-chip" [class]="'r-' + u.rol">
                 {{ getRoleLabel(u.rol) }}

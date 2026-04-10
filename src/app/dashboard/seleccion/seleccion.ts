@@ -25,7 +25,7 @@ export class SeleccionComponent {
 
       this.router.navigate(['/nuevo-expediente-civico']);
     } else if (modulo === 'voluntario') {
-      this.router.navigate(['/voluntarios/personas']);
+      this.router.navigate(['voluntarios/personas/nuevo']);
     }
   }
 
