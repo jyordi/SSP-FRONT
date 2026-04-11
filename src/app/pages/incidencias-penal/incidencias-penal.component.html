@@ -1,271 +1,295 @@
 <app-navbar-reconecta></app-navbar-reconecta>
-<br><br><br>
+
+<!-- TOAST -->
+<div class="toast-wrap" *ngIf="toast">
+  <div class="toast" [class.toast-ok]="toast.tipo === 'ok'" [class.toast-err]="toast.tipo === 'error'">
+    {{ toast.msg }}
+  </div>
+</div>
+
+<!-- LOADING OVERLAY -->
+<div *ngIf="loading || guardando || eliminando" class="overlay">
+  <div class="loader-gov"></div>
+  <p class="loading-text">Sincronizando con el servidor...</p>
+</div>
+
 
 <div class="shell">
+  <main class="content-wrapper">
 
-  <!-- TOAST -->
-  <div class="toast-wrap" *ngIf="toast">
-    <div class="toast-msg" [ngClass]="'toast-' + toast.tipo">
-      <span class="toast-ico">{{ toast.tipo === 'ok' ? '✅' : toast.tipo === 'error' ? '❌' : 'ℹ️' }}</span>
-      {{ toast.msg }}
-    </div>
-  </div>
-
-  <!-- HEADER -->
-  <div class="page-header">
-    <div class="ph-left">
-      <button class="btn-back" (click)="volver()">← Regresar</button>
-      <div class="ph-title">
-        <h1>🚨 Incidencias</h1>
-        <p *ngIf="expediente">Expediente #{{ expediente.id }} — {{ expediente.beneficiario?.nombre || 'Beneficiario' }}</p>
-      </div>
-    </div>
-    <div class="ph-right">
-      <span class="role-badge">{{ role | uppercase }}</span>
-      <span class="edit-badge" *ngIf="editandoId">✏️ Editando #{{ editandoId }}</span>
-    </div>
-  </div>
-
-  <!-- STATS BAR -->
-  <div class="stats-bar anim-fadeup" *ngIf="incidencias.length">
-    <div class="stat-chip stat-danger">
-      <span class="stat-num">{{ totalActivas }}</span>
-      <span class="stat-label">🔴 Activas</span>
-    </div>
-    <div class="stat-chip stat-warning">
-      <span class="stat-num">{{ totalAtendidas }}</span>
-      <span class="stat-label">🟡 Atendidas</span>
-    </div>
-    <div class="stat-chip stat-success">
-      <span class="stat-num">{{ totalCerradas }}</span>
-      <span class="stat-label">🟢 Cerradas</span>
-    </div>
-    <div class="stat-chip stat-high" *ngIf="totalAltas">
-      <span class="stat-num">{{ totalAltas }}</span>
-      <span class="stat-label">⚠️ Gravedad Alta</span>
-    </div>
-  </div>
-
-  <!-- TABS -->
-  <div class="tabs">
-    <button class="tab" [class.tab-on]="vistaActiva === 'lista'" (click)="vistaActiva = 'lista'">
-      📋 Registro ({{ incidencias.length }})
-    </button>
-    <button class="tab" [class.tab-on]="vistaActiva === 'formulario'" (click)="nuevoFormulario()" *ngIf="puedeCrear || editandoId">
-      {{ editandoId ? '✏️ Editando' : '➕ Nueva Incidencia' }}
-    </button>
-  </div>
-
-  <!-- ═════════════════════════════════════════════════════ -->
-  <!--  FORMULARIO                                          -->
-  <!-- ═════════════════════════════════════════════════════ -->
-  <div class="content" *ngIf="vistaActiva === 'formulario'">
-    <div class="form-card anim-fadeup">
-
-      <div class="fc-header">
-        <h2>{{ editandoId ? '✏️ Editar Incidencia #' + editandoId : '🚨 Nueva Incidencia' }}</h2>
-      </div>
-
-      <div class="fc-body">
-        <div class="form-grid">
-
-          <!-- Fecha -->
-          <div class="field">
-            <label>📅 Fecha <span class="req">*</span></label>
-            <input type="date" [(ngModel)]="fecha" [class.field-error]="submitted && errores['fecha']" />
-            <span class="error-msg" *ngIf="submitted && errores['fecha']">{{ errores['fecha'] }}</span>
-          </div>
-
-          <!-- Tipo -->
-          <div class="field">
-            <label>📌 Tipo de Incidencia <span class="req">*</span></label>
-            <select [(ngModel)]="tipo" [class.field-error]="submitted && errores['tipo']">
-              <option value="">— Seleccionar —</option>
-              <option *ngFor="let t of TIPOS" [value]="t.value">{{ t.icon }} {{ t.label }}</option>
-            </select>
-            <span class="error-msg" *ngIf="submitted && errores['tipo']">{{ errores['tipo'] }}</span>
-          </div>
-
-          <!-- Gravedad -->
-          <div class="field">
-            <label>⚡ Gravedad</label>
-            <div class="toggle-group">
-              <button *ngFor="let g of GRAVEDADES" class="toggle-btn"
-                [class.toggle-on]="gravedad === g.value"
-                [style.--tg-color]="g.color"
-                (click)="gravedad = g.value">
-                {{ g.label }}
-              </button>
-            </div>
-          </div>
-
-          <!-- Estatus -->
-          <div class="field">
-            <label>📊 Estatus</label>
-            <div class="toggle-group">
-              <button *ngFor="let e of ESTATUS_OPTS" class="toggle-btn"
-                [class.toggle-on]="estatus === e.value"
-                (click)="estatus = e.value">
-                {{ e.icon }} {{ e.label }}
-              </button>
-            </div>
-          </div>
-
-          <!-- Descripción -->
-          <div class="field span-2">
-            <label>📝 Descripción <span class="req">*</span></label>
-            <textarea [(ngModel)]="descripcion" rows="4"
-              placeholder="Describe la incidencia en detalle..."
-              [class.field-error]="submitted && errores['descripcion']"></textarea>
-            <span class="error-msg" *ngIf="submitted && errores['descripcion']">{{ errores['descripcion'] }}</span>
-          </div>
-
-          <!-- Acciones Tomadas -->
-          <div class="field span-2">
-            <label>🛠️ Acciones Tomadas</label>
-            <textarea [(ngModel)]="accionesTomadas" rows="3"
-              placeholder="¿Qué acciones se tomaron?"></textarea>
-          </div>
-
-          <!-- Observaciones -->
-          <div class="field span-2">
-            <label>💬 Observaciones</label>
-            <textarea [(ngModel)]="observaciones" rows="2"
-              placeholder="Observaciones adicionales..."></textarea>
-          </div>
-
-          <!-- Reincidencia -->
-          <div class="field">
-            <label>🔄 ¿Es reincidencia?</label>
-            <label class="switch-label">
-              <input type="checkbox" [(ngModel)]="reincidencia" class="switch-input" />
-              <span class="switch-slider"></span>
-              <span class="switch-text">{{ reincidencia ? 'Sí' : 'No' }}</span>
-            </label>
-          </div>
-
-        </div>
-      </div>
-
-      <!-- ACCIONES -->
-      <div class="fc-footer">
-        <button class="btn btn-save" (click)="guardar()" [disabled]="guardando">
-          <span *ngIf="guardando" class="spin"></span>
-          {{ guardando ? 'Guardando...' : editandoId ? '💾 Actualizar' : '💾 Registrar Incidencia' }}
+    <!-- HEADER INTERACTIVO -->
+    <header class="page-header slide-up">
+      <div class="header-info">
+        <button class="btn-back" (click)="volver()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+          Volver Detalle
         </button>
-        <button class="btn btn-clear" (click)="editandoId ? cancelarEdicion() : limpiar()">
-          {{ editandoId ? '✕ Cancelar' : '🗑️ Limpiar' }}
-        </button>
+        <div class="header-titles">
+          <h1>Registro de Incidencias</h1>
+          <p>Control y seguimiento de alertas conductuales</p>
+        </div>
       </div>
 
-    </div>
-  </div>
-
-  <!-- ═════════════════════════════════════════════════════ -->
-  <!--  LISTA                                               -->
-  <!-- ═════════════════════════════════════════════════════ -->
-  <div class="content" *ngIf="vistaActiva === 'lista'">
-
-    <!-- Loading -->
-    <div class="loading-state" *ngIf="loadingList">
-      <div class="spinner-lg"></div>
-      <p>Cargando incidencias...</p>
-    </div>
-
-    <!-- Vacío -->
-    <div class="empty-state anim-fadeup" *ngIf="!loadingList && !incidencias.length">
-      <div class="empty-icon">🚨</div>
-      <h3>Sin incidencias registradas</h3>
-      <p>No hay incidencias para este expediente.</p>
-      <button class="btn btn-save" *ngIf="puedeCrear" (click)="nuevoFormulario()">➕ Registrar primera incidencia</button>
-    </div>
-
-    <!-- Dual panel -->
-    <div class="dual-layout" *ngIf="!loadingList && incidencias.length">
-
-      <!-- LISTA IZQUIERDA -->
-      <div class="list-panel">
-        <div class="list-head">
-          <h3>📋 Incidencias ({{ incidencias.length }})</h3>
-          <button class="btn-sm btn-new" *ngIf="puedeCrear" (click)="nuevoFormulario()">＋</button>
+      <div class="header-meta">
+        <div class="role-badge" [class.admin]="esAdmin" [class.ts]="esTrabajoSocial">
+          <span class="role-tag">{{ userRole.toUpperCase() }}</span>
+          <span class="perm-info">{{ permisoDesc }}</span>
         </div>
-        <div class="list-scroll">
-          <div class="list-item" *ngFor="let inc of incidencias; let i = index"
-            [class.list-active]="seleccionada?.id === inc.id"
-            (click)="seleccionar(inc)"
-            [style.animation-delay]="i * 40 + 'ms'">
-            <div class="li-row1">
-              <span class="li-tipo">{{ getTipoIcon(inc.tipo) }} {{ getTipoLabel(inc.tipo) }}</span>
-              <span class="li-gravedad" [style.color]="getGravedadColor(inc.gravedad)">{{ inc.gravedad }}</span>
-            </div>
-            <div class="li-desc">{{ inc.descripcion | slice:0:60 }}{{ inc.descripcion?.length > 60 ? '...' : '' }}</div>
-            <div class="li-row2">
-              <span class="li-fecha">📅 {{ formatFecha(inc.fecha) }}</span>
-              <span class="li-estatus">{{ getEstatusIcon(inc.estatus) }} {{ inc.estatus }}</span>
-            </div>
+        <div class="exp-id-box">
+          <span class="meta-label">ID EXPEDIENTE</span>
+          <span class="meta-value">#{{ expediente?.cPenal || expediente?.id || '—' }}</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- BARRA DE ESTADÍSTICAS (BUBBLES) -->
+    <div class="stats-bar slide-up d1" *ngIf="incidencias.length">
+      <div class="stat-bubble danger">
+        <span class="stat-num">{{ totalActivas }}</span>
+        <span class="stat-label">🔴 Activas</span>
+      </div>
+      <div class="stat-bubble warning">
+        <span class="stat-num">{{ totalAtendidas }}</span>
+        <span class="stat-label">🟡 Atendidas</span>
+      </div>
+      <div class="stat-bubble success">
+        <span class="stat-num">{{ totalCerradas }}</span>
+        <span class="stat-label">🟢 Cerradas</span>
+      </div>
+      <div class="stat-bubble danger" *ngIf="totalAltas">
+        <span class="stat-num">{{ totalAltas }}</span>
+        <span class="stat-label">⚠️ Gravedad Alta</span>
+      </div>
+    </div>
+
+    <!-- TABS ESTANDARIZADOS -->
+    <nav class="standard-tabs slide-up d2">
+      <button class="st-tab" [class.active]="vistaActiva === 'lista'" (click)="vistaActiva = 'lista'">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+        </svg>
+        Historial de Incidencias
+        <span class="tab-badge" *ngIf="incidencias.length" style="background: var(--beige); color: var(--wine); font-size: 0.7rem; font-weight: 800; padding: 0.1rem 0.6rem; border-radius: 10px; margin-left: 8px;">
+          {{ incidencias.length }}
+        </span>
+      </button>
+      <button class="st-tab" [class.active]="vistaActiva === 'formulario'" (click)="nuevoFormulario()" *ngIf="puedeCrear || editandoId">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 5v14M5 12h14" />
+        </svg>
+        {{ editandoId ? 'Editando Registro' : 'Nueva Incidencia' }}
+      </button>
+    </nav>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!--  VISTA: LISTA (DUAL LAYOUT)                             -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <div class="view-content" *ngIf="vistaActiva === 'lista'">
+      
+      <!-- Loading -->
+      <div class="loading-state fade-in" *ngIf="loadingList">
+        <div class="spinner-lg" style="width: 40px; height: 40px; border: 4px solid var(--beige); border-top-color: var(--wine); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 1rem;"></div>
+        <p>Cargando registros...</p>
+      </div>
+
+      <!-- Empty -->
+      <div class="empty-state slide-up d3" *ngIf="!loadingList && !incidencias.length">
+        <div class="empty-icon" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.4;">🚨</div>
+        <h3>Sin incidencias registradas</h3>
+        <p>No se han reportado alertas conductuales para este expediente.</p>
+        <button class="btn-save" *ngIf="puedeCrear" (click)="nuevoFormulario()">➕ Registrar primera</button>
+      </div>
+
+      <!-- Lista + Detalle -->
+      <div class="dual-layout" *ngIf="!loadingList && incidencias.length">
+
+        <!-- PANEL IZQUIERDO: Lista -->
+        <aside class="side-list-card slide-up d3">
+          <div class="list-head">
+            <h3>REGISTRO DE ALERTAS</h3>
+            <button class="btn-action" style="padding: 4px 8px;" *ngIf="puedeCrear" (click)="nuevoFormulario()">＋</button>
           </div>
-        </div>
-      </div>
-
-      <!-- DETALLE DERECHA -->
-      <div class="detail-panel" *ngIf="seleccionada">
-        <div class="detail-card anim-fadeup">
-
-          <div class="dc-header">
-            <div class="dc-info">
-              <div class="dc-tipo-badge" [style.border-color]="getGravedadColor(seleccionada.gravedad)">
-                <span class="dc-icon">{{ getTipoIcon(seleccionada.tipo) }}</span>
-                <div>
-                  <h2>{{ getTipoLabel(seleccionada.tipo) }}</h2>
-                  <span class="dc-date">{{ formatFecha(seleccionada.fecha) }}</span>
+          <div class="list-scroll custom-scrollbar">
+            @for(inc of incidencias; track inc.id){
+              <div class="list-item" [class.active]="seleccionada?.id === inc.id" (click)="seleccionar(inc)">
+                <div class="li-row">
+                  <span class="li-tipo">{{ getTipoIcon(inc.tipo) }} {{ getTipoLabel(inc.tipo) }}</span>
+                  <span class="li-gravedad" [style.color]="getGravedadColor(inc.gravedad)">{{ inc.gravedad }}</span>
+                </div>
+                <div class="li-desc">{{ inc.descripcion | slice:0:60 }}{{ inc.descripcion?.length > 60 ? '...' : '' }}</div>
+                <div class="li-meta">
+                  <span>📅 {{ formatFecha(inc.fecha) }}</span>
+                  <span class="st-badge" [ngClass]="{ 'est-activa': inc.estatus === 'ACTIVA', 'est-atendida': inc.estatus === 'ATENDIDA', 'est-cerrada': inc.estatus === 'CERRADA' }">
+                    {{ inc.estatus }}
+                  </span>
                 </div>
               </div>
-              <div class="dc-badges">
-                <span class="badge-grav" [style.background]="getGravedadColor(seleccionada.gravedad)">{{ seleccionada.gravedad }}</span>
-                <span class="badge-estatus" [ngClass]="{
-                  'est-activa': seleccionada.estatus === 'ACTIVA',
-                  'est-atendida': seleccionada.estatus === 'ATENDIDA',
-                  'est-cerrada': seleccionada.estatus === 'CERRADA'
-                }">{{ getEstatusIcon(seleccionada.estatus) }} {{ seleccionada.estatus }}</span>
-                <span class="badge-reincidencia" *ngIf="seleccionada.reincidencia">🔄 Reincidencia</span>
-              </div>
+            }
+          </div>
+        </aside>
+
+        <!-- PANEL DERECHO: Detalle -->
+        <section class="detail-main-card slide-up d3" *ngIf="seleccionada">
+          
+          <div class="detail-header-box">
+            <div class="dh-titles">
+              <span class="dh-subtitle">DETALLE DE LA INCIDENCIA</span>
+              <h2>{{ getTipoLabel(seleccionada.tipo) }}</h2>
             </div>
-            <div class="dc-actions">
-              <button class="btn btn-pdf btn-sm2" (click)="descargarPdf()" [disabled]="generandoPdf">📄 PDF</button>
-              <button class="btn btn-edit btn-sm2" *ngIf="puedeEditar" (click)="editar(seleccionada)">✏️</button>
-              <button class="btn btn-del btn-sm2" *ngIf="puedeEliminar" (click)="eliminarIncidencia(seleccionada.id)" [disabled]="eliminando">🗑️</button>
+            <div class="dh-actions">
+              <button class="btn-action" *ngIf="puedeEditar" (click)="editar(seleccionada)">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                Editar
+              </button>
+              <button class="btn-action-icon delete" *ngIf="puedeEliminar" (click)="eliminarIncidencia(seleccionada.id)">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /></svg>
+              </button>
             </div>
           </div>
 
-          <div class="dc-body">
-            <div class="dc-section">
-              <span class="dc-label">📝 Descripción</span>
-              <p class="dc-text">{{ seleccionada.descripcion || '—' }}</p>
+          <div class="detail-body-grid fade-in">
+            <div class="data-box">
+              <label>📅 Fecha del Suceso</label>
+              <p>{{ formatFecha(seleccionada.fecha) }}</p>
             </div>
-            <div class="dc-section" *ngIf="seleccionada.accionesTomadas">
-              <span class="dc-label">🛠️ Acciones Tomadas</span>
-              <p class="dc-text">{{ seleccionada.accionesTomadas }}</p>
+            <div class="data-box">
+              <label>⚡ Nivel de Gravedad</label>
+              <span class="li-gravedad" [style.color]="getGravedadColor(seleccionada.gravedad)" style="font-size: 1.1rem; font-weight: 800;">
+                {{ seleccionada.gravedad }}
+              </span>
             </div>
-            <div class="dc-section" *ngIf="seleccionada.observaciones">
-              <span class="dc-label">💬 Observaciones</span>
-              <p class="dc-text">{{ seleccionada.observaciones }}</p>
+            <div class="data-box">
+              <label>📊 Estatus Actual</label>
+              <span class="st-badge" [ngClass]="{ 'est-activa': seleccionada.estatus === 'ACTIVA', 'est-atendida': seleccionada.estatus === 'ATENDIDA', 'est-cerrada': seleccionada.estatus === 'CERRADA' }">
+                {{ getEstatusIcon(seleccionada.estatus) }} {{ seleccionada.estatus }}
+              </span>
             </div>
-            <div class="dc-meta-grid">
-              <div class="dc-meta">
-                <span class="dc-label">👤 Registrado por</span>
-                <span class="dc-val">{{ seleccionada.registradoPor?.nombre || '—' }}</span>
+            <div class="data-box" *ngIf="seleccionada.reincidencia">
+              <label>🔄 Reincidencia</label>
+              <span class="badge-reincidencia">SÍ REINICIDE</span>
+            </div>
+
+            <div class="data-box full">
+              <label>📝 Descripción de los Hechos</label>
+              <div class="text-display">{{ seleccionada.descripcion || '—' }}</div>
+            </div>
+
+            <div class="data-box full" *ngIf="seleccionada.accionesTomadas">
+              <label>🛠️ Acciones Tomadas</label>
+              <div class="text-display" style="background: var(--white); border: 1px solid var(--beige);">
+                {{ seleccionada.accionesTomadas }}
               </div>
-              <div class="dc-meta">
-                <span class="dc-label">🕐 Creado</span>
-                <span class="dc-val">{{ formatFecha(seleccionada.createdAt) }}</span>
-              </div>
+            </div>
+
+            <div class="data-box full" *ngIf="seleccionada.observaciones">
+              <label>💬 Observaciones adicionales</label>
+              <p style="font-size: 0.95rem; color: var(--text-muted); font-style: italic;">"{{ seleccionada.observaciones }}"</p>
+            </div>
+
+            <div class="data-box">
+              <label>👤 Registrado por</label>
+              <p style="font-size: 0.9rem;">{{ seleccionada.registradoPor?.nombre || 'SISTEMA' }}</p>
+            </div>
+            <div class="data-box">
+              <label>🕐 Fecha de Registro</label>
+              <p style="font-size: 0.9rem;">{{ formatFecha(seleccionada.createdAt) }}</p>
             </div>
           </div>
-
-        </div>
+        </section>
       </div>
-
     </div>
-  </div>
 
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!--  VISTA: FORMULARIO                                     -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <div class="view-content" *ngIf="vistaActiva === 'formulario'">
+      <div class="form-modern-card slide-up d3">
+        
+        <div class="form-header-bar">
+          <div class="fh-group">
+            <h2 style="font-family: 'Gelasio', serif; color: var(--wine); margin: 0;">{{ editandoId ? 'Editar Registro' : 'Nueva Alerta conductual' }}</h2>
+          </div>
+          <div class="form-badge">{{ editandoId ? 'MODO EDICIÓN' : 'NUEVO REPORTE' }}</div>
+        </div>
+
+        <div class="form-body-minimal">
+          <div class="st-grid-minimal">
+
+            <section class="form-section">
+              <h4 class="section-tag">INFORMACIÓN DEL EVENTO</h4>
+              <div class="grid-2">
+                <div class="field">
+                  <label>📅 Fecha <span class="req">*</span></label>
+                  <input type="date" [(ngModel)]="fecha" [class.field-error]="submitted && errores['fecha']" />
+                </div>
+                <div class="field">
+                  <label>📌 Tipo de Incidencia <span class="req">*</span></label>
+                  <select [(ngModel)]="tipo" [class.field-error]="submitted && errores['tipo']">
+                    <option value="">— Seleccionar —</option>
+                    <option *ngFor="let t of TIPOS" [value]="t.value">{{ t.icon }} {{ t.label }}</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label>⚡ Gravedad</label>
+                  <div class="toggle-group">
+                    <button *ngFor="let g of GRAVEDADES" class="toggle-btn"
+                      [class.toggle-on]="gravedad === g.value"
+                      (click)="gravedad = g.value">
+                      {{ g.label }}
+                    </button>
+                  </div>
+                </div>
+                <div class="field">
+                  <label>📊 Estatus</label>
+                  <div class="toggle-group">
+                    <button *ngFor="let e of ESTATUS_OPTS" class="toggle-btn"
+                      [class.toggle-on]="estatus === e.value"
+                      (click)="estatus = e.value">
+                      {{ e.icon }} {{ e.label }}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <section class="form-section">
+              <h4 class="section-tag">DETALLES Y SEGUIMIENTO</h4>
+              <div class="field">
+                <label>📝 Descripción de los Hechos <span class="req">*</span></label>
+                <textarea [(ngModel)]="descripcion" rows="4" placeholder="Describa lo ocurrido..." [class.field-error]="submitted && errores['descripcion']"></textarea>
+              </div>
+              <div class="field">
+                <label>🛠️ Acciones Tomadas</label>
+                <textarea [(ngModel)]="accionesTomadas" rows="3" placeholder="¿Qué medidas se aplicaron?"></textarea>
+              </div>
+              <div class="field">
+                <label>💬 Observaciones</label>
+                <textarea [(ngModel)]="observaciones" rows="2" placeholder="Notas adicionales..."></textarea>
+              </div>
+              <div class="field">
+                <label class="switch-label">
+                  <input type="checkbox" [(ngModel)]="reincidencia" class="switch-input" />
+                  <span class="switch-slider"></span>
+                  <span class="switch-text">¿Es una Reincidencia? {{ reincidencia ? 'SÍ' : 'NO' }}</span>
+                </label>
+              </div>
+            </section>
+
+          </div>
+        </div>
+
+        <div class="form-footer-actions">
+          <button class="btn-cancel" (click)="editandoId ? cancelarEdicion() : limpiar()">
+            {{ editandoId ? 'Cancelar Edición' : 'Reiniciar' }}
+          </button>
+          <button class="btn-save" (click)="guardar()" [disabled]="guardando">
+            <span *ngIf="guardando" class="spin"></span>
+            {{ editandoId ? '💾 Actualizar Incidencia' : '💾 Registrar Incidencia' }}
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
 </div>

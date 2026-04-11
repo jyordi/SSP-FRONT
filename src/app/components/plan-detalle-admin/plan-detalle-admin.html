@@ -1,109 +1,187 @@
 <app-navbar-reconecta></app-navbar-reconecta>
-<br> <br> <br>
-<div class="page-container anim-fade-in">
-  
-  <div class="header-actions">
-    <h2>📄 Resumen del Plan Individualizado</h2>
-    <div class="btn-group">
-      <button class="btn-secondary" (click)="abrirModalCatalogo()">⚙️ Catálogo Actividades</button>
-      <button class="btn-primary" (click)="abrirModalAsignar()">➕ Asignar Actividad</button>
-    </div>
-  </div>
 
-  <div class="info-grid">
-    <div class="info-card border-vino">
-      <div class="card-icon">👤</div>
-      <div class="card-content">
-        <h3>Beneficiario</h3>
-        <p><strong>Nombre:</strong> {{ beneficiario?.nombre }}</p>
+<div class="shell">
+  <div class="content-wrapper">
+    
+    <!-- ENCABEZADO -->
+    <header class="page-header slide-up">
+      <div class="header-info">
+        <button class="btn-back" (click)="volver()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+          Volver a Planes
+        </button>
+        <div class="header-titles">
+          <h1>Gestión de Actividades</h1>
+          <p>Administración y seguimiento del Plan #{{planId}}</p>
+        </div>
+      </div>
+      
+      <div class="header-actions">
+        <button class="btn-pdf" (click)="descargarPdf()" [disabled]="descargandoPdf">
+          <span *ngIf="!descargandoPdf">📄 Reporte PDF</span>
+          <span *ngIf="descargandoPdf" class="spinner-w-sm"></span>
+        </button>
+        <div class="btn-group">
+          <button class="btn-outline" (click)="abrirModalCatalogo()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+            Catálogo
+          </button>
+          <button class="btn-primary" (click)="abrirModalAsignar()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Asignar Actividad
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- TARJETAS DE INFORMACIÓN -->
+    <div class="info-grid slide-up d1">
+      <div class="info-card">
+        <div class="card-icon-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </div>
+        <div class="card-text">
+          <label>Beneficiario</label>
+          <h3>{{ beneficiario?.nombre || 'Cargando...' }}</h3>
+        </div>
+      </div>
+      <div class="info-card gold-border">
+        <div class="card-icon-wrap gold">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        </div>
+        <div class="card-text">
+          <label>Vigencia del Plan</label>
+          <h3>{{ (planInfo?.fechaInicio | date:'dd/MM/yyyy') || '—' }} al {{ (planInfo?.fechaFin | date:'dd/MM/yyyy') || '—' }}</h3>
+        </div>
       </div>
     </div>
-    <div class="info-card border-dark">
-      <div class="card-icon">📋</div>
-      <div class="card-content">
-        <h3>Plan Actual</h3>
-        <p><strong>Inicio:</strong> {{ (planInfo?.fechaInicio | date:'dd/MM/yyyy') || 'N/A' }}</p>
-        <p><strong>Fin:</strong> {{ (planInfo?.fechaFin | date:'dd/MM/yyyy') || 'N/A' }}</p>
-      </div>
+
+    <hr class="divider">
+
+    <!-- LISTADO DE ACTIVIDADES -->
+    <div class="section-head">
+      <h2>Actividades en el Plan</h2>
+      <span class="count-badge">{{ detallePlan().length }} asignadas</span>
     </div>
+
+    <div class="detalle-grid">
+      @for(det of detallePlan(); track det.id) {
+        <div class="detalle-card slide-up" [class]="'st-' + det.estatus">
+          <div class="st-indicator" [class]="'st-' + det.estatus"></div>
+          
+          <div class="det-header">
+            <h4>{{det.actividad?.nombre}}</h4>
+            <span class="status-tag" [class]="'tag-' + det.estatus">
+              {{det.estatus.replace('_', ' ')}}
+            </span>
+          </div>
+
+          <div class="det-body">
+            <div class="data-row">
+              <span class="icon">🎯</span>
+              <p><strong>Objetivo:</strong> {{det.objetivo || 'N/A'}}</p>
+            </div>
+            <div class="data-row">
+              <span class="icon">📈</span>
+              <p><strong>Avance:</strong> {{det.cumplimiento || 'Sin registros'}}</p>
+            </div>
+            <div class="data-row">
+              <span class="icon">🗓️</span>
+              <p><strong>Asignada:</strong> {{ (det.fechaAsignacion | date:'dd/MM/yyyy') || 'N/A' }}</p>
+            </div>
+          </div>
+
+          <div class="det-actions">
+            <button class="btn-action-outline edit" (click)="abrirModalAsignar(det)">
+              ✏️ Editar Seguimiento
+            </button>
+            <button class="btn-action-icon delete" (click)="eliminarDetalle(det.id)">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+            </button>
+          </div>
+        </div>
+      } @empty {
+        <div class="empty-state slide-up">
+          <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#E5E7EB" stroke-width="1"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          <p>No hay actividades asignadas todavía.</p>
+          <button class="btn-text" (click)="abrirModalAsignar()">Haga clic aquí para empezar</button>
+        </div>
+      }
+    </div>
+
   </div>
-
-  <hr class="divider">
-
-  <h3>Actividades Asignadas</h3>
-  <div class="detalle-grid">
-    @for(det of detallePlan(); track det.id) {
-      <div class="detalle-card shadow-sm border-left anim-slide-up" [ngClass]="'border-' + det.estatus">
-        
-        <div class="detalle-header">
-          <h4>📝 {{det.actividad?.nombre || 'Actividad sin nombre'}}</h4>
-          <span class="badge" [ngClass]="'badge-' + det.estatus">
-            {{det.estatus.replace('_', ' ')}}
-          </span>
-        </div>
-
-        <div class="detalle-body">
-          <p><strong>Objetivo:</strong> {{det.objetivo || 'Sin objetivo definido'}}</p>
-          <p><strong>Cumplimiento:</strong> {{det.cumplimiento || 'Sin avances'}}</p>
-          <p><strong>Observaciones:</strong> <span class="text-muted">{{det.observaciones || 'Ninguna'}}</span></p>
-          <p><strong>Fecha Asignación:</strong> {{ (det.fechaAsignacion | date:'dd/MM/yyyy') || 'N/A' }}</p>
-        </div>
-
-        <div class="detalle-footer">
-          <button class="btn-icon delete" (click)="eliminarDetalle(det.id)" title="Eliminar Asignación">🗑️</button>
-          <button class="btn-icon edit" (click)="abrirModalAsignar(det)" title="Editar Seguimiento">✏️ Editar</button>
-        </div>
-
-      </div>
-    } @empty {
-      <div class="empty-state">No hay actividades asignadas a este plan.</div>
-    }
-  </div>
-
 </div>
 
+<!-- OVERLAYS -->
+<div class="overlay" *ngIf="loading">
+  <div class="loader-gov"></div>
+  <p class="loading-text">Sincronizando seguimiento...</p>
+</div>
+
+<div class="overlay" *ngIf="descargandoPdf">
+  <div class="loader-gov"></div>
+  <p class="loading-text">Generando reporte PDF institucional...</p>
+</div>
+
+<!-- MODAL ASIGNAR -->
 @if(modalAsignar()){
-<div class="modal-overlay">
-  <div class="modal-card">
-    <div class="modal-header">
-      <h2>{{ editandoDetalleId ? '✏️ Actualizar Seguimiento' : '➕ Asignar Actividad al Plan' }}</h2>
-      <button class="btn-close" (click)="modalAsignar.set(false)">✖</button>
+<div class="modal-backdrop" (click)="modalAsignar.set(false)">
+  <div class="modal-window" (click)="$event.stopPropagation()">
+    <div class="modal-head">
+      <h3>{{ editandoDetalleId ? 'Actualizar Seguimiento' : 'Asignar Actividad' }}</h3>
+      <button class="btn-close" (click)="modalAsignar.set(false)">✕</button>
     </div>
-    <div class="modal-body light-bg">
-      <form [formGroup]="detalleForm" class="form">
+    <div class="modal-body">
+      <form [formGroup]="detalleForm">
         
-        <label>Actividad del Catálogo</label>
-        <select formControlName="actividadId" class="input-field select-field">
-          <option [ngValue]="null" disabled selected>Seleccione una actividad...</option>
-          @for(a of actividades(); track a.id) {
-            <option 
-              [ngValue]="a.id" 
-              [disabled]="!editandoDetalleId && actividadesAsignadasIds().includes(a.id)">
-              {{a.nombre}} {{ !editandoDetalleId && actividadesAsignadasIds().includes(a.id) ? '(Ya asignada)' : '' }}
-            </option>
-          }
-        </select>
+        <div class="field">
+          <label>Actividad del Catálogo</label>
+          <select formControlName="actividadId">
+            <option [ngValue]="null" disabled>Seleccione una actividad...</option>
+            @for(a of actividades(); track a.id) {
+              <option 
+                [ngValue]="a.id" 
+                [disabled]="!editandoDetalleId && actividadesAsignadasIds().includes(a.id)">
+                {{a.nombre}} {{ !editandoDetalleId && actividadesAsignadasIds().includes(a.id) ? '(Ya asignada)' : '' }}
+              </option>
+            }
+          </select>
+        </div>
 
-        <label>Estatus</label>
-        <select formControlName="estatus" class="input-field select-field">
-          @for(e of estatusList; track e) {
-            <option [value]="e">{{e.replace('_', ' ')}}</option>
-          }
-        </select>
+        <div class="grid-2">
+          <div class="field">
+            <label>Estatus</label>
+            <select formControlName="estatus">
+              @for(e of estatusList; track e) {
+                <option [value]="e">{{e.replace('_', ' ')}}</option>
+              }
+            </select>
+          </div>
+          <div class="field">
+            <label>Fecha de Asignación</label>
+            <input type="date" formControlName="fechaAsignacion">
+          </div>
+        </div>
 
-        <label>Objetivo Específico</label>
-        <input formControlName="objetivo" class="input-field" placeholder="¿Qué se busca lograr?">
+        <div class="field">
+          <label>Objetivo Específico</label>
+          <textarea formControlName="objetivo" rows="2" placeholder="¿Qué se busca lograr con esta actividad?"></textarea>
+        </div>
 
-        <label>Cumplimiento / Avances</label>
-        <textarea formControlName="cumplimiento" class="input-field textarea" rows="2" placeholder="Ej. Asistencia parcial..."></textarea>
+        <div class="field">
+          <label>Cumplimiento / Avances</label>
+          <textarea formControlName="cumplimiento" rows="2" placeholder="Describa el progreso actual..."></textarea>
+        </div>
 
-        <label>Observaciones</label>
-        <textarea formControlName="observaciones" class="input-field textarea" rows="2" placeholder="Notas adicionales..."></textarea>
+        <div class="field">
+          <label>Observaciones</label>
+          <textarea formControlName="observaciones" rows="2" placeholder="Notas adicionales..."></textarea>
+        </div>
 
-        <div class="form-actions mt-3">
-          <button type="button" class="btn-secondary" (click)="modalAsignar.set(false)">Cancelar</button>
+        <div class="modal-actions">
+          <button type="button" class="btn-text" (click)="modalAsignar.set(false)">Cancelar</button>
           <button type="button" class="btn-primary" [disabled]="detalleForm.invalid" (click)="guardarDetalle()">
-            💾 Guardar Cambios
+            {{ editandoDetalleId ? 'Actualizar' : 'Asignar' }} de Actividad
           </button>
         </div>
       </form>
@@ -112,57 +190,93 @@
 </div>
 }
 
+<!-- MODAL CATÁLOGO -->
 @if(modalCatalogo()){
-<div class="modal-overlay">
-  <div class="modal-card catalog-modal">
-    <div class="modal-header">
-      <h2>⚙️ Catálogo de Actividades</h2>
-      <button class="btn-close" (click)="modalCatalogo.set(false)">✖</button>
+<div class="modal-backdrop" (click)="modalCatalogo.set(false)">
+  <div class="modal-window wide" (click)="$event.stopPropagation()">
+    <div class="modal-head">
+      <div class="head-titles-cat">
+        <h3>Catálogo de Actividades</h3>
+        <p>Gestiona el banco de actividades institucionales</p>
+      </div>
+      <button class="btn-close" (click)="modalCatalogo.set(false)">✕</button>
     </div>
-    
-    <div class="modal-body light-bg">
-      <div class="form-container">
-        <h3>{{ editandoActividadId ? 'Editar en Catálogo' : 'Nueva Actividad' }}</h3>
-        <form [formGroup]="actividadForm" class="form form-grid">
-          <input formControlName="nombre" class="input-field" placeholder="Nombre de la actividad">
-          <select formControlName="categoria" class="input-field select-field">
-            @for(c of categorias; track c) { <option [value]="c">{{c.replace('_', ' ')}}</option> }
-          </select>
-          <textarea formControlName="descripcion" class="input-field textarea full-width" rows="2" placeholder="Descripción detallada"></textarea>
-          <input formControlName="objetivo" class="input-field full-width" placeholder="Objetivo de la actividad">
-          
-          <div class="form-actions full-width">
+
+    <div class="catalog-layout">
+      
+      <!-- COLUMNA IZQUIERDA: LISTA Y BÚSQUEDA -->
+      <div class="catalog-list-panel">
+        <div class="search-bar">
+          <svg class="s-ico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" placeholder="Buscar actividad..." (input)="search.set($any($event.target).value)">
+        </div>
+
+        <div class="catalog-items custom-scrollbar">
+          @for(a of actividadesFiltradas(); track a.id){
+            <div class="cat-item-modern" [class.is-editing]="editandoActividadId === a.id">
+              <div class="cat-content">
+                <span class="cat-tag-mini">{{a.categoria.replace('_', ' ')}}</span>
+                <strong>{{a.nombre}}</strong>
+                <p *ngIf="a.descripcion">{{a.descripcion | slice:0:60}}{{a.descripcion.length > 60 ? '...' : ''}}</p>
+              </div>
+              <div class="cat-actions-modern">
+                <button class="btn-mini edit" (click)="editarActividad(a)" title="Editar">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                </button>
+                <button class="btn-mini delete" (click)="eliminarActividad(a.id)" title="Eliminar">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                </button>
+              </div>
+            </div>
+          } @empty {
+            <div class="empty-cat">No se encontraron actividades.</div>
+          }
+        </div>
+      </div>
+
+      <!-- COLUMNA DERECHA: FORMULARIO -->
+      <div class="catalog-form-panel">
+        <div class="form-header-box">
+          <span class="form-badge">{{ editandoActividadId ? 'MODO EDICIÓN' : 'NUEVO REGISTRO' }}</span>
+          <h4>{{ editandoActividadId ? 'Actualizar Actividad' : 'Registrar Actividad' }}</h4>
+        </div>
+
+        <form [formGroup]="actividadForm" class="cat-form-modern">
+          <div class="field">
+            <label>Nombre de la Actividad</label>
+            <input formControlName="nombre" placeholder="Ej. Taller de Carpintería">
+          </div>
+
+          <div class="field">
+            <label>Categoría Institucional</label>
+            <select formControlName="categoria">
+              @for(c of categorias; track c) { <option [value]="c">{{c.replace('_', ' ')}}</option> }
+            </select>
+          </div>
+
+          <div class="field">
+            <label>Descripción / Alcance</label>
+            <textarea formControlName="descripcion" rows="3" placeholder="Detalles técnicos de la actividad..."></textarea>
+          </div>
+
+          <div class="field">
+            <label>Objetivo General</label>
+            <textarea formControlName="objetivo" rows="2" placeholder="Meta principal de la actividad..."></textarea>
+          </div>
+
+          <div class="form-actions-cat">
             @if(editandoActividadId) {
-              <button type="button" class="btn-secondary" (click)="editandoActividadId = null; actividadForm.reset()">Cancelar</button>
+              <button type="button" class="btn-cancel-cat" (click)="editandoActividadId = null; actividadForm.reset()">
+                Cancelar
+              </button>
             }
-            <button type="button" class="btn-primary" [disabled]="actividadForm.invalid" (click)="guardarActividad()">
-              💾 {{ editandoActividadId ? 'Actualizar' : 'Crear Actividad' }}
+            <button type="button" class="btn-save-cat" [disabled]="actividadForm.invalid" (click)="guardarActividad()">
+              {{ editandoActividadId ? 'Guardar Cambios' : 'Añadir al Catálogo' }}
             </button>
           </div>
         </form>
       </div>
 
-      <hr class="divider">
-
-      <div class="search-box">
-        <span class="search-icon">🔍</span>
-        <input type="text" placeholder="Buscar en catálogo..." (input)="search.set($any($event.target).value)" class="input-search">
-      </div>
-
-      <div class="lista-actividades custom-scrollbar">
-        @for(a of actividadesFiltradas(); track a.id){
-          <div class="card-act">
-            <div class="act-info">
-              <strong>{{a.nombre}}</strong>
-              <span class="cat-tag">{{a.categoria.replace('_', ' ')}}</span>
-            </div>
-            <div class="acciones">
-              <button class="btn-icon edit" (click)="editarActividad(a)">✏️</button>
-              <button class="btn-icon delete" (click)="eliminarActividad(a.id)">🗑️</button>
-            </div>
-          </div>
-        }
-      </div>
     </div>
   </div>
 </div>

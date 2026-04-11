@@ -1,258 +1,267 @@
 <app-navbar-reconecta></app-navbar-reconecta>
-<br><br><br>
 
 <div class="shell">
+  <main class="content-wrapper">
 
-  <!-- ═══ TOAST ═══ -->
-  <div class="toast-container" *ngIf="toast">
-    <div class="toast-msg" [ngClass]="{
-      'toast-ok': toast.tipo === 'ok',
-      'toast-error': toast.tipo === 'error',
-      'toast-warn': toast.tipo === 'warn',
-      'toast-info': toast.tipo === 'info'
-    }">
-      <span class="toast-icon">{{ toast.tipo === 'ok' ? '✅' : toast.tipo === 'error' ? '❌' : toast.tipo === 'warn' ? '⚠️' : 'ℹ️' }}</span>
-      {{ toast.msg }}
-    </div>
-  </div>
-
-  <!-- ═══ HEADER ═══ -->
-  <div class="page-header">
-    <div class="ph-left">
-      <button class="btn-back" (click)="volver()">← Regresar</button>
-      <div class="ph-title">
-        <h1>📊 Historial de Supervisión</h1>
-        <p *ngIf="expediente">Expediente #{{ expediente.id }} — {{ expediente.beneficiario?.nombre || 'Beneficiario' }}</p>
-      </div>
-    </div>
-    <div class="ph-right">
-      <span class="role-badge">{{ role | uppercase }}</span>
-    </div>
-  </div>
-
-  <!-- ═══ TABS ═══ -->
-  <div class="tabs">
-    <button class="tab" [class.tab-on]="vistaActiva === 'historial'" (click)="vistaActiva = 'historial'">
-      🗂️ Historial
-      <span class="tab-count" *ngIf="registros.length">{{ registros.length }}</span>
-    </button>
-    <button class="tab" [class.tab-on]="vistaActiva === 'nueva'" (click)="vistaActiva = 'nueva'" *ngIf="puedeCrear">
-      ➕ Nuevo Registro
-    </button>
-  </div>
-
-  <!-- ═══════════════════════════════════════════════════════ -->
-  <!--  VISTA: NUEVO REGISTRO                                 -->
-  <!-- ═══════════════════════════════════════════════════════ -->
-  <div class="content" *ngIf="vistaActiva === 'nueva' && puedeCrear">
-    <div class="form-card anim-fadeup">
-      <div class="form-header">
-        <span class="form-icon">📝</span>
-        <div>
-          <h2>Nuevo Registro de Supervisión</h2>
-          <p>Registra el seguimiento mensual del beneficiario</p>
+    <!-- HEADER INTERACTIVO -->
+    <header class="page-header slide-up">
+      <div class="header-info">
+        <button class="btn-back" (click)="volver()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+          Volver Detalle
+        </button>
+        <div class="header-titles">
+          <h1>Historial de Supervisión</h1>
+          <p>Seguimiento mensual y control de estatus penal</p>
         </div>
       </div>
 
-      <div class="form-body">
-        <div class="form-grid">
-          <!-- MES -->
-          <div class="field">
-            <label>Mes <span class="req">*</span></label>
-            <select [(ngModel)]="mes" [class.field-error]="submitted && errores['mes']">
-              <option [ngValue]="null" disabled>Selecciona el mes...</option>
-              <option *ngFor="let m of MESES; let i = index" [ngValue]="i + 1">{{ m }}</option>
-            </select>
-            <span class="error-msg" *ngIf="submitted && errores['mes']">{{ errores['mes'] }}</span>
-          </div>
-
-          <!-- PERIODO -->
-          <div class="field">
-            <label>Periodo <span class="req">*</span></label>
-            <input type="text" [(ngModel)]="periodo" placeholder="Ej: MARZO-2026" style="text-transform:uppercase"
-              [class.field-error]="submitted && errores['periodo']" />
-            <span class="error-msg" *ngIf="submitted && errores['periodo']">{{ errores['periodo'] }}</span>
-          </div>
-
-          <!-- FECHA INICIO -->
-          <div class="field">
-            <label>Fecha Inicio <span class="req">*</span></label>
-            <input type="date" [(ngModel)]="fechaInicio" [class.field-error]="submitted && errores['fechaInicio']" />
-            <span class="error-msg" *ngIf="submitted && errores['fechaInicio']">{{ errores['fechaInicio'] }}</span>
-          </div>
-
-          <!-- FECHA FIN -->
-          <div class="field">
-            <label>Fecha Fin <span class="req">*</span></label>
-            <input type="date" [(ngModel)]="fechaFin" [class.field-error]="submitted && errores['fechaFin']" />
-            <span class="error-msg" *ngIf="submitted && errores['fechaFin']">{{ errores['fechaFin'] }}</span>
-          </div>
-
-          <!-- ESTATUS -->
-          <div class="field">
-            <label>Estatus</label>
-            <select [(ngModel)]="estatus">
-              <option *ngFor="let e of ESTATUS_OPCIONES" [value]="e">{{ e }}</option>
-            </select>
-          </div>
-
-          <!-- OBSERVACIONES -->
-          <div class="field span-2">
-            <label>Observaciones</label>
-            <textarea [(ngModel)]="observaciones" rows="4" placeholder="Escribe las observaciones del periodo..."></textarea>
-          </div>
+      <div class="header-meta">
+        <div class="role-badge" [class.admin]="esAdmin" [class.ts]="esTrabajoSocial">
+          <span class="role-tag">{{ userRole.toUpperCase() }}</span>
+          <span class="perm-info">{{ permisoDesc }}</span>
         </div>
-
-        <div class="form-actions">
-          <button class="btn btn-save" (click)="guardarRegistro()" [disabled]="guardando">
-            <span *ngIf="guardando" class="spin"></span>
-            {{ guardando ? 'Guardando...' : '💾 Guardar Registro' }}
-          </button>
-          <button class="btn btn-clear" (click)="limpiarFormulario()">🗑️ Limpiar</button>
+        <div class="exp-id-box">
+          <span class="meta-label">ID EXPEDIENTE</span>
+          <span class="meta-value">#{{ expediente?.cPenal || expediente?.id || '—' }}</span>
         </div>
       </div>
-    </div>
-  </div>
+    </header>
 
-  <!-- ═══════════════════════════════════════════════════════ -->
-  <!--  VISTA: HISTORIAL                                      -->
-  <!-- ═══════════════════════════════════════════════════════ -->
-  <div class="content" *ngIf="vistaActiva === 'historial'">
+    <!-- TABS ESTANDARIZADOS -->
+    <nav class="standard-tabs slide-up d1">
+      <button class="st-tab" [class.active]="vistaActiva === 'historial'" (click)="vistaActiva = 'historial'">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+        </svg>
+        Historial de Registros
+        <span class="tab-badge" *ngIf="registros.length">{{ registros.length }}</span>
+      </button>
+      <button class="st-tab" [class.active]="vistaActiva === 'nueva'" (click)="vistaActiva = 'nueva'" *ngIf="puedeCrear">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 5v14M5 12h14" />
+        </svg>
+        Nuevo Registro Mensual
+      </button>
+    </nav>
 
-    <!-- Loading -->
-    <div class="loading-state" *ngIf="loadingRegistros">
-      <div class="spinner-lg"></div>
-      <p>Cargando historial...</p>
-    </div>
-
-    <!-- Empty -->
-    <div class="empty-state anim-fadeup" *ngIf="!loadingRegistros && !registros.length">
-      <div class="empty-icon">📊</div>
-      <h3>Sin registros de supervisión</h3>
-      <p>No se han registrado periodos de supervisión para este expediente.</p>
-      <button class="btn btn-save" *ngIf="puedeCrear" (click)="vistaActiva = 'nueva'">➕ Crear primer registro</button>
-    </div>
-
-    <!-- Lista + Detalle -->
-    <div class="hist-layout" *ngIf="!loadingRegistros && registros.length">
-
-      <!-- PANEL IZQUIERDO: Lista -->
-      <div class="hist-list">
-        <div class="list-header">
-          <h3>📋 Registros ({{ registros.length }})</h3>
-        </div>
-        <div class="list-items">
-          <div class="list-item" *ngFor="let r of registros"
-            [class.list-item-active]="registroSeleccionado?.id === r.id"
-            (click)="seleccionarRegistro(r)">
-            <div class="li-top">
-              <span class="li-mes">{{ getNombreMes(r.mes) }}</span>
-              <span class="li-badge" [ngClass]="getEstatusClass(r.estatus)">{{ getEstatusIcon(r.estatus) }} {{ r.estatus }}</span>
-            </div>
-            <div class="li-periodo">{{ r.periodo || '—' }}</div>
-            <div class="li-fechas">{{ formatFecha(r.fechaInicio) }} — {{ formatFecha(r.fechaFin) }}</div>
-          </div>
-        </div>
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!--  VISTA: HISTORIAL (DUAL LAYOUT)                         -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <div class="view-content" *ngIf="vistaActiva === 'historial'">
+      
+      <!-- Loading -->
+      <div class="loading-state fade-in" *ngIf="loadingRegistros">
+        <div class="spinner-lg"></div>
+        <p>Sincronizando historial...</p>
       </div>
 
-      <!-- PANEL DERECHO: Detalle -->
-      <div class="hist-detail" *ngIf="registroSeleccionado">
-        <div class="detail-card anim-fadeup">
+      <!-- Empty -->
+      <div class="empty-state slide-up d2" *ngIf="!loadingRegistros && !registros.length">
+        <div class="empty-icon">📊</div>
+        <h3>Sin registros de supervisión</h3>
+        <p>No se han registrado periodos de supervisión para este expediente.</p>
+        <button class="btn-save" *ngIf="puedeCrear" (click)="vistaActiva = 'nueva'">➕ Iniciar historial</button>
+      </div>
 
-          <div class="detail-header">
-            <div class="dh-info">
-              <h2>{{ getNombreMes(registroSeleccionado.mes) }} — {{ registroSeleccionado.periodo }}</h2>
-              <span class="dh-badge" [ngClass]="getEstatusClass(registroSeleccionado.estatus)">
-                {{ getEstatusIcon(registroSeleccionado.estatus) }} {{ registroSeleccionado.estatus }}
-              </span>
+      <!-- Lista + Detalle -->
+      <div class="dual-layout" *ngIf="!loadingRegistros && registros.length">
+
+        <!-- PANEL IZQUIERDO: Lista de Entradas -->
+        <aside class="side-list-card slide-up d2">
+          <div class="list-head">
+            <h3>PERIODOS EVALUADOS</h3>
+          </div>
+          <div class="list-container custom-scrollbar">
+            @for(r of registros; track r.id){
+              <div class="list-entry" [class.active]="registroSeleccionado?.id === r.id" (click)="seleccionarRegistro(r)">
+                <div class="entry-info">
+                  <strong>{{ getNombreMes(r.mes) }} — {{ r.periodo }}</strong>
+                  <span>📅 {{ formatFecha(r.fechaInicio) }}</span>
+                </div>
+                <div class="entry-badge">
+                  <span class="st-badge" [ngClass]="getEstatusClass(r.estatus)">{{ r.estatus }}</span>
+                </div>
+              </div>
+            }
+          </div>
+        </aside>
+
+        <!-- PANEL DERECHO: Detalle de la entrada -->
+        <section class="detail-main-card slide-up d3" *ngIf="registroSeleccionado">
+          
+          <!-- TOOLBAR DETALLE -->
+          <div class="detail-header-box" *ngIf="!modoEdicion">
+            <div class="dh-titles">
+              <span class="dh-subtitle">DETALLE DE SUPERVISIÓN</span>
+              <h2>{{ getNombreMes(registroSeleccionado.mes) }} {{ registroSeleccionado.periodo }}</h2>
             </div>
             <div class="dh-actions">
-              <!-- EDITAR: solo admin/guia -->
-              <button class="btn btn-edit" *ngIf="puedeEditar && !modoEdicion" (click)="iniciarEdicion()">✏️ Editar</button>
-              <!-- ELIMINAR: solo admin -->
-              <button class="btn btn-del" *ngIf="puedeEliminar && !modoEdicion" (click)="eliminarRegistro()" [disabled]="eliminando">
-                <span *ngIf="eliminando" class="spin"></span>
-                {{ eliminando ? 'Eliminando...' : '🗑️ Eliminar' }}
+              <button class="btn-action" *ngIf="puedeEditar" (click)="iniciarEdicion()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                </svg>
+                Editar
+              </button>
+              <button class="btn-action-icon delete" *ngIf="puedeEliminar" (click)="eliminarRegistro()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="3 6 5 6 21 6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                </svg>
               </button>
             </div>
           </div>
 
           <!-- MODO LECTURA -->
-          <div class="detail-body" *ngIf="!modoEdicion">
-            <div class="detail-grid">
-              <div class="dg-item">
-                <span class="dg-label">📅 Mes</span>
-                <span class="dg-value">{{ getNombreMes(registroSeleccionado.mes) }} ({{ registroSeleccionado.mes }})</span>
-              </div>
-              <div class="dg-item">
-                <span class="dg-label">📆 Periodo</span>
-                <span class="dg-value">{{ registroSeleccionado.periodo || '—' }}</span>
-              </div>
-              <div class="dg-item">
-                <span class="dg-label">🗓️ Fecha Inicio</span>
-                <span class="dg-value">{{ formatFecha(registroSeleccionado.fechaInicio) }}</span>
-              </div>
-              <div class="dg-item">
-                <span class="dg-label">🗓️ Fecha Fin</span>
-                <span class="dg-value">{{ formatFecha(registroSeleccionado.fechaFin) }}</span>
-              </div>
-              <div class="dg-item span-2">
-                <span class="dg-label">📝 Observaciones</span>
-                <span class="dg-value dg-text">{{ registroSeleccionado.observaciones || 'Sin observaciones' }}</span>
-              </div>
-              <div class="dg-item">
-                <span class="dg-label">🕐 Registrado</span>
-                <span class="dg-value dg-small">{{ formatFecha(registroSeleccionado.creadoEn) }}</span>
-              </div>
+          <div class="detail-body-grid fade-in" *ngIf="!modoEdicion">
+            <div class="data-box">
+              <label>📅 Mes de Evaluación</label>
+              <p>{{ getNombreMes(registroSeleccionado.mes) }}</p>
+            </div>
+            <div class="data-box">
+              <label>📆 Periodo Registrado</label>
+              <p>{{ registroSeleccionado.periodo || '—' }}</p>
+            </div>
+            <div class="data-box">
+              <label>🗓️ Rango de Fechas</label>
+              <p>{{ formatFecha(registroSeleccionado.fechaInicio) }} — {{ formatFecha(registroSeleccionado.fechaFin) }}</p>
+            </div>
+            <div class="data-box">
+              <label>🛡️ Estatus de Cumplimiento</label>
+              <span class="st-badge" [ngClass]="getEstatusClass(registroSeleccionado.estatus)">
+                {{ getEstatusIcon(registroSeleccionado.estatus) }} {{ registroSeleccionado.estatus }}
+              </span>
+            </div>
+            <div class="data-box full">
+              <label>📝 Observaciones y Conclusiones</label>
+              <div class="text-display">{{ registroSeleccionado.observaciones || 'Sin observaciones registradas para este periodo.' }}</div>
+            </div>
+            <div class="data-box full">
+              <label style="opacity: 0.6; font-size: 0.65rem;">Sincronizado el {{ formatFecha(registroSeleccionado.creadoEn) }}</label>
             </div>
           </div>
 
-          <!-- MODO EDICIÓN -->
-          <div class="detail-body" *ngIf="modoEdicion">
-            <div class="edit-grid">
-              <div class="field">
-                <label>Mes</label>
-                <select [(ngModel)]="registroSeleccionado.mes">
-                  <option *ngFor="let m of MESES; let i = index" [ngValue]="i + 1">{{ m }}</option>
-                </select>
+          <!-- MODO EDICIÓN (FORMULARIO EMPOTRADO) -->
+          <div class="form-body-minimal fade-in" *ngIf="modoEdicion">
+            <div class="dh-titles" style="margin-bottom: 2rem;">
+              <span class="dh-subtitle">EDITANDO REGISTRO</span>
+              <h2>Folio #{{ registroSeleccionado.id }}</h2>
+            </div>
+
+            <div class="st-grid-minimal">
+              <div class="grid-2">
+                <div class="field">
+                  <label>Mes</label>
+                  <select [(ngModel)]="registroSeleccionado.mes">
+                    <option *ngFor="let m of MESES; let i = index" [ngValue]="i + 1">{{ m }}</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label>Periodo</label>
+                  <input type="text" [(ngModel)]="registroSeleccionado.periodo" style="text-transform:uppercase" />
+                </div>
+                <div class="field">
+                  <label>Fecha Inicio</label>
+                  <input type="date" [ngModel]="registroSeleccionado.fechaInicio?.slice(0,10)" (ngModelChange)="registroSeleccionado.fechaInicio = $event" />
+                </div>
+                <div class="field">
+                  <label>Fecha Fin</label>
+                  <input type="date" [ngModel]="registroSeleccionado.fechaFin?.slice(0,10)" (ngModelChange)="registroSeleccionado.fechaFin = $event" />
+                </div>
+                <div class="field span-2">
+                  <label>Estatus</label>
+                  <select [(ngModel)]="registroSeleccionado.estatus">
+                    <option *ngFor="let e of ESTATUS_OPCIONES" [value]="e">{{ e }}</option>
+                  </select>
+                </div>
+                <div class="field span-2">
+                  <label>Observaciones</label>
+                  <textarea [(ngModel)]="registroSeleccionado.observaciones" rows="4"></textarea>
+                </div>
               </div>
-              <div class="field">
-                <label>Periodo</label>
-                <input type="text" [(ngModel)]="registroSeleccionado.periodo" style="text-transform:uppercase" />
+            </div>
+
+            <div class="form-footer-actions" style="margin-top: 2rem;">
+              <button class="btn-cancel" (click)="cancelarEdicion()">Cancelar</button>
+              <button class="btn-save" (click)="guardarEdicion()" [disabled]="guardando">
+                <span *ngIf="guardando" class="spin"></span>
+                {{ guardando ? 'Guardando...' : '💾 Sincronizar Cambios' }}
+              </button>
+            </div>
+          </div>
+
+        </section>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!--  VISTA: NUEVO REGISTRO                                 -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <div class="view-content" *ngIf="vistaActiva === 'nueva' && puedeCrear">
+      <div class="form-modern-card slide-up d2">
+        
+        <div class="form-header-bar">
+          <div class="fh-group">
+            <h2 style="font-family: 'Gelasio', serif; color: var(--wine); margin: 0;">Registro de Periodo</h2>
+          </div>
+          <div class="form-badge">NUEVA ENTRADA</div>
+        </div>
+
+        <div class="form-body-minimal">
+          <div class="st-grid-minimal">
+            
+            <section class="form-section">
+              <h4 class="section-tag">DATOS DEL PERIODO</h4>
+              <div class="grid-2">
+                <div class="field">
+                  <label>Mes <span class="req">*</span></label>
+                  <select [(ngModel)]="mes" [class.inp-err]="submitted && errores['mes']">
+                    <option [ngValue]="null" disabled>Selecciona el mes...</option>
+                    <option *ngFor="let m of MESES; let i = index" [ngValue]="i + 1">{{ m }}</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label>Periodo <span class="req">*</span></label>
+                  <input type="text" [(ngModel)]="periodo" placeholder="Ej: MARZO 2026" style="text-transform:uppercase"
+                    [class.inp-err]="submitted && errores['periodo']" />
+                </div>
+                <div class="field">
+                  <label>Fecha Inicio <span class="req">*</span></label>
+                  <input type="date" [(ngModel)]="fechaInicio" [class.inp-err]="submitted && errores['fechaInicio']" />
+                </div>
+                <div class="field">
+                  <label>Fecha Fin <span class="req">*</span></label>
+                  <input type="date" [(ngModel)]="fechaFin" [class.inp-err]="submitted && errores['fechaFin']" />
+                </div>
               </div>
+            </section>
+
+            <section class="form-section">
+              <h4 class="section-tag">RESULTADOS DE LA SUPERVISIÓN</h4>
               <div class="field">
-                <label>Fecha Inicio</label>
-                <input type="date" [ngModel]="registroSeleccionado.fechaInicio?.slice(0,10)" (ngModelChange)="registroSeleccionado.fechaInicio = $event" />
-              </div>
-              <div class="field">
-                <label>Fecha Fin</label>
-                <input type="date" [ngModel]="registroSeleccionado.fechaFin?.slice(0,10)" (ngModelChange)="registroSeleccionado.fechaFin = $event" />
-              </div>
-              <div class="field">
-                <label>Estatus</label>
-                <select [(ngModel)]="registroSeleccionado.estatus">
+                <label>Estatus General</label>
+                <select [(ngModel)]="estatus">
                   <option *ngFor="let e of ESTATUS_OPCIONES" [value]="e">{{ e }}</option>
                 </select>
               </div>
-              <div class="field span-2">
-                <label>Observaciones</label>
-                <textarea [(ngModel)]="registroSeleccionado.observaciones" rows="4"></textarea>
+              <div class="field">
+                <label>Observaciones Específicas</label>
+                <textarea [(ngModel)]="observaciones" rows="4" placeholder="Describa el comportamiento, incidencias o avances..."></textarea>
               </div>
-            </div>
+            </section>
 
-            <div class="edit-actions">
-              <button class="btn btn-save" (click)="guardarEdicion()" [disabled]="guardando">
-                <span *ngIf="guardando" class="spin"></span>
-                {{ guardando ? 'Guardando...' : '💾 Guardar Cambios' }}
-              </button>
-              <button class="btn btn-clear" (click)="cancelarEdicion()">✕ Cancelar</button>
-            </div>
           </div>
-
         </div>
+
+        <div class="form-footer-actions">
+          <button class="btn-cancel" (click)="limpiarFormulario()">Reiniciar</button>
+          <button class="btn-save" (click)="guardarRegistro()" [disabled]="guardando">
+            <span *ngIf="guardando" class="spin"></span>
+            {{ guardando ? 'Registrando...' : '💾 Guardar Supervisión' }}
+          </button>
+        </div>
+
       </div>
-
     </div>
-  </div>
 
+  </main>
 </div>

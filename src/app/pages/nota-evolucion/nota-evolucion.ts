@@ -209,82 +209,29 @@ export class NotaEvolucionComponent implements OnInit {
     });
   }
 
-  // ─── PDF LOCAL ──────────────────────────────────────────────
-  descargarPdf() {
-    if (!this.notaSeleccionada) return;
+  // ─── PDF (Desde Backend) ─────────────────────────────
+  descargarPdf(id: number) {
     this.descargandoPdf = true;
+    console.log('📄 Solicitando PDF de nota ID:', id);
 
-    const n = this.notaSeleccionada;
-    const exp = this.expediente || {};
-    const esc = (s: any) => String(s ?? '').replace(/[&<>"']/g, (m: string) =>
-      ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m] || m));
-    const fmt = (v: any) => {
-      if (!v) return '—';
-      const d = new Date(v);
-      return isNaN(d.getTime()) ? String(v) : `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
-    };
-
-    const html = `<!DOCTYPE html>
-<html lang="es"><head><meta charset="UTF-8"/>
-<title>Nota de Evolución Psicológica — ${esc(n.numeroSesion)}</title>
-<style>
-@page{size:Letter;margin:0}*{box-sizing:border-box;margin:0;padding:0}
-html,body{width:21.59cm;font-family:'Times New Roman',Times,serif;font-size:10pt;color:#000;line-height:1.25;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-.pagina{position:relative;width:21.59cm;padding:1.8cm 2cm 1.5cm 2.2cm}
-.header-text{text-align:center;font-weight:bold;font-size:9pt;color:#777;margin-top:1.2cm;margin-bottom:5pt;line-height:1.2;padding-right:1.2cm}
-.doc-title{text-align:center;font-size:14pt;font-weight:bold;margin-top:10pt;margin-bottom:2pt}
-.exp-num{text-align:right;font-weight:bold;font-size:10pt;margin-bottom:2pt;padding-right:1.2cm}
-.session-block{width:100%;margin-top:15pt;margin-bottom:20pt;page-break-inside:avoid;padding-right:1.2cm}
-.data-table{width:100%;border-collapse:collapse;table-layout:fixed}
-.data-table td{border:1px solid #000;padding:3pt 5pt;vertical-align:top;font-size:9pt}
-.label{font-weight:bold;background-color:#f2f2f2}
-@media print{body{-webkit-print-color-adjust:exact}}
-</style></head><body>
-<div class="pagina">
-<div class="header-text">SUBSECRETARIA DE PREVENCIÓN Y REINSERCIÓN SOCIAL<br>
-DIRECCIÓN GENERAL DE PREVENCIÓN DEL DELITO Y PARTICIPACIÓN CIUDADANA<br>
-PROGRAMA "RECONECTA CON LA PAZ"</div>
-<div class="doc-title">NOTA DE EVOLUCIÓN PSICOLÓGICA</div>
-<div class="exp-num">NUM. DE SESIÓN: ${esc(n.numeroSesion)}</div>
-
-<div style="padding-right:1.2cm;">
-<table class="data-table" style="margin-bottom:5pt;">
-<tr><td class="label" style="width:25%;">BENEFICIARIO:</td><td style="width:45%;">${esc(exp.beneficiario?.nombre || '—')}</td><td class="label" style="width:10%;">C. PENAL:</td><td style="width:20%;">${esc(exp.cPenal || '—')}</td></tr>
-<tr><td class="label">FECHA:</td><td>${fmt(n.fecha)}</td><td class="label">PSICÓLOGO:</td><td>${esc(n.psicologo?.nombre || '—')}</td></tr>
-</table>
-
-<div class="session-block">
-<table class="data-table">
-<tr><td class="label" style="width:30%;">OBJETIVO DE LA SESIÓN:</td><td>${esc(n.objetivoSesion || '—')}</td></tr>
-<tr><td class="label">DESCRIPCIÓN DE LA SESIÓN:</td><td style="height:60pt;vertical-align:top;">${esc(n.descripcionSesion || '—')}</td></tr>
-<tr><td class="label">TÉCNICAS APLICADAS:</td><td style="height:40pt;vertical-align:top;">${esc(n.tecnicasAplicadas || '—')}</td></tr>
-</table></div>
-
-<div class="session-block">
-<table class="data-table">
-<tr><td class="label" style="width:30%;">AVANCES PERCIBIDOS:</td><td style="height:50pt;vertical-align:top;">${esc(n.avances || '—')}</td></tr>
-<tr><td class="label">OBSERVACIONES:</td><td style="height:50pt;vertical-align:top;">${esc(n.observaciones || '—')}</td></tr>
-<tr><td class="label">PRÓXIMA SESIÓN:</td><td>${fmt(n.proximaSesion)}</td></tr>
-</table></div>
-
-<div style="margin-top:50pt;text-align:center;padding-right:1.2cm;">
-<div style="font-weight:bold;font-size:9pt;">${esc(n.psicologo?.nombre || '—')}</div>
-<div style="margin-top:4pt;border-top:1px solid #000;width:300px;margin-left:auto;margin-right:auto;padding-top:3pt;font-size:8.5pt;">Psicólogo Responsable</div>
-</div>
-</div>
-</div></body></html>`;
-
-    const win = window.open('', '_blank');
-    if (win) {
-      win.document.write(html);
-      win.document.close();
-      setTimeout(() => { win.print(); }, 400);
-      this.descargandoPdf = false;
-      this.mostrarToast('PDF listo para imprimir/guardar', 'ok');
-    } else {
-      this.descargandoPdf = false;
-      this.mostrarToast('Permite ventanas emergentes en tu navegador', 'warn');
-    }
+    this.penalService.getNotaEvolucionPdf(id).subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `NOTA_EVOLUCION_${id}.pdf`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+        
+        this.descargandoPdf = false;
+        this.mostrarToast('PDF descargado con éxito', 'ok');
+      },
+      error: (err) => {
+        console.error('❌ Error al obtener PDF:', err);
+        this.descargandoPdf = false;
+        this.mostrarToast('Error al generar el PDF en el servidor', 'error');
+      }
+    });
   }
 
   // ─── UTILIDADES ─────────────────────────────────────────────

@@ -7,7 +7,14 @@
   </div>
 </div>
 
-<div class="page-container">
+<!-- LOADING OVERLAY -->
+<div *ngIf="loading" class="overlay">
+  <div class="loader-gov"></div>
+  <p class="loading-text">Procesando información...</p>
+</div>
+
+
+<div class="shell">
   <main class="content-wrapper">
 
     <!-- HEADER -->
@@ -18,17 +25,12 @@
           Volver
         </button>
         <div class="header-titles">
-          <h1>Resumen de Valoración Psicológica</h1>
-          <p>Expediente Penal: <span class="badge">{{ numeroExpediente }}</span> | Beneficiario: <strong>{{ nombreBeneficiario }}</strong></p>
+          <h1>Valoración Psicológica</h1>
+          <p>Expediente #{{ numeroExpediente }} — {{ nombreBeneficiario }}</p>
         </div>
       </div>
-    </header>
 
-    <!-- LOADING OVERLAY -->
-    <div class="loading-overlay" *ngIf="loading">
-      <div class="spinner"></div>
-      <p>Guardando valoración...</p>
-    </div>
+    </header>
 
     <!-- MAIN FORM CAJA ÚNICA -->
     <div class="form-section slide-up d1">

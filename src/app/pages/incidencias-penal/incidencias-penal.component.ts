@@ -30,7 +30,6 @@ export class IncidenciasPenalComponent implements OnInit {
   loading = true;
   guardando = false;
   eliminando = false;
-  generandoPdf = false;
   editandoId: number | null = null;
 
   vistaActiva: 'lista' | 'formulario' = 'lista';
@@ -75,14 +74,23 @@ export class IncidenciasPenalComponent implements OnInit {
   ];
 
   // ─── Roles ─────────────────────────────────────────────────
-  get role() { return this.session.getRole(); }
-  get esAdmin() { return this.role === 'admin'; }
-  get esGuia() { return this.role === 'guia'; }
-  get esPsicologo() { return this.role === 'psicologo'; }
-  get esTrabajoSocial() { return this.role === 'trabajo_social'; }
+  get userRole() { return this.session.getRole()?.toLowerCase() || 'invitado'; }
+  get esAdmin() { return this.userRole === 'admin'; }
+  get esGuia() { return this.userRole === 'guia'; }
+  get esPsicologo() { return this.userRole === 'psicologo'; }
+  get esTrabajoSocial() { return this.userRole === 'trabajo_social' || this.userRole === 'trabajadorsocial'; }
+  
   get puedeCrear() { return this.esAdmin || this.esGuia || this.esPsicologo || this.esTrabajoSocial; }
   get puedeEditar() { return this.puedeCrear; }
   get puedeEliminar() { return this.esAdmin; }
+
+  get permisoDesc(): string {
+    if (this.esAdmin) return 'Acceso Total (Administrador)';
+    if (this.esGuia) return 'Acceso de Registro (Guía Cívico)';
+    if (this.esTrabajoSocial) return 'Acceso de Consulta (T. Social)';
+    if (this.esPsicologo) return 'Acceso de Consulta (Psicología)';
+    return 'Acceso restringido';
+  }
 
   // ─── Stats ─────────────────────────────────────────────────
   get totalActivas() { return this.incidencias.filter(i => i.estatus === 'ACTIVA').length; }
@@ -212,60 +220,7 @@ export class IncidenciasPenalComponent implements OnInit {
     });
   }
 
-  // ─── PDF Local ────────────────────────────────────────────
-  descargarPdf(item?: any) {
-    const d = item || this.seleccionada;
-    if (!d) return;
-    this.generandoPdf = true;
-    const esc = (v: any) => String(v ?? '').replace(/[&<>"']/g, (c: string) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c] || c));
-    const fmt = (v: any) => { if (!v) return '—'; const dt = new Date(v); return isNaN(dt.getTime()) ? String(v) : dt.toLocaleDateString('es-MX'); };
-    const gravColor = d.gravedad === 'ALTA' ? '#8b0000' : d.gravedad === 'MEDIA' ? '#b45309' : '#2d6a4f';
 
-    const html = `<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"/>
-<title>Incidencia Penal</title>
-<style>@page{size:Letter;margin:0}*{box-sizing:border-box;margin:0;padding:0}
-html,body{width:21.59cm;font-family:'Times New Roman',Times,serif;font-size:10pt;color:#000;line-height:1.4}
-.pagina{width:21.59cm;padding:1.8cm 2cm 1.5cm 2.2cm}
-.header{text-align:center;font-weight:bold;font-size:9pt;color:#777;margin-top:1.2cm;margin-bottom:8pt;line-height:1.2}
-.titulo{text-align:center;font-size:14pt;font-weight:bold;margin-bottom:14pt;color:#850a31}
-table.dt{width:100%;border-collapse:collapse;margin-bottom:10pt}
-table.dt td{border:1px solid #000;padding:4pt 6pt;font-size:9.5pt;vertical-align:top}
-td.lbl{font-weight:bold;background:#f2f2f2;width:28%}
-.badge{display:inline-block;padding:2pt 8pt;border-radius:4pt;font-weight:bold;font-size:8.5pt;color:#fff}
-.sig{margin-top:50pt;text-align:center}
-.sig-line{border-top:1px solid #000;width:260px;margin:0 auto;padding-top:4pt;font-size:8.5pt}
-</style></head><body>
-<div class="pagina">
-<div class="header">SUBSECRETARÍA DE PREVENCIÓN Y REINSERCIÓN SOCIAL<br>
-DIRECCIÓN GENERAL DE PREVENCIÓN DEL DELITO Y PARTICIPACIÓN CIUDADANA<br>
-PROGRAMA "RECONECTA CON LA PAZ"</div>
-<div class="titulo">REPORTE DE INCIDENCIA</div>
-<table class="dt">
-<tr><td class="lbl">EXPEDIENTE:</td><td>#${d.expediente?.id || this.expediente?.id || '—'}</td>
-<td class="lbl">FECHA:</td><td>${fmt(d.fecha)}</td></tr>
-<tr><td class="lbl">BENEFICIARIO:</td><td colspan="3">${esc(d.expediente?.beneficiario?.nombre || this.expediente?.beneficiario?.nombre || '—')}</td></tr>
-<tr><td class="lbl">TIPO:</td><td>${esc(d.tipo)}</td>
-<td class="lbl">GRAVEDAD:</td><td><span class="badge" style="background:${gravColor}">${esc(d.gravedad)}</span></td></tr>
-<tr><td class="lbl">ESTATUS:</td><td>${esc(d.estatus)}</td>
-<td class="lbl">REINCIDENCIA:</td><td>${d.reincidencia ? 'SÍ' : 'NO'}</td></tr>
-</table>
-<table class="dt">
-<tr><td class="lbl">DESCRIPCIÓN:</td><td>${esc(d.descripcion)}</td></tr>
-<tr><td class="lbl">ACCIONES TOMADAS:</td><td>${esc(d.accionesTomadas)}</td></tr>
-<tr><td class="lbl">OBSERVACIONES:</td><td>${esc(d.observaciones)}</td></tr>
-</table>
-<table class="dt">
-<tr><td class="lbl">REGISTRADO POR:</td><td>${esc(d.registradoPor?.nombre || '—')}</td>
-<td class="lbl">FECHA REGISTRO:</td><td>${fmt(d.createdAt)}</td></tr>
-</table>
-<div class="sig"><div class="sig-line">Firma del Responsable</div></div>
-</div></body></html>`;
-
-    const win = window.open('', '_blank');
-    if (win) { win.document.write(html); win.document.close(); setTimeout(() => win.print(), 400); }
-    this.generandoPdf = false;
-    this.mostrarToast('PDF listo', 'ok');
-  }
 
   // ─── Utilidades ───────────────────────────────────────────
   limpiar() {

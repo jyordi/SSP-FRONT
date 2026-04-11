@@ -31,6 +31,7 @@ export class CaraturaExpediente implements OnInit {
   expedienteId: number | null = null;
   role = '';
   puedeEditar = false;
+  descargandoPdf = false;
 
   // Datos Preexistentes (Sólo lectura)
   expedienteData: any = null;
@@ -166,21 +167,23 @@ export class CaraturaExpediente implements OnInit {
 
   descargarPdf(): void {
     if (!this.expedienteId) return;
-    this.loading = true;
+    this.descargandoPdf = true;
 
     this.penalService.getCaratulaPdf(this.expedienteId).subscribe({
       next: (blob) => {
-        this.loading = false;
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
         a.download = `CARATULA_EXPEDIENTE_${this.expedienteId}.pdf`;
         a.click();
         window.URL.revokeObjectURL(url);
-        this.mostrarToast('PDF generado con éxito', 'ok');
+        
+        this.descargandoPdf = false;
+        this.mostrarToast('✅ PDF generado con éxito', 'ok');
       },
-      error: () => {
-        this.loading = false;
+      error: (err) => {
+        console.error('Error bpdf:', err);
+        this.descargandoPdf = false;
         this.mostrarToast('Error al generar PDF', 'error');
       }
     });

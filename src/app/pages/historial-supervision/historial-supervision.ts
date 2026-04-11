@@ -88,14 +88,23 @@ export class HistorialSupervisionComponent implements OnInit {
     }
   }
 
-  // ─── ROLES ──────────────────────────────────────────────────
-  get esAdmin() { return this.role === 'admin'; }
-  get esGuia() { return this.role === 'guia'; }
-  get esPsicologo() { return this.role === 'psicologo'; }
-  get esTrabajoSocial() { return this.role === 'trabajo_social'; }
+  get userRole() { return this.role?.toLowerCase() || 'invitado'; }
+  get esAdmin() { return this.userRole === 'admin'; }
+  get esGuia() { return this.userRole === 'guia'; }
+  get esPsicologo() { return this.userRole === 'psicologo'; }
+  get esTrabajoSocial() { return this.userRole === 'trabajo_social' || this.userRole === 'trabajadorsocial'; }
+  
   get puedeCrear() { return this.esAdmin || this.esGuia; }
   get puedeEditar() { return this.esAdmin || this.esGuia; }
   get puedeEliminar() { return this.esAdmin; }
+
+  get permisoDesc(): string {
+    if (this.esAdmin) return 'Acceso Total (Administrador)';
+    if (this.esGuia) return 'Acceso de Registro (Guía Cívico)';
+    if (this.esTrabajoSocial) return 'Acceso de Consulta (T. Social)';
+    if (this.esPsicologo) return 'Acceso de Consulta (Psicología)';
+    return 'Acceso restringido';
+  }
 
   // ─── CARGAR HISTORIAL ───────────────────────────────────────
   cargarRegistros() {

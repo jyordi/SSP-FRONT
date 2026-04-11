@@ -7,77 +7,83 @@
   </div>
 </div>
 
-<div class="page-container">
+<!-- LOADING OVERLAY -->
+<div *ngIf="loading" class="overlay">
+  <div class="loader-gov"></div>
+  <p class="loading-text">Cargando información del expediente...</p>
+</div>
+
+<!-- PDF LOADING OVERLAY -->
+<div *ngIf="descargandoPdf" class="overlay pdf-overlay">
+  <div class="pdf-loader">
+    <div class="loader-gov"></div>
+    <div class="pdf-icon-anim">📄</div>
+  </div>
+  <p class="loading-text">Generando Carátula oficial...</p>
+  <p class="loading-subtext">Esto puede tomar unos segundos</p>
+</div>
+
+<div class="shell">
   <main class="content-wrapper">
 
-    <!-- HEADER Y ACCIONES -->
+    <!-- HEADER -->
     <header class="page-header slide-up">
       <div class="header-info">
         <button class="btn-back" (click)="regresar()">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
-          Volver al Expediente
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+          Volver
         </button>
         <div class="header-titles">
-          <h1>Carátula de Expediente</h1>
-          <p *ngIf="caratulaExistente">Esta carátula ya ha sido validada y asociada al expediente.</p>
-          <p *ngIf="!caratulaExistente">Generación oficial de la carátula integrada.</p>
+          <h1>Carátula del Expediente</h1>
+          <p>Identificación oficial y resumen procesal</p>
         </div>
       </div>
-      <div class="header-actions" *ngIf="caratulaExistente">
-        <button class="btn-pdf" (click)="descargarPdf()" [disabled]="loading">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
-          Descargar PDF
+
+      <div class="header-action" *ngIf="caratulaExistente">
+        <button class="btn-pdf" (click)="descargarPdf()" [disabled]="descargandoPdf">
+          <span *ngIf="!descargandoPdf">📄 Descargar PDF</span>
+          <span *ngIf="descargandoPdf" class="spin"></span>
         </button>
       </div>
     </header>
 
-    <!-- LOADING OVERLAY -->
-    <div class="loading-overlay" *ngIf="loading">
-      <div class="spinner"></div>
-      <p>Cargando información...</p>
-    </div>
-
-    <!-- MAIN GRID DE VISTA Y MODO FORMATO -->
     <div class="grid-main slide-up d1">
       
-      <!-- LADO IZQUIERDO: RESUMEN NO EDITABLE (Datos Nativos) -->
+      <!-- SIDEBAR INFO (Lectura) -->
       <aside class="sidebar-datos">
         <div class="sidebar-header">
-          <h3>Expediente Tecnico</h3>
-          <span class="badge-verde" *ngIf="caratulaExistente">Asociado</span>
+          <h3>Resumen Procesal</h3>
+          <span class="badge-verde">Activo</span>
         </div>
-        
+
         <div class="info-group">
           <label>Beneficiario</label>
           <p class="txt-resaltado">{{ nombreBeneficiario }}</p>
         </div>
 
-        <div class="info-cols">
-          <div class="info-group">
-            <label>C. Penal</label>
-            <p>{{ cPenal }}</p>
-          </div>
-          <div class="info-group">
-            <label>Folio</label>
-            <p>{{ folio }}</p>
-          </div>
+        <div class="info-group">
+          <label>C. Penal / Control</label>
+          <p>{{ cPenal }}</p>
         </div>
 
-        <hr class="divider-small">
+        <div class="info-group">
+          <label>Folio Expediente</label>
+          <p>{{ folio }}</p>
+        </div>
 
         <div class="info-group">
-          <label>Delito(s)</label>
+          <label>Juzgado</label>
+          <p>{{ juzgado }}</p>
+        </div>
+
+        <div class="info-group">
+          <label>Delito</label>
           <p>{{ delito }}</p>
         </div>
 
         <div class="info-group">
           <label>Agraviado</label>
           <p>{{ agraviado }}</p>
-        </div>
-        
-        <div class="info-group">
-          <label>Juzgado</label>
-          <p>{{ juzgado }}</p>
         </div>
 
         <div class="info-group">
@@ -86,16 +92,19 @@
         </div>
       </aside>
 
-      <!-- LADO DERECHO: FORMULARIO ACTIVO -->
-      <article class="card-form" [class.solo-lectura]="!puedeEditar">
+      <!-- FORMULARIO EDITABLE -->
+      <section class="card-form" [class.solo-lectura]="!puedeEditar">
         <div class="card-head">
-          <svg class="head-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-          <h2>Anexos Identificativos</h2>
-          <span class="badge-role" *ngIf="!puedeEditar">Vista de Lectura</span>
+          <div class="head-ico-wrap">
+            <svg class="head-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          </div>
+          <div class="head-text">
+            <h2>{{ caratulaExistente ? 'Actualizar Información' : 'Registrar Carátula' }}</h2>
+            <span class="badge-role" *ngIf="!puedeEditar">Sólo Lectura</span>
+          </div>
         </div>
 
         <form [formGroup]="form" (ngSubmit)="guardar()">
-          
           <div class="field">
             <label>Alias / Apodo</label>
             <input type="text" formControlName="alias" placeholder="Ej. El Flaco, Variante...">
@@ -107,43 +116,44 @@
             <textarea formControlName="observaciones" rows="4" placeholder="Notas adicionales sobre la generación de este expediente..."></textarea>
           </div>
 
-          <!-- BOTÓN GUARDAR (Solo visible y activo si tiene permisos) -->
+          <!-- BOTÓN GUARDAR -->
           <div class="form-actions" *ngIf="puedeEditar">
             <button type="submit" class="btn-primary" [disabled]="loading || form.invalid">
-              {{ caratulaExistente ? 'Actualizar Carátula' : 'Vincular y Guardar Carátula' }}
+              <span>{{ caratulaExistente ? 'Actualizar Carátula' : 'Vincular y Guardar Carátula' }}</span>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
             </button>
           </div>
 
-          <!-- MENSAJES INFORMATIVOS DEPENDIENDO DEL ROL -->
+          <!-- MENSAJES INFORMATIVOS -->
+          <div class="alerts-container">
+            <div class="info-warning success" *ngIf="puedeEditar && esTrabajoSocial()">
+              <svg class="alert-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+              <p><b>Privilegio de Trabajo Social:</b> Tienes los permisos necesarios para generar y validar esta Carátula Oficial. Asegúrate de que el F1 (Psicología) y F2 (Tu área) estén completos.</p>
+            </div>
 
-          <div class="info-warning success" *ngIf="puedeEditar && esTrabajoSocial()">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-            <p><b>Privilegio de Trabajo Social:</b> Tienes los permisos necesarios para generar y validar esta Carátula Oficial. Asegúrate de que el F1 (Psicología) y F2 (Tu área) estén completos.</p>
-          </div>
+            <div class="info-warning success" *ngIf="puedeEditar && esAdmin()">
+              <svg class="alert-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+              <p><b>Privilegio de Administrador:</b> Como administrador, tienes permisos para supervisar, editar y validar la carátula oficial de este expediente.</p>
+            </div>
 
-          <div class="info-warning success" *ngIf="puedeEditar && esAdmin()">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-            <p><b>Privilegio de Administrador:</b> Como administrador, tienes permisos para supervisar, editar y validar la carátula oficial de este expediente.</p>
-          </div>
+            <div class="info-warning" *ngIf="!puedeEditar && esPsicologo()">
+              <svg class="alert-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+              <p><b>Aviso (Psicología):</b> Estás visualizando la Carátula oficial. Tu rol permite la consulta del expediente consolidado, pero el registro formal es responsabilidad de Trabajo Social.</p>
+            </div>
 
-          <div class="info-warning" *ngIf="!puedeEditar && esPsicologo()">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
-            <p><b>Aviso (Psicología):</b> Estás visualizando la Carátula oficial. Tu rol permite la consulta del expediente consolidado, pero el registro formal es responsabilidad de Trabajo Social.</p>
-          </div>
+            <div class="info-warning" *ngIf="!puedeEditar && esGuia()">
+              <svg class="alert-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+              <p><b>Aviso (Guía Asignado):</b> Puedes consultar el resumen del beneficiario. La validación detallada y carátula corresponden al área de Trabajo Social o Administración.</p>
+            </div>
 
-          <div class="info-warning" *ngIf="!puedeEditar && esGuia()">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
-            <p><b>Aviso (Guía Asignado):</b> Puedes consultar el resumen del beneficiario. La validación detallada y carátula corresponden al área de Trabajo Social o Administración.</p>
-          </div>
-
-          <div class="info-warning" *ngIf="!puedeEditar && !['admin','trabajo_social','psicologo','guia'].includes(role)">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
-            <p><b>Restricción de Perfil:</b> No tienes autorización para procesar esta carátula.</p>
+            <div class="info-warning danger" *ngIf="!puedeEditar && !['admin','trabajo_social','psicologo','guia'].includes(role)">
+              <svg class="alert-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+              <p><b>Restricción de Perfil:</b> No tienes autorización para procesar esta carátula.</p>
+            </div>
           </div>
 
         </form>
-      </article>
+      </section>
 
     </div>
 

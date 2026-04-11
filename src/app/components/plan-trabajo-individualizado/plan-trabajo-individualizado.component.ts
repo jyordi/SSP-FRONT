@@ -38,6 +38,32 @@ export class PlanTrabajoIndividualizadoComponent implements OnInit {
   // Estado de Lectura o Creación
   planExistente: any = null;
   puedeEditar = false;
+  modoEdicion = false;
+  descargandoPdf = false;
+
+  async descargarPdf() {
+    if (!this.planExistente?.id) return;
+    this.descargandoPdf = true;
+    
+    this.penalService.getPlanTrabajoPdf(this.planExistente.id).subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `PLAN_TRABAJO_${this.planExistente.id}.pdf`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+        
+        this.descargandoPdf = false;
+        this.mostrarToast('✅ PDF descargado con éxito', 'ok');
+      },
+      error: (err) => {
+        console.error('Error bpdf:', err);
+        this.descargandoPdf = false;
+        this.mostrarToast('Error al generar el PDF', 'error');
+      }
+    });
+  }
 
   ngOnInit(): void {
     this.role = this.session.getRole();
@@ -86,6 +112,13 @@ export class PlanTrabajoIndividualizadoComponent implements OnInit {
       fechaFin: ['', Validators.required],
       
       datosJsonb: this.fb.group({
+        // Campos requeridos por el PDF "DATOS DEL PLAN DE TRABAJO"
+        descripcion: [''],
+        objetivos: [''],
+        estrategias: [''],
+        observaciones: [''],
+
+        // Ejes transversales (internos)
         proceso_ingreso: this.fb.group({
           situacion_actual: ['']
         }),
@@ -122,25 +155,40 @@ export class PlanTrabajoIndividualizadoComponent implements OnInit {
         const planes = Array.isArray(res) ? res : [res];
         
         if (planes.length > 0) {
-          // Ya existe un plan, bloqueamos la creación y guardamos la ref
           this.planExistente = planes[0];
-          // Prellenar de vista
-          this.form.patchValue({
-            guiaId: this.planExistente.guia?.id || this.planExistente.guia,
-            periodo: this.planExistente.periodo || '',
-            fechaInicio: this.planExistente.fechaInicio ? this.planExistente.fechaInicio.substring(0, 10) : '',
-            fechaFin: this.planExistente.fechaFin ? this.planExistente.fechaFin.substring(0, 10) : '',
-            datosJsonb: this.planExistente.datosJsonb || {}
-          });
-          
-          this.form.disable(); // Bloqueamos todo. Ya está registrado.
+          this._rellenarFormulario();
+          this.form.disable();
         }
       },
       error: (err) => {
         this.loading = false;
-        // 404 significa que no tiene plan, está genial. 
       }
     });
+  }
+
+  private _rellenarFormulario(): void {
+    if (!this.planExistente) return;
+    this.form.patchValue({
+      guiaId: this.planExistente.guia?.id || this.planExistente.guia,
+      periodo: this.planExistente.periodo || '',
+      fechaInicio: this.planExistente.fechaInicio ? this.planExistente.fechaInicio.substring(0, 10) : '',
+      fechaFin: this.planExistente.fechaFin ? this.planExistente.fechaFin.substring(0, 10) : '',
+      datosJsonb: this.planExistente.datosJsonb || {}
+    });
+  }
+
+  activarEdicion(): void {
+    this.modoEdicion = true;
+    this.form.enable();
+    // El expedienteId y guiaId no deberían cambiarse una vez creado el plan
+    this.form.get('expedienteId')?.disable();
+    this.form.get('guiaId')?.disable();
+  }
+
+  cancelarEdicion(): void {
+    this.modoEdicion = false;
+    this._rellenarFormulario();
+    this.form.disable();
   }
 
   guardar(): void {
@@ -151,29 +199,32 @@ export class PlanTrabajoIndividualizadoComponent implements OnInit {
     }
 
     this.loading = true;
-    const baseDto = this.form.value;
+    const baseDto = this.form.getRawValue(); // getRawValue para incluir expedienteId deshabilitado
 
-    // Ajuste de tipos
     const dto = {
       ...baseDto,
       guiaId: Number(baseDto.guiaId)
     };
 
-    this.penalService.savePlanTrabajo(dto).subscribe({
+    const request$ = this.planExistente?.id
+      ? this.penalService.updatePlanTrabajo(this.planExistente.id, dto)
+      : this.penalService.savePlanTrabajo(dto);
+
+    request$.subscribe({
       next: (res) => {
         this.loading = false;
-        this.mostrarToast('✅ Plan guardado correctamente. Abriendo Detalle...', 'ok');
+        this.mostrarToast(this.planExistente?.id ? '✅ Plan actualizado' : '✅ Plan guardado correctamente', 'ok');
         this.planExistente = res;
+        this.modoEdicion = false;
+        this.form.disable();
         
-        // Timeout para que se lea el toast
-        setTimeout(() => {
-          this.irAPlanDetalle();
-        }, 1500);
+        if (!this.planExistente?.id) {
+          setTimeout(() => this.irAPlanDetalle(), 1500);
+        }
       },
       error: (err) => {
         this.loading = false;
-        const eMsg = err.error?.message || 'Hubo un error al guardar';
-        this.mostrarToast(eMsg, 'error');
+        this.mostrarToast(err.error?.message || 'Hubo un error al procesar', 'error');
       }
     });
   }

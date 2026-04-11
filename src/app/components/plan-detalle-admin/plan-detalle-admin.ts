@@ -19,6 +19,8 @@ export class PlanDetalleAdminComponent implements OnInit {
   expediente: any;
   beneficiario: any;
   planInfo: any = null;
+  loading = false;
+  descargandoPdf = false;
 
   readonly detallePlan = signal<any[]>([]); 
   readonly actividades = signal<any[]>([]); 
@@ -70,6 +72,30 @@ export class PlanDetalleAdminComponent implements OnInit {
     this._cargarPlanInfo();
   }
 
+  volver(): void {
+    history.back();
+  }
+
+  descargarPdf(): void {
+    if (this.descargandoPdf) return;
+    this.descargandoPdf = true;
+    this.penalService.getPlanTrabajoPdf(this.planId).subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `PLAN_TRABAJO_${this.planId}.pdf`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+        this.descargandoPdf = false;
+      },
+      error: () => {
+        this.descargandoPdf = false;
+        alert('Error al generar el PDF.');
+      }
+    });
+  }
+
   private _buildForms(): void {
     this.detalleForm = this.fb.group({
       actividadId: [null, Validators.required],
@@ -93,8 +119,13 @@ export class PlanDetalleAdminComponent implements OnInit {
   }
 
   private _cargarDetalle(): void {
-    this.penalService.getPlanDetalle(this.planId).subscribe((res: any) => {
-      this.detallePlan.set(Array.isArray(res) ? res : [res]);
+    this.loading = true;
+    this.penalService.getPlanDetalle(this.planId).subscribe({
+      next: (res: any) => {
+        this.detallePlan.set(Array.isArray(res) ? res : [res]);
+        this.loading = false;
+      },
+      error: () => this.loading = false
     });
   }
 

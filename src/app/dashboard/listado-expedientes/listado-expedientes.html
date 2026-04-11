@@ -1,24 +1,32 @@
 <app-navbar-reconecta></app-navbar-reconecta>
 
 <div class="page-wrap">
-  
+
   <main class="content-area">
-    
+
     <!-- HEADER Y ACCIONES PRINCIPALES -->
     <header class="page-header slide-up">
       <div class="ph-titles">
         <h2 class="ph-title">Seguimiento de Expedientes</h2>
         <p class="ph-sub">Gestión de personas usuarias en el programa Reconecta con la Paz.</p>
       </div>
-      
+
       <div class="ph-actions">
         <button *ngIf="puedeCrear()" class="btn btn-primary" (click)="nuevoIngreso()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+            <line x1="12" y1="5" x2="12" y2="19" />
+            <line x1="5" y1="12" x2="19" y2="12" />
+          </svg>
           Nuevo Ingreso
         </button>
 
         <button *ngIf="puedeGestionarUsuarios()" class="btn btn-secondary" (click)="nuevoUsuario()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2" />
+            <circle cx="9" cy="7" r="4" />
+            <line x1="19" y1="8" x2="19" y2="14" />
+            <line x1="22" y1="11" x2="16" y2="11" />
+          </svg>
           Usuarios
         </button>
       </div>
@@ -35,7 +43,11 @@
         </div>
 
         <div class="search-box">
-          <svg class="search-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <svg class="search-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round">
+            <circle cx="11" cy="11" r="8" />
+            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+          </svg>
           <input type="text" placeholder="Buscar por nombre, folio, delito..." [(ngModel)]="searchTerm">
         </div>
       </div>
@@ -43,9 +55,12 @@
       <div class="controls-row secondary-row">
         <div class="status-filters">
           <span class="filter-label">Estado:</span>
-          <button class="chip" [class.active]="filtroEstatus === 'Todos'" (click)="setFiltroEstatus('Todos')">Todos</button>
-          <button class="chip chip-warn" [class.active]="filtroEstatus === 'Pendientes'" (click)="setFiltroEstatus('Pendientes')">Sólo Pendientes</button>
-          <button class="chip chip-ok" [class.active]="filtroEstatus === 'Completos'" (click)="setFiltroEstatus('Completos')">Completos</button>
+          <button class="chip" [class.active]="filtroEstatus === 'Todos'"
+            (click)="setFiltroEstatus('Todos')">Todos</button>
+          <button class="chip chip-warn" [class.active]="filtroEstatus === 'Pendientes'"
+            (click)="setFiltroEstatus('Pendientes')">Sólo Pendientes</button>
+          <button class="chip chip-ok" [class.active]="filtroEstatus === 'Completos'"
+            (click)="setFiltroEstatus('Completos')">Completos</button>
         </div>
       </div>
     </div>
@@ -58,20 +73,25 @@
 
     <!-- ESTADO VACÍO -->
     <div class="empty-state slide-up delay-2" *ngIf="!loading && expedientesFiltrados.length === 0">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+        stroke-linejoin="round">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+        <polyline points="14 2 14 8 20 8" />
+        <line x1="9" y1="15" x2="15" y2="15" />
+      </svg>
       <p>No se encontraron expedientes con los filtros actuales.</p>
     </div>
 
     <!-- GRID DE TARJETAS -->
     <div class="cards-grid" *ngIf="!loading && expedientesFiltrados.length > 0">
-      
-      <div class="exp-card slide-up" *ngFor="let exp of expedientesFiltrados; let i = index" 
-           [style.animation-delay]="((i % 10) * 0.05) + 's'"
-           [ngClass]="'c-' + exp.tipo.toLowerCase()">
-        
+
+      <div class="exp-card slide-up" *ngFor="let exp of expedientesFiltrados; let i = index"
+        [style.animation-delay]="((i % 10) * 0.05) + 's'" [ngClass]="'c-' + exp.tipo.toLowerCase()">
+
         <div class="card-head">
           <div class="head-left">
-            <img class="card-avatar" [src]="exp.urlFoto || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'" alt="avatar">
+            <img class="card-avatar" [src]="exp.urlFoto || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'"
+              alt="avatar">
             <span class="badge-tipo">{{ exp.tipo }}</span>
           </div>
           <span class="folio-txt">{{ exp.folio }}</span>
@@ -80,7 +100,7 @@
         <div class="card-body">
           <h3 class="exp-name">{{ exp.nombre }}</h3>
           <p class="exp-delito">{{ exp.delito }}</p>
-          
+
           <div class="exp-meta">
             <div class="card-details-grid">
               <div class="detail-item" *ngIf="exp.curp !== '—'">
@@ -104,7 +124,11 @@
 
             <!-- Mostrar si le falta completarse o requiere atencion -->
             <div class="missing-badge" *ngIf="esIncompleto(exp)">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+                <line x1="12" y1="9" x2="12" y2="13" />
+                <line x1="12" y1="17" x2="12.01" y2="17" />
+              </svg>
               <span>{{ getFaltaAlgo(exp) }}</span>
             </div>
           </div>
@@ -113,7 +137,10 @@
         <div class="card-foot">
           <button class="btn-action" (click)="continuarSeguimiento(exp)">
             {{ esIncompleto(exp) && puedeCrear() ? 'Completar datos' : 'Ver expediente' }}
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <line x1="5" y1="12" x2="19" y2="12" />
+              <polyline points="12 5 19 12 12 19" />
+            </svg>
           </button>
         </div>
 

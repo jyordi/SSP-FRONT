@@ -1,332 +1,259 @@
 <app-navbar-reconecta></app-navbar-reconecta>
-<br><br><br>
+
+<!-- TOAST -->
+<div class="toast-wrap" *ngIf="toast">
+  <div class="toast" [class.toast-ok]="toast.tipo === 'ok'" [class.toast-err]="toast.tipo === 'error'">
+    {{ toast.msg }}
+  </div>
+</div>
+
+<!-- LOADING OVERLAY -->
+<div *ngIf="loading || guardando || eliminando" class="overlay">
+  <div class="loader-gov"></div>
+  <p class="loading-text">Sincronizando con el servidor...</p>
+</div>
 
 <div class="shell">
+  <main class="content-wrapper">
 
-  <!-- TOAST -->
-  <div class="toast-wrap" *ngIf="toast">
-    <div class="toast-msg" [ngClass]="'toast-' + toast.tipo">
-      <span class="toast-ico">{{ toast.tipo === 'ok' ? '✅' : toast.tipo === 'error' ? '❌' : toast.tipo === 'warn' ? '⚠️' : 'ℹ️' }}</span>
-      {{ toast.msg }}
-    </div>
-  </div>
-
-  <!-- HEADER -->
-  <div class="page-header">
-    <div class="ph-left">
-      <button class="btn-back" (click)="volver()">← Regresar</button>
-      <div class="ph-title">
-        <h1>📝 Estudio de Trabajo Social</h1>
-        <p *ngIf="expediente">Expediente #{{ expediente.id }} — {{ expediente.beneficiario?.nombre || 'Beneficiario' }}</p>
-      </div>
-    </div>
-    <div class="ph-right">
-      <span class="role-badge">{{ role | uppercase }}</span>
-      <span class="edit-badge" *ngIf="editandoId">✏️ Editando #{{ editandoId }}</span>
-    </div>
-  </div>
-
-  <!-- TABS -->
-  <div class="tabs">
-    <button class="tab" [class.tab-on]="vistaActiva === 'historial'" (click)="vistaActiva = 'historial'">
-      🗂️ Historial
-      <span class="tab-count" *ngIf="historial.length">{{ historial.length }}</span>
-    </button>
-    <button class="tab" [class.tab-on]="vistaActiva === 'formulario'" (click)="vistaActiva = 'formulario'" *ngIf="puedeCrear || editandoId">
-      {{ editandoId ? '✏️ Editando' : '➕ Nuevo Estudio' }}
-    </button>
-  </div>
-
-  <!-- ═════════════════════════════════════════════════════ -->
-  <!--  FORMULARIO                                          -->
-  <!-- ═════════════════════════════════════════════════════ -->
-  <div class="content" *ngIf="vistaActiva === 'formulario' && (puedeCrear || editandoId)">
-
-    <!-- CAMPO PRINCIPAL: Fecha del Estudio -->
-    <div class="fecha-header anim-fadeup">
-      <div class="field">
-        <label>📅 Fecha del Estudio <span class="req">*</span></label>
-        <input type="date" [(ngModel)]="fechaEstudio" [class.field-error]="submitted && errores['fechaEstudio']" />
-        <span class="error-msg" *ngIf="submitted && errores['fechaEstudio']">{{ errores['fechaEstudio'] }}</span>
-      </div>
-      <div class="diagnostico-inline">
-        <div class="field">
-          <label>Diagnóstico Social</label>
-          <select [(ngModel)]="diagnosticoSocial">
-            <option value="">— Seleccionar —</option>
-            <option *ngFor="let e of ESTATUS_OPCIONES" [value]="e">{{ e }}</option>
-          </select>
-        </div>
-      </div>
-    </div>
-
-    <!-- SECCIONES COLAPSABLES -->
-    <div class="sections-list">
-
-      <!-- SECCIÓN: Para cada una -->
-      <div class="section-card anim-fadeup" *ngFor="let sec of SECCIONES; let si = index" [style.animation-delay]="si * 60 + 'ms'">
-        <button class="section-toggle" (click)="toggleSeccion(sec.id)" [class.open]="seccionAbierta === sec.id">
-          <span class="st-icon">{{ sec.icono }}</span>
-          <span class="st-title">{{ sec.titulo }}</span>
-          <span class="st-arrow">{{ seccionAbierta === sec.id ? '▲' : '▼' }}</span>
+    <!-- HEADER INTERACTIVO -->
+    <header class="page-header slide-up">
+      <div class="header-info">
+        <button class="btn-back" (click)="volver()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+          Volver Detalle
         </button>
-
-        <div class="section-body" *ngIf="seccionAbierta === sec.id">
-
-          <!-- ── DATOS PERSONALES ─────────────────────────── -->
-          <div *ngIf="sec.id === 'datos'" class="form-grid">
-            <div class="field span-2">
-              <label>Nombre Completo <span class="req">*</span></label>
-              <input type="text" [(ngModel)]="nombre" placeholder="Nombre del beneficiario"
-                [class.field-error]="submitted && errores['nombre']" />
-              <span class="error-msg" *ngIf="submitted && errores['nombre']">{{ errores['nombre'] }}</span>
-            </div>
-            <div class="field">
-              <label>Fecha de Nacimiento</label>
-              <input type="date" [(ngModel)]="fechaNacimiento" (ngModelChange)="calcularEdad()" />
-            </div>
-            <div class="field">
-              <label>Edad <span class="auto-tag">⚡AUTO</span></label>
-              <input type="text" [(ngModel)]="edad" readonly placeholder="Se calcula..." class="inp-auto" />
-            </div>
-            <div class="field">
-              <label>Originario</label>
-              <input type="text" [(ngModel)]="originario" placeholder="Ciudad, Estado" />
-            </div>
-            <div class="field">
-              <label>Teléfono</label>
-              <input type="tel" [(ngModel)]="telefono" placeholder="10 dígitos" />
-            </div>
-            <div class="field">
-              <label>Escolaridad</label>
-              <input type="text" [(ngModel)]="escolaridad" placeholder="Nivel de estudios" />
-            </div>
-            <div class="field">
-              <label>Estado Civil</label>
-              <select [(ngModel)]="estadoCivil">
-                <option value="">— Seleccionar —</option>
-                <option value="Soltero/a">Soltero/a</option>
-                <option value="Casado/a">Casado/a</option>
-                <option value="Unión libre">Unión libre</option>
-                <option value="Divorciado/a">Divorciado/a</option>
-                <option value="Viudo/a">Viudo/a</option>
-              </select>
-            </div>
-            <div class="field">
-              <label>Ocupación</label>
-              <input type="text" [(ngModel)]="ocupacion" />
-            </div>
-            <div class="field">
-              <label>Nacionalidad</label>
-              <input type="text" [(ngModel)]="nacionalidad" placeholder="Mexicana" />
-            </div>
-            <div class="field">
-              <label>Religión</label>
-              <input type="text" [(ngModel)]="religion" />
-            </div>
-            <div class="field span-2">
-              <label>Domicilio Actual</label>
-              <input type="text" [(ngModel)]="domicilioActual" placeholder="Calle, num, colonia, ciudad" />
-            </div>
-          </div>
-
-          <!-- ── SITUACIÓN JURÍDICA ──────────────────────── -->
-          <div *ngIf="sec.id === 'juridica'" class="form-grid">
-            <div class="field span-2">
-              <label>Delito(s)</label>
-              <input type="text" [(ngModel)]="delito" placeholder="Delito(s) imputado(s)" />
-            </div>
-            <div class="field">
-              <label>Expediente Penal</label>
-              <input type="text" [(ngModel)]="expedientePenal" placeholder="No. de expediente" />
-            </div>
-            <div class="field">
-              <label>Fecha de Detención</label>
-              <input type="date" [(ngModel)]="fechaDetencion" />
-            </div>
-            <div class="field span-2">
-              <label>Juzgado</label>
-              <input type="text" [(ngModel)]="juzgado" />
-            </div>
-          </div>
-
-          <!-- ── NÚCLEO FAMILIAR ─────────────────────────── -->
-          <div *ngIf="sec.id === 'familia'">
-            <div class="familia-table-wrap">
-              <table class="familia-table">
-                <thead>
-                  <tr>
-                    <th>Nombre</th>
-                    <th>Parentesco</th>
-                    <th>Edad</th>
-                    <th>Ocupación</th>
-                    <th></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr *ngFor="let f of familiares; let i = index" class="fam-row">
-                    <td><input type="text" [(ngModel)]="f.nombre" placeholder="Nombre..." /></td>
-                    <td><input type="text" [(ngModel)]="f.parentesco" placeholder="Padre, Madre..." /></td>
-                    <td><input type="text" [(ngModel)]="f.edad" placeholder="—" class="w-sm" /></td>
-                    <td><input type="text" [(ngModel)]="f.ocupacion" placeholder="Ocupación..." /></td>
-                    <td>
-                      <button class="btn-rm" (click)="eliminarFamiliar(i)" *ngIf="familiares.length > 1">✕</button>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-            <button class="btn-add-row" (click)="agregarFamiliar()">＋ Agregar familiar</button>
-          </div>
-
-          <!-- ── SITUACIÓN ECONÓMICA ─────────────────────── -->
-          <div *ngIf="sec.id === 'economica'" class="form-grid">
-            <div class="field">
-              <label>Ingresos Mensuales</label>
-              <input type="text" [(ngModel)]="ingresosMensuales" placeholder="Ej: $5,000" />
-            </div>
-            <div class="field">
-              <label>Egresos Mensuales</label>
-              <input type="text" [(ngModel)]="egresosMensuales" placeholder="Ej: $4,500" />
-            </div>
-            <div class="field">
-              <label>Responsable de Manutención</label>
-              <input type="text" [(ngModel)]="responsableManutension" />
-            </div>
-            <div class="field">
-              <label>Servicios Públicos</label>
-              <input type="text" [(ngModel)]="serviciosPublicos" placeholder="Luz, agua, drenaje..." />
-            </div>
-            <div class="field span-2">
-              <label>Características de Vivienda</label>
-              <textarea [(ngModel)]="caracteristicasVivienda" rows="3" placeholder="Descripción de la vivienda..."></textarea>
-            </div>
-          </div>
-
-          <!-- ── OPINIÓN Y DIAGNÓSTICO ───────────────────── -->
-          <div *ngIf="sec.id === 'opinion'" class="form-grid">
-            <div class="field span-2">
-              <label>Opinión del Programa</label>
-              <textarea [(ngModel)]="opinionPrograma" rows="4" placeholder="¿Qué opina del programa Reconecta con la Paz?"></textarea>
-            </div>
-            <div class="field span-2">
-              <label>Observaciones</label>
-              <textarea [(ngModel)]="observaciones" rows="3" placeholder="Observaciones adicionales..."></textarea>
-            </div>
-          </div>
-
+        <div class="header-titles">
+          <h1>Estudio de Trabajo Social</h1>
+          <p>Gestión socioeconómica y familiar del expediente</p>
         </div>
+      </div>
+      
+      <div class="header-meta">
+        <div class="role-badge" [class.admin]="esAdmin" [class.ts]="esTrabajoSocial">
+          <span class="role-tag">{{ role.toUpperCase() }}</span>
+          <span class="perm-info">{{ permisoDesc }}</span>
+        </div>
+        <div class="exp-id-box">
+          <span class="meta-label">ID EXPEDIENTE</span>
+          <span class="meta-value">#{{ expediente?.cPenal || expediente?.id }}</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- ALERT POR ROL (READ ONLY) -->
+    <div class="rol-info-banner slide-up" *ngIf="!puedeCrear">
+      <div class="banner-ico">ℹ️</div>
+      <div class="banner-txt">
+        Usted tiene <strong>Permisos de Consulta</strong>. Puede visualizar el historial detallado de este beneficiario, pero la creación y edición están reservadas para el área de Trabajo Social o Administración.
       </div>
     </div>
 
-    <!-- ACCIONES DEL FORMULARIO -->
-    <div class="form-actions anim-fadeup">
-      <button class="btn btn-save" (click)="guardar()" [disabled]="guardando">
-        <span *ngIf="guardando" class="spin"></span>
-        {{ guardando ? 'Guardando...' : editandoId ? '💾 Actualizar Estudio' : '💾 Guardar Estudio' }}
+    <!-- NAVEGACIÓN POR PESTAÑAS -->
+    <nav class="standard-tabs slide-up d1">
+      <button class="st-tab" [class.active]="vistaActiva === 'historial'" (click)="vistaActiva = 'historial'">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+        Historial de Estudios
+        <span class="tab-badge" *ngIf="historial.length">{{ historial.length }}</span>
       </button>
-      <button class="btn btn-clear" (click)="editandoId ? cancelarEdicion() : limpiar()">
-        {{ editandoId ? '✕ Cancelar' : '🗑️ Limpiar' }}
+      <button class="st-tab" [class.active]="vistaActiva === 'formulario'" (click)="vistaActiva = 'formulario'" *ngIf="puedeCrear || editandoId">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        {{ editandoId ? 'Editando Registro' : 'Nuevo Registro' }}
       </button>
-    </div>
+    </nav>
 
-  </div>
-
-  <!-- ═════════════════════════════════════════════════════ -->
-  <!--  HISTORIAL                                           -->
-  <!-- ═════════════════════════════════════════════════════ -->
-  <div class="content" *ngIf="vistaActiva === 'historial'">
-
-    <div class="loading-state" *ngIf="loadingHistorial">
-      <div class="spinner-lg"></div>
-      <p>Cargando estudio...</p>
-    </div>
-
-    <div class="empty-state anim-fadeup" *ngIf="!loadingHistorial && !historial.length">
-      <div class="empty-icon">📝</div>
-      <h3>Sin estudio de trabajo social</h3>
-      <p>No se ha registrado un estudio para este expediente.</p>
-      <button class="btn btn-save" *ngIf="puedeCrear" (click)="vistaActiva = 'formulario'; rellenarDesdeExpediente()">➕ Crear estudio</button>
-    </div>
-
-    <div class="hist-layout" *ngIf="!loadingHistorial && historial.length">
-
-      <!-- LISTA -->
-      <div class="hist-list">
-        <div class="list-header">
-          <h3>📂 Estudios ({{ historial.length }})</h3>
-        </div>
-        <div class="list-items">
-          <div class="list-item" *ngFor="let r of historial"
-            [class.list-item-active]="registroSeleccionado?.id === r.id"
-            (click)="seleccionarRegistro(r)">
-            <div class="li-top">
-              <span class="li-name">{{ getNombreEstudio(r) }}</span>
-            </div>
-            <div class="li-fecha">📅 {{ formatFecha(r.fechaEstudio) }}</div>
-            <div class="li-diag" *ngIf="r.diagnosticoSocial">
-              <span class="li-badge" [ngClass]="{
-                'badge-ok': r.diagnosticoSocial === 'FAVORABLE',
-                'badge-warn': r.diagnosticoSocial === 'PENDIENTE',
-                'badge-err': r.diagnosticoSocial === 'NO FAVORABLE'
-              }">{{ r.diagnosticoSocial }}</span>
-            </div>
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <!--  VISTA: HISTORIAL                                                -->
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <div class="view-content" *ngIf="vistaActiva === 'historial'">
+      
+      <div class="dual-layout" *ngIf="!loadingHistorial && historial.length">
+        <!-- LISTADO LATERAL -->
+        <aside class="side-list-card slide-up d2">
+          <div class="list-head">
+            <h3>Estudios Realizados</h3>
           </div>
-        </div>
-      </div>
+          <div class="list-container custom-scrollbar">
+            @for(r of historial; track r.id){
+              <div class="list-entry" [class.active]="registroSeleccionado?.id === r.id" (click)="seleccionarRegistro(r)">
+                <div class="entry-info">
+                  <strong>Estudio Social</strong>
+                  <span>📅 {{ formatFecha(r.fechaEstudio) }}</span>
+                </div>
+                <div class="entry-badge" *ngIf="r.diagnosticoSocial">
+                  <span class="mini-tag" [class]="'tag-' + r.diagnosticoSocial">{{ r.diagnosticoSocial }}</span>
+                </div>
+              </div>
+            }
+          </div>
+        </aside>
 
-      <!-- DETALLE -->
-      <div class="hist-detail" *ngIf="registroSeleccionado">
-        <div class="detail-card anim-fadeup">
-
-          <div class="detail-header">
-            <div class="dh-info">
-              <h2>{{ getNombreEstudio(registroSeleccionado) }}</h2>
-              <span class="dh-fecha">{{ formatFecha(registroSeleccionado.fechaEstudio) }}</span>
+        <!-- DETALLE DEL REGISTRO -->
+        <section class="detail-main-card slide-up d3" *ngIf="registroSeleccionado">
+          <div class="detail-header-box">
+            <div class="dh-titles">
+              <span class="dh-subtitle">DETALLE DEL ESTUDIO</span>
+              <h2>Folio #{{ registroSeleccionado.id }}</h2>
             </div>
             <div class="dh-actions">
-              <button class="btn btn-pdf" (click)="descargarPdf()" [disabled]="generandoPdf">
-                {{ generandoPdf ? '...' : '📄 PDF' }}
+              <button class="btn-action edit" *ngIf="puedeEditar" (click)="editar(registroSeleccionado)">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                Editar
               </button>
-              <button class="btn btn-edit" *ngIf="puedeEditar" (click)="editar(registroSeleccionado)">✏️ Editar</button>
-              <button class="btn btn-del" *ngIf="puedeEliminar" (click)="eliminarEstudio(registroSeleccionado.id)" [disabled]="eliminando">
-                {{ eliminando ? '...' : '🗑️' }}
+              <button class="btn-action-icon delete" *ngIf="puedeEliminar" (click)="eliminarEstudio(registroSeleccionado.id)" title="Eliminar">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
               </button>
             </div>
           </div>
 
-          <div class="detail-body">
-            <div class="detail-grid">
-              <div class="dg-item">
-                <span class="dg-label">📋 Diagnóstico</span>
-                <span class="dg-value" [ngClass]="{
-                  'dg-favorable': registroSeleccionado.diagnosticoSocial === 'FAVORABLE',
-                  'dg-no-favorable': registroSeleccionado.diagnosticoSocial === 'NO FAVORABLE'
-                }">{{ registroSeleccionado.diagnosticoSocial || '—' }}</span>
-              </div>
-              <div class="dg-item">
-                <span class="dg-label">👤 Trabajador Social</span>
-                <span class="dg-value">{{ registroSeleccionado.trabajadorSocial?.nombre || '—' }}</span>
-              </div>
-              <div class="dg-item span-2">
-                <span class="dg-label">💬 Opinión del Programa</span>
-                <span class="dg-value dg-text">{{ registroSeleccionado.opinionPrograma || '—' }}</span>
-              </div>
-              <div class="dg-item span-2" *ngIf="registroSeleccionado.seccionesJsonb?.observaciones">
-                <span class="dg-label">📝 Observaciones</span>
-                <span class="dg-value dg-text">{{ registroSeleccionado.seccionesJsonb?.observaciones }}</span>
-              </div>
-              <div class="dg-item">
-                <span class="dg-label">🕐 Registrado</span>
-                <span class="dg-value dg-small">{{ formatFecha(registroSeleccionado.creadoEn) }}</span>
-              </div>
+          <div class="detail-body-grid">
+            <div class="data-box">
+              <label>Diagnóstico Social</label>
+              <p class="diag-text" [class]="'txt-' + registroSeleccionado.diagnosticoSocial">{{ registroSeleccionado.diagnosticoSocial || '—' }}</p>
             </div>
+            <div class="data-box">
+              <label>Fecha del Estudio</label>
+              <p>{{ formatFecha(registroSeleccionado.fechaEstudio) }}</p>
+            </div>
+
+            <!-- Datos JSON -->
+            <div class="data-box">
+              <label>Escolaridad</label>
+              <p>{{ registroSeleccionado.seccionesJsonb?.datos_generales?.escolaridad || '—' }}</p>
+            </div>
+            <div class="data-box">
+              <label>Ocupación</label>
+              <p>{{ registroSeleccionado.seccionesJsonb?.datos_generales?.ocupacion || '—' }}</p>
+            </div>
+            <div class="data-box">
+              <label>Delito</label>
+              <p>{{ registroSeleccionado.seccionesJsonb?.situacion_juridica?.delito || '—' }}</p>
+            </div>
+            <div class="data-box">
+              <label>Padre (Núcleo Familiar)</label>
+              <p>{{ registroSeleccionado.seccionesJsonb?.nucleo_familiar_primario?.padre || '—' }}</p>
+            </div>
+            <div class="data-box">
+              <label>Tipo de Vivienda</label>
+              <p>{{ registroSeleccionado.seccionesJsonb?.vivienda?.tipo || '—' }}</p>
+            </div>
+
+            <div class="data-box full">
+              <label>Opinión sobre el Programa</label>
+              <div class="text-display">{{ registroSeleccionado.opinionPrograma || 'Sin opinión registrada.' }}</div>
+            </div>
+            
+            <div class="data-box">
+              <label>Trabajador Social</label>
+              <p class="small-meta">{{ registroSeleccionado.trabajadorSocial?.nombre || '—' }}</p>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- ESTADO VACÍO -->
+      <div class="empty-state-card slide-up d2" *ngIf="!loadingHistorial && !historial.length">
+        <div class="empty-ico-wrap">📂</div>
+        <h3>No se encontraron estudios</h3>
+        <p>Aún no se ha realizado el levantamiento de información para este beneficiario.</p>
+        <button class="btn-primary" *ngIf="puedeCrear" (click)="vistaActiva = 'formulario'; rellenarDesdeExpediente()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Iniciar Nuevo Estudio
+        </button>
+      </div>
+
+      <div class="loading-box" *ngIf="loadingHistorial">
+        <div class="loader-gov"></div>
+        <p>Sincronizando historial...</p>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <!--  VISTA: FORMULARIO                                               -->
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <div class="view-content" *ngIf="vistaActiva === 'formulario' && (puedeCrear || editandoId)">
+      
+      <div class="form-modern-card slide-up d2">
+        
+        <!-- HEADER DEL FORMULARIO -->
+        <div class="form-header-bar">
+          <div class="fh-group">
+            <div class="field compact">
+              <label>📅 FECHA ESTUDIO <span class="req">*</span></label>
+              <input type="date" [(ngModel)]="fechaEstudio" [class.err]="submitted && errores['fechaEstudio']">
+            </div>
+            <div class="field compact">
+              <label>⚖️ DIAGNÓSTICO SOCIAL</label>
+              <select [(ngModel)]="diagnosticoSocial">
+                <option value="">— Seleccionar —</option>
+                <option *ngFor="let e of ESTATUS_OPCIONES" [value]="e">{{ e }}</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-badge" [class.editing]="editandoId">{{ editandoId ? 'MODO EDICIÓN' : 'BORRADOR NUEVO' }}</div>
+        </div>
+
+        <div class="form-body-minimal">
+          
+          <div class="st-grid-minimal">
+            
+            <section class="form-section">
+              <h4 class="section-tag">DATOS GENERALES</h4>
+              <div class="grid-2">
+                <div class="field">
+                  <label>Escolaridad</label>
+                  <input type="text" [(ngModel)]="escolaridad" placeholder="Ej: Universidad">
+                </div>
+                <div class="field">
+                  <label>Ocupación</label>
+                  <input type="text" [(ngModel)]="ocupacion" placeholder="Ej: Estudiante">
+                </div>
+              </div>
+            </section>
+
+            <section class="form-section">
+              <h4 class="section-tag">ENTORNO SOCIAL Y JURÍDICO</h4>
+              <div class="grid-2">
+                <div class="field">
+                  <label>Delito Imputado</label>
+                  <input type="text" [(ngModel)]="delito" placeholder="Ej: Robo simple">
+                </div>
+                <div class="field">
+                  <label>Padre (Núcleo Familiar)</label>
+                  <input type="text" [(ngModel)]="padre" placeholder="Ej: Presente">
+                </div>
+                <div class="field">
+                  <label>Tipo de Vivienda</label>
+                  <input type="text" [(ngModel)]="viviendaTipo" placeholder="Ej: Propia">
+                </div>
+              </div>
+            </section>
+
+            <section class="form-section full">
+              <h4 class="section-tag">ANÁLISIS DE TRABAJO SOCIAL</h4>
+              <div class="field">
+                <label>Opinión acerca de la integración al programa</label>
+                <textarea [(ngModel)]="opinionPrograma" rows="4" placeholder="Escriba la opinión profesional aquí..."></textarea>
+              </div>
+            </section>
+
           </div>
 
         </div>
+
+        <!-- ACCIONES FINALES -->
+        <div class="form-footer-actions">
+          <button class="btn-cancel" (click)="editandoId ? cancelarEdicion() : limpiar()">
+            {{ editandoId ? 'Descartar Cambios' : 'Limpiar Formulario' }}
+          </button>
+          <button class="btn-save" (click)="guardar()" [disabled]="guardando">
+            <span *ngIf="!guardando">{{ editandoId ? '✅ Actualizar Estudio' : '💾 Guardar Registro Oficial' }}</span>
+            <span *ngIf="guardando" class="spinner-w-sm"></span>
+          </button>
+        </div>
+
       </div>
-
     </div>
-  </div>
 
+  </main>
 </div>

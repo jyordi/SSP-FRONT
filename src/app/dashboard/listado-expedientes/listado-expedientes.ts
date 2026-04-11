@@ -76,7 +76,7 @@ export class ListadoExpedientesComponent implements OnInit {
         const listCivico = (civico || []).map((e: any) => {
           // Buscamos el beneficiario en el mapa si no viene poblado
           const b = e.beneficiario || bMap.get(e.beneficiarioId);
-          
+
           return {
             id: e.id || e.idUUID,
             nombre: b?.nombre || e.nombre || 'Sin nombre',

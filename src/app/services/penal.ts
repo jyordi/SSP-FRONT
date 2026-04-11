@@ -40,6 +40,13 @@ export class PenalService {
   updateBeneficiario(id: number, data: any): Observable<any> {
     return this.http.patch(`${this.API_BENEFICIARIO}/${id}`, data, { headers: this._headers() });
   }
+  uploadFotoBeneficiario(id: number, file: File): Observable<any> {
+    const fd = new FormData();
+    fd.append('file', file);
+    // Para archivos, NO debemos enviar 'Content-Type': 'application/json'
+    const headers = this._headers().delete('Content-Type');
+    return this.http.patch(`${this.API_BENEFICIARIO}/${id}/foto`, fd, { headers });
+  }
 
   // ─── EXPEDIENTE ──────────────────────────────────────────────
   crearExpediente(data: any): Observable<any> {
@@ -278,6 +285,14 @@ deleteActividad(id: number) {
     return this.http.delete(`${this.BASE}/penal/nota-evolucion-psicologica/${id}`, { headers: this._headers() });
   }
 
+  getNotaEvolucionPdf(id: number): Observable<Blob> {
+    const headers = this._headers().delete('Content-Type');
+    return this.http.get(`${this.BASE}/penal/documentos/nota-evolucion-psicologica/${id}/pdf`, {
+      headers,
+      responseType: 'blob'
+    });
+  }
+
   // ═══════════════════════════════════════════════════════════
   //  INCIDENCIAS PENALES
   // ═══════════════════════════════════════════════════════════
@@ -295,5 +310,30 @@ deleteActividad(id: number) {
   }
   deleteIncidencia(id: number): Observable<any> {
     return this.http.delete(`${this.BASE}/penal/incidencias/${id}`, { headers: this._headers() });
+  }
+
+  // ─── PDF EXPORTS ─────────────────────────────────────────────
+  getValoracionPsicologicaPdf(id: number): Observable<Blob> {
+    const headers = this._headers().delete('Content-Type');
+    return this.http.get(`${this.BASE}/penal/documentos/valoracion-psicologica/${id}/pdf`, {
+      headers,
+      responseType: 'blob'
+    });
+  }
+
+  getEstudioTrabajoSocialPdf(id: number): Observable<Blob> {
+    const headers = this._headers().delete('Content-Type');
+    return this.http.get(`${this.BASE}/penal/documentos/estudio-trabajo-social/${id}/pdf`, {
+      headers,
+      responseType: 'blob'
+    });
+  }
+
+  getIncidenciaPdf(id: number): Observable<Blob> {
+    const headers = this._headers().delete('Content-Type');
+    return this.http.get(`${this.BASE}/penal/documentos/incidencia/${id}/pdf`, {
+      headers,
+      responseType: 'blob'
+    });
   }
 }

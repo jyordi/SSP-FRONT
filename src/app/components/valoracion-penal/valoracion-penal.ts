@@ -187,6 +187,7 @@ export class ValoracionPenalComponent implements OnInit {
     });
   }
 
+
   regresar(): void {
     if (this.expediente && this.expediente.id) {
       this.router.navigate(['/detalle-penal', this.expediente.id]);

@@ -111,6 +111,22 @@
   <!-- ═══════════════════════════════════════════════════════ -->
   <div class="content" *ngIf="vistaActiva === 'historial'">
 
+    <!-- LOADING OVERLAY -->
+    <div *ngIf="loading" class="overlay">
+      <div class="loader-gov"></div>
+      <p class="loading-text">Cargando expediente...</p>
+    </div>
+
+    <!-- PDF LOADING OVERLAY -->
+    <div *ngIf="descargandoPdf" class="overlay pdf-overlay">
+      <div class="pdf-loader">
+        <div class="loader-gov"></div>
+        <div class="pdf-icon-anim">📄</div>
+      </div>
+      <p class="loading-text">Generando documento oficial...</p>
+      <p class="loading-subtext">Esto puede tomar unos segundos</p>
+    </div>
+
     <div class="loading-state" *ngIf="loadingNotas">
       <div class="spinner-lg"></div>
       <p>Cargando sesiones...</p>
@@ -154,9 +170,9 @@
               <span class="dh-fecha">{{ formatFecha(notaSeleccionada.fecha) }}</span>
             </div>
             <div class="dh-actions">
-              <button class="btn btn-pdf" (click)="descargarPdf()" [disabled]="descargandoPdf" *ngIf="!modoEdicion">
+              <button class="btn btn-pdf" (click)="descargarPdf(notaSeleccionada.id)" [disabled]="descargandoPdf" *ngIf="!modoEdicion">
+                <span *ngIf="!descargandoPdf">📄 PDF</span>
                 <span *ngIf="descargandoPdf" class="spin"></span>
-                {{ descargandoPdf ? 'Generando...' : '📄 PDF' }}
               </button>
               <button class="btn btn-edit" *ngIf="puedeEditar && !modoEdicion" (click)="iniciarEdicion()">✏️ Editar</button>
               <button class="btn btn-del" *ngIf="puedeEliminar && !modoEdicion" (click)="eliminarNota()" [disabled]="eliminando">
@@ -168,39 +184,44 @@
 
           <!-- LECTURA -->
           <div class="detail-body" *ngIf="!modoEdicion">
-            <div class="detail-grid">
-              <div class="dg-item">
-                <span class="dg-label">🧑‍⚕️ Psicólogo</span>
-                <span class="dg-value">{{ notaSeleccionada.psicologo?.nombre || '—' }}</span>
-              </div>
-              <div class="dg-item">
-                <span class="dg-label">📅 Próxima Sesión</span>
-                <span class="dg-value">{{ formatFecha(notaSeleccionada.proximaSesion) }}</span>
-              </div>
-              <div class="dg-item span-2">
-                <span class="dg-label">🎯 Objetivo de la Sesión</span>
-                <span class="dg-value dg-text">{{ notaSeleccionada.objetivoSesion || '—' }}</span>
-              </div>
-              <div class="dg-item span-2">
-                <span class="dg-label">📝 Descripción de la Sesión</span>
-                <span class="dg-value dg-text">{{ notaSeleccionada.descripcionSesion || '—' }}</span>
-              </div>
-              <div class="dg-item">
-                <span class="dg-label">🛠️ Técnicas Aplicadas</span>
-                <span class="dg-value dg-text">{{ notaSeleccionada.tecnicasAplicadas || '—' }}</span>
-              </div>
-              <div class="dg-item">
-                <span class="dg-label">📈 Avances</span>
-                <span class="dg-value dg-text">{{ notaSeleccionada.avances || '—' }}</span>
-              </div>
-              <div class="dg-item span-2">
-                <span class="dg-label">📋 Observaciones</span>
-                <span class="dg-value dg-text">{{ notaSeleccionada.observaciones || 'Sin observaciones' }}</span>
-              </div>
-              <div class="dg-item">
-                <span class="dg-label">🕐 Registrado</span>
-                <span class="dg-value dg-small">{{ formatFecha(notaSeleccionada.creadoEn) }}</span>
-              </div>
+            
+            <div class="detail-section-title">Información de la Sesión</div>
+            <div class="kv-row">
+              <span class="kv-k">Psicólogo Responsable</span>
+              <span class="kv-v">{{ notaSeleccionada.psicologo?.nombre || '—' }}</span>
+            </div>
+            <div class="kv-row">
+              <span class="kv-k">Próxima Sesión Programada</span>
+              <span class="kv-v">{{ formatFecha(notaSeleccionada.proximaSesion) }}</span>
+            </div>
+
+            <div class="detail-section-title">Detalles Técnicos</div>
+            <div class="kv-block">
+              <span class="kv-k">Objetivo de la Sesión</span>
+              <p>{{ notaSeleccionada.objetivoSesion || '—' }}</p>
+            </div>
+            <div class="kv-block">
+              <span class="kv-k">Descripción de la Sesión</span>
+              <p>{{ notaSeleccionada.descripcionSesion || '—' }}</p>
+            </div>
+            <div class="kv-block">
+              <span class="kv-k">Técnicas Aplicadas</span>
+              <p>{{ notaSeleccionada.tecnicasAplicadas || '—' }}</p>
+            </div>
+
+            <div class="detail-section-title">Evolución y Notas</div>
+            <div class="kv-block">
+              <span class="kv-k">Avances Percibidos</span>
+              <p>{{ notaSeleccionada.avances || '—' }}</p>
+            </div>
+            <div class="kv-block">
+              <span class="kv-k">Observaciones Generales</span>
+              <p>{{ notaSeleccionada.observaciones || 'Sin observaciones' }}</p>
+            </div>
+
+            <div class="kv-row" style="margin-top: 1rem; border-top: 1px solid #f0e8d5;">
+              <span class="kv-k">Fecha de Registro</span>
+              <span class="kv-v">{{ formatFecha(notaSeleccionada.creadoEn) }}</span>
             </div>
           </div>
 
