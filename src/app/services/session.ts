@@ -85,6 +85,9 @@ export class SessionService {
   puedeAccederVoluntarios(): boolean {
     return this.hasAnyRole(['admin', 'coordinador', 'tallerista']);
   }
+  debeIniciarEnVoluntarios(): boolean {
+    return this.hasAnyRole(['coordinador', 'tallerista']);
+  }
 
   isTokenExpired(): boolean {
     const payload = this.getPayload();

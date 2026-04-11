@@ -126,7 +126,10 @@ export class LoginComponent implements OnInit, OnDestroy {
     this.loginSuccess = true;
 
     this.successTimeoutRef = setTimeout(() => {
-      this.router.navigate(['/expedientes']);
+      const destino = this.sessionService.debeIniciarEnVoluntarios()
+        ? '/voluntarios/personas'
+        : '/expedientes';
+      this.router.navigate([destino]);
     }, SUCCESS_OVERLAY_DURATION_MS);
   }
 

@@ -36,6 +36,11 @@ export class ListadoExpedientesComponent implements OnInit {
     this.role = this.sessionService.getRole();
     this.user.name = this.sessionService.getUserName();
 
+    if (this.sessionService.debeIniciarEnVoluntarios()) {
+      this.router.navigate(['/voluntarios/personas']);
+      return;
+    }
+
     setInterval(() => {
       if (this.sessionService.isTokenExpired()) {
         this.cerrarSesion();
