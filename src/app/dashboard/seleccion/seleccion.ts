@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
 import { Router } from '@angular/router';
+import { SessionService } from '../../services/session';
 import { NavbarReconectaComponent } from "../../shared/navbar-reconecta/navbar-reconecta";
 
 @Component({
@@ -11,7 +12,11 @@ import { NavbarReconectaComponent } from "../../shared/navbar-reconecta/navbar-r
   styleUrl: './seleccion.css'
 })
 export class SeleccionComponent {
-  constructor(private router: Router, private location: Location) {}
+  constructor(
+    private router: Router,
+    private location: Location,
+    private session: SessionService
+  ) {}
 
   user= { name: 'Psic. Avelina Escárcega' };
 
@@ -25,7 +30,7 @@ export class SeleccionComponent {
 
       this.router.navigate(['/nuevo-expediente-civico']);
     } else if (modulo === 'voluntario') {
-      this.router.navigate(['/voluntarios/personas']);
+      this.router.navigate(['voluntarios/personas/nuevo']);
     }
   }
 
@@ -35,5 +40,9 @@ export class SeleccionComponent {
 
   cerrarSesion() {
     this.router.navigate(['/login']);
+  }
+
+  puedeAccederVoluntarios(): boolean {
+    return this.session.puedeAccederVoluntarios();
   }
 }

@@ -1,7 +1,7 @@
 import { Component, Input } from '@angular/core';
 import { RouterLink, RouterLinkActive, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { AuthService } from '../../../services/auth';
+import { SessionService } from '../../../services/session';
 
 export interface NavbarConfig {
   brandName: string;
@@ -38,14 +38,31 @@ export class NavbarComponent {
     avatarText: 'U'
   };
 
-  constructor(private authService: AuthService, private router: Router) {}
+  constructor(
+    private router: Router,
+    private session: SessionService
+  ) {}
+
+  get nombre(): string {
+    return this.session.getUserName();
+  }
+
+  get rol(): string {
+    return this.session.getRole();
+  }
+
+  get avatarText(): string {
+    const nombre = this.nombre?.trim();
+
+    if (nombre) {
+      return nombre.charAt(0).toUpperCase();
+    }
+
+    return this.config.avatarText || 'U';
+  }
 
   logout(): void {
-    // Limpiar localStorage y sessionStorage
-    localStorage.clear();
-    sessionStorage.clear();
-    
-    // Redirigir a login
+    this.session.logout();
     this.router.navigate(['/login']);
   }
 }

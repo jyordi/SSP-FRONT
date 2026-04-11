@@ -20,6 +20,7 @@
 </div>
 
 <table class="tabla">
+
   <thead>
     <tr>
       <th>Nombre de la actividad</th>
@@ -70,4 +71,11 @@
       </tr>
     }
   </tbody>
+
 </table>
+<app-paginacion
+  [totalItems]="totalItems()"
+  [itemsPorPagina]="itemsPorPagina"
+  [paginaActualInput]="paginaActual()"
+  (paginaCambiada)="onPaginaCambiada($event)"
+/>

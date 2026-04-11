@@ -3,11 +3,12 @@ import { RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActividadService } from '../../../services/actividad.service';
+import { Paginacion } from "../../../shared/paginacion/paginacion";
 
 @Component({
   selector: 'app-actividades-list',
   standalone: true,
-  imports: [RouterLink, CommonModule, FormsModule],
+  imports: [RouterLink, CommonModule, FormsModule, Paginacion],
   templateUrl: './actividades-list.html',
   styleUrl: './actividades-list.css'
 })
@@ -16,12 +17,14 @@ export class ActividadesList {
 
   searchTerm   = signal('');
   filtroEstado = signal('Todos');
+ paginaActual = signal(1);
+  itemsPorPagina = 5;
 
-  actividades = computed(() => {
+   actividadesFiltradas = computed(() => {
     const t = this.searchTerm().toLowerCase();
     const e = this.filtroEstado();
     return this.svc.actividades().filter(a => {
-      const okSearch = !t ||
+     const okSearch = !t ||
         a.nombreActividad?.toLowerCase().includes(t) ||
         a.impartidor?.toLowerCase().includes(t) ||
         a.responsable?.toLowerCase().includes(t) ||
@@ -30,6 +33,14 @@ export class ActividadesList {
       return okSearch && okEstado;
     });
   });
+   totalItems = computed(() => this.actividadesFiltradas().length);
+
+ actividades = computed(() => {
+    const inicio = (this.paginaActual() - 1) * this.itemsPorPagina;
+    const fin = inicio + this.itemsPorPagina;
+    return this.actividadesFiltradas().slice(inicio, fin);
+  });
+
 
   eliminar(id: string): void {
     if (confirm('¿Eliminar esta actividad?')) {
@@ -38,5 +49,9 @@ export class ActividadesList {
         error: (err) => console.error('Error al eliminar:', err)
       });
     }
+  }
+   onPaginaCambiada(pagina: number): void {
+    this.paginaActual.set(pagina);
+       window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 }

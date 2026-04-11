@@ -4,20 +4,30 @@ import { Injectable } from '@angular/core';
 export class SessionService {
 
   getToken(): string | null {
-    return localStorage.getItem('token');
+    return (
+      localStorage.getItem('token') ??
+      localStorage.getItem('access_token') ??
+      sessionStorage.getItem('token') ??
+      sessionStorage.getItem('access_token')
+    );
   }
 
   setToken(token: string) {
     localStorage.setItem('token', token);
+    localStorage.setItem('access_token', token);
   }
 
   clearSession() {
     localStorage.removeItem('token');
+    localStorage.removeItem('access_token');
+    sessionStorage.removeItem('token');
+    sessionStorage.removeItem('access_token');
   }
 
   logout() {
     this.clearSession();
     localStorage.clear();
+    sessionStorage.clear();
   }
 
   getPayload(): any {
@@ -53,11 +63,31 @@ export class SessionService {
     return payload?.rol || 'sin-rol';
   }
 
+  private getNormalizedRole(): string {
+    return this.getRole().toLowerCase();
+  }
+
+  hasRole(role: string): boolean {
+    return this.getNormalizedRole() === role.toLowerCase();
+  }
+
+  hasAnyRole(roles: string[]): boolean {
+    return roles.some((role) => this.hasRole(role));
+  }
+
   // Helpers de Roles
-  esAdmin(): boolean { return this.getRole().toLowerCase() === 'admin'; }
-  esGuia(): boolean { return this.getRole().toLowerCase() === 'guia'; }
-  esPsicologo(): boolean { return this.getRole().toLowerCase() === 'psicologo'; }
-  esTrabajadorSocial(): boolean { return this.getRole().toLowerCase() === 'trabajadorsocial'; }
+  esAdmin(): boolean { return this.hasRole('admin'); }
+  esGuia(): boolean { return this.hasRole('guia'); }
+  esPsicologo(): boolean { return this.hasRole('psicologo'); }
+  esTallerista(): boolean { return this.hasRole('tallerista'); }
+  esCoordinador(): boolean { return this.hasRole('coordinador'); }
+  esTrabajadorSocial(): boolean { return this.hasRole('trabajo_social'); }
+  puedeAccederVoluntarios(): boolean {
+    return this.hasAnyRole(['admin', 'coordinador', 'tallerista']);
+  }
+  debeIniciarEnVoluntarios(): boolean {
+    return this.hasAnyRole(['coordinador', 'tallerista']);
+  }
 
   isTokenExpired(): boolean {
     const payload = this.getPayload();

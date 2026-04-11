@@ -18,7 +18,7 @@ export class NuevoUsuarioComponent implements OnInit {
   form!: FormGroup;
   loading = false;
   usuarios: Usuario[] = [];
-  
+
   toast: { msg: string; tipo: 'ok' | 'error' } | null = null;
   role: string = '';
 
@@ -77,8 +77,8 @@ export class NuevoUsuarioComponent implements OnInit {
       },
       error: (err) => {
         this.loading = false;
-        const msg = err.status === 409 
-          ? 'El nombre de usuario ya existe' 
+        const msg = err.status === 409
+          ? 'El nombre de usuario ya existe'
           : (err.error?.message || 'Error al crear usuario');
         this.mostrarToast(msg, 'error');
       }
@@ -99,7 +99,10 @@ export class NuevoUsuarioComponent implements OnInit {
       admin: 'Administrador',
       psicologo: 'Psicología',
       trabajo_social: 'Trabajo Social',
-      guia: 'Guía / Seguimiento'
+      guia: 'Guía / Seguimiento',
+      coordinador: 'Coordinación',
+tallerista: 'Tallerista'
+
     };
     return roles[rol] || rol;
   }

@@ -36,6 +36,11 @@ export class ListadoExpedientesComponent implements OnInit {
     this.role = this.sessionService.getRole();
     this.user.name = this.sessionService.getUserName();
 
+    if (this.sessionService.debeIniciarEnVoluntarios()) {
+      this.router.navigate(['/voluntarios/personas']);
+      return;
+    }
+
     setInterval(() => {
       if (this.sessionService.isTokenExpired()) {
         this.cerrarSesion();
@@ -204,4 +209,12 @@ export class ListadoExpedientesComponent implements OnInit {
   puedeGestionarUsuarios(): boolean {
     return this.role === 'admin';
   }
+<<<<<<< HEAD
 }
+=======
+
+  puedeAccederVoluntarios(): boolean {
+    return this.sessionService.puedeAccederVoluntarios();
+  }
+}
+>>>>>>> f46111a9bae756b79b6a4b3a1f65109e7b752fe1

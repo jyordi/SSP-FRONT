@@ -39,7 +39,7 @@
           <button class="tab" [class.active]="filtroTipo === 'Todos'" (click)="setFiltro('Todos')">Todos</button>
           <button class="tab" [class.active]="filtroTipo === 'Penal'" (click)="setFiltro('Penal')">Penal</button>
           <button class="tab" [class.active]="filtroTipo === 'Cívico'" (click)="setFiltro('Cívico')">Cívico</button>
-          <button class="tab" (click)="irVoluntarios()">Voluntarios</button>
+          <button *ngIf="puedeAccederVoluntarios()" class="tab" (click)="irVoluntarios()">Ir a Voluntarios</button>
         </div>
 
         <div class="search-box">
@@ -86,7 +86,12 @@
     <div class="cards-grid" *ngIf="!loading && expedientesFiltrados.length > 0">
 
       <div class="exp-card slide-up" *ngFor="let exp of expedientesFiltrados; let i = index"
+<<<<<<< HEAD
         [style.animation-delay]="((i % 10) * 0.05) + 's'" [ngClass]="'c-' + exp.tipo.toLowerCase()">
+=======
+           [style.animation-delay]="((i % 10) * 0.05) + 's'"
+           [ngClass]="'c-' + exp.tipo.toLowerCase()">
+>>>>>>> f46111a9bae756b79b6a4b3a1f65109e7b752fe1
 
         <div class="card-head">
           <div class="head-left">

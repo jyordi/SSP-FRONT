@@ -5,7 +5,7 @@ import { Observable } from 'rxjs';
 export interface Usuario {
   id?: number;
   nombre: string;
-  rol: 'admin' | 'psicologo' | 'trabajo_social' | 'guia';
+  rol: 'admin' | 'psicologo' | 'trabajo_social' | 'guia'| 'coordinador' | 'tallerista';
   nomUsuario: string;
   contrasena?: string;
   estatus?: boolean;

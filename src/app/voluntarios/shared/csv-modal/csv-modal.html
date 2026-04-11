@@ -1,0 +1,103 @@
+<div class="modal-overlay" (click)="close()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+
+    <div class="modal-header">
+      <h3>📂 Importar Personas desde CSV</h3>
+      <button class="btn-close" (click)="close()">✕</button>
+    </div>
+
+    <div class="modal-body">
+
+      <!-- Paso 1: Descargar formato -->
+      <div class="step">
+        <div class="step-number">1</div>
+        <div class="step-content">
+          <h4>Descarga el formato CSV</h4>
+          <p>Descarga la plantilla con los campos correctos y un ejemplo</p>
+          <button class="btn-secondary" (click)="descargarFormato()">
+            📥 Descargar Formato
+          </button>
+        </div>
+      </div>
+
+      <!-- Paso 2: Seleccionar archivo -->
+      <div class="step">
+        <div class="step-number">2</div>
+        <div class="step-content">
+          <h4>Selecciona tu archivo CSV</h4>
+          <p>Carga el archivo CSV con los datos de las personas</p>
+          <div class="file-input-wrapper">
+            <input
+              type="file"
+              accept=".csv"
+              id="csvFile"
+              (change)="onFileSelected($event)"
+              class="file-input"
+            />
+            <label for="csvFile" class="file-label">
+              @if (archivoSeleccionado) {
+                <span class="file-selected">✓ {{ archivoSeleccionado.name }}</span>
+              } @else {
+                <span>📄 Seleccionar archivo CSV...</span>
+              }
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Paso 3: Cargar -->
+      <div class="step">
+        <div class="step-number">3</div>
+        <div class="step-content">
+          <h4>Cargar datos</h4>
+          <button
+            class="btn-primary"
+            [disabled]="!archivoSeleccionado || cargando"
+            (click)="cargarCsv()">
+            @if (cargando) {
+              <span>⏳ Cargando...</span>
+            } @else {
+              <span>⬆️ Cargar CSV</span>
+            }
+          </button>
+        </div>
+      </div>
+
+      <!-- Resultado -->
+      @if (resultado) {
+        <div class="resultado" [class.success]="resultado.fallidos === 0" [class.warning]="resultado.fallidos > 0">
+          <div class="resultado-header">
+            @if (resultado.fallidos === 0) {
+              <span class="icon-success">✓</span>
+            } @else {
+              <span class="icon-warning">⚠️</span>
+            }
+            <span class="resultado-mensaje">{{ resultado.mensaje }}</span>
+          </div>
+
+         <div class="resultado-stats">
+  <div class="stat">Total: {{ resultado.total }}</div>
+  <div class="stat success">Creados: {{ resultado.creados }}</div>
+  <div class="stat warning">Actualizados: {{ resultado.actualizados }}</div>
+  <div class="stat error">Fallidos: {{ resultado.fallidos }}</div>
+</div>
+
+          @if (resultado.errores.length > 0) {
+            <div class="errores">
+              <p class="errores-titulo">Errores encontrados:</p>
+              <ul class="errores-lista">
+                @for (error of resultado.errores; track error.fila) {
+                  <li>
+                    <strong>Fila {{ error.fila }}:</strong> {{ error.mensaje }}
+                  </li>
+                }
+              </ul>
+            </div>
+          }
+        </div>
+      }
+
+    </div>
+
+  </div>
+</div>

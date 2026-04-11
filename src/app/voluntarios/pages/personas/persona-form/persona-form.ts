@@ -3,12 +3,13 @@ import { FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { PersonaService } from '../../../services/persona.service';
-import jsPDF from 'jspdf'; //se requiere instalar con npm install jspdf
+import jsPDF from 'jspdf';
+import { Location } from '@angular/common';
 
 @Component({
   selector: 'app-persona-form',
   standalone: true,
-  imports: [ReactiveFormsModule, CommonModule, RouterLink],
+  imports: [ReactiveFormsModule, CommonModule],
   templateUrl: './persona-form.html',
   styleUrl: './persona-form.css'
 })
@@ -18,9 +19,11 @@ export class PersonaForm implements OnInit {
   private router = inject(Router);
   private route  = inject(ActivatedRoute);
   private cdr    = inject(ChangeDetectorRef);
+  private location = inject(Location);
 
   editando  = false;
   personaId: string | null = null;
+   errores: string[] = [];
 
   form = this.fb.group({
     folio: [''],
@@ -102,258 +105,309 @@ export class PersonaForm implements OnInit {
   get sinActa()    { return this.f['tieneActaNacimiento'].value === 'No'; }
   get trabajaSi()  { return this.f['trabajaFormal'].value === 'Si'; }
 
-  guardar(): void {
-    if (this.form.invalid) {
-      this.form.markAllAsTouched();
-      return;
-    }
-    const datos = this.form.value as any;
-    
-    // Campos que son checkboxes (deben quedar como booleanos)
-    const camposBooleanos = ['certificadoPrimaria', 'certificadoSecundaria', 'certificadoBachillerato'];
-    
-    // Campos que deben convertirse a "Si"/"No" (select/radio buttons)
-    const camposSiNo = [
-      'practicaDeporte',
-      'tieneActaNacimiento',
-      'sabeLeerEscribir',
-      'leGustariaEstudiar',
-      'trabajaFormal',
-      'leGustariaCambiarTrabajo',
-      'sabeOficio',
-      'leGustariaAprenderOficio',
-      'padecimientoEnfermedad',
-      'cuentaTratamiento',
-      'enfermedadTransmisionSexual',
-      'necesitaLentes',
-      'atencionPsicologica'
-    ];
-    
-    const datosLimpios = Object.keys(datos).reduce((acc: any, key: string) => {
-      const valor = datos[key];
-      
-      // Si es un campo booleano (checkbox), mantenerlo como booleano
-      if (camposBooleanos.includes(key)) {
-        acc[key] = typeof valor === 'boolean' ? valor : false;
-      }
-      // Si es un campo "Si/No" y es booleano, convertir a string
-      else if (camposSiNo.includes(key) && typeof valor === 'boolean') {
-        acc[key] = valor ? 'Si' : 'No';
-      }
-      // Si es edad, convertir a string
-      else if (key === 'edad' && valor !== null && valor !== undefined && valor !== '') {
-        acc[key] = String(valor);
-      }
-      // Para otros campos: si no está vacío, incluirlo
-      else if (valor !== null && valor !== undefined && valor !== '') {
-        acc[key] = valor;
-      }
-      
-      return acc;
-    }, {});
-    
-    console.log('Datos limpios a enviar:', datosLimpios);
-
-    if (this.editando && this.personaId) {
-      this.svc.update(this.personaId, datosLimpios).subscribe({
-        next: () => {
-          console.log('Persona actualizada');
-          this.router.navigate(['/voluntarios/personas']);
-        },
-        error: (err) => {
-          console.error('Error al actualizar:', err);
-          console.error('Mensaje de validación:', err.error?.message);
-        }
-      });
-    } else {
-      this.svc.create(datosLimpios).subscribe({
-        next: () => {
-          console.log('Persona creada');
-          this.router.navigate(['/voluntarios/personas']);
-        },
-        error: (err) => {
-          console.error('Error al crear:', err);
-          console.error('Mensaje de validación:', err.error?.message);
-        }
-      });
-    }
+guardar(): void {
+  if (this.form.invalid) {
+    this.form.markAllAsTouched();
+    return;
   }
 
-  descargarPDF(): void {
-    const datos = this.form.value;
-    const doc = new jsPDF();
+  this.errores = [];
+  const datos = this.form.value as any;
 
-    // Header con borde dorado
-    doc.setFillColor(123, 29, 58);
-    doc.rect(0, 0, 210, 25, 'F');
-    
-    // Borde dorado superior
-    doc.setFillColor(200, 149, 42);
-    doc.rect(0, 0, 210, 2, 'F');
-    doc.rect(0, 23, 210, 2, 'F');
-    
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(16);
+  if (this.editando && this.personaId) {
+    this.svc.update(this.personaId, datos).subscribe({
+      next: () => {
+        console.log('Persona actualizada');
+        this.router.navigate(['/voluntarios/personas']);
+      },
+      error: (err) => {
+        console.error('Error al actualizar:', err);
+        console.log('err.error:', err.error); // 🔍 Para ver qué viene
+        console.log('err.error.message:', err.error.message); // 🔍 Para ver el mensaje
+
+        if (err.status === 400) {
+          this.errores = this.procesarErrores(err.error.message);
+        } else {
+          this.errores = ['Ocurrió un error inesperado. Intente de nuevo.'];
+        }
+      }
+    });
+  } else {
+    this.svc.create(datos).subscribe({
+      next: () => {
+        console.log('Persona creada');
+        this.router.navigate(['/voluntarios/personas']);
+      },
+      error: (err) => {
+        console.error('Error al crear:', err);
+        console.log('err.error:', err.error); // 🔍 Para ver qué viene
+        console.log('err.error.message:', err.error.message); // 🔍 Para ver el mensaje
+
+        if (err.status === 400) {
+          this.errores = this.procesarErrores(err.error.message);
+        } else {
+          this.errores = ['Ocurrió un error inesperado. Intente de nuevo.'];
+        }
+      }
+    });
+  }
+}
+
+ descargarPDF(): void {
+  const datos = this.form.value;
+  const doc = new jsPDF();
+
+  let y = 0;
+  const margenInferior = 280; // Límite antes de crear nueva página
+  const altoLinea = 6;
+
+  // Función para verificar si necesitamos nueva página
+  const verificarNuevaPagina = (espacioNecesario: number = altoLinea) => {
+    if (y + espacioNecesario > margenInferior) {
+      doc.addPage();
+      y = 20; // Margen superior en nueva página
+    }
+  };
+
+  // Función para agregar campo
+  const addField = (label: string, value: any) => {
+    verificarNuevaPagina(altoLinea);
     doc.setFont('helvetica', 'bold');
-    doc.text('RECONECTA CON LA PAZ', 105, 10, { align: 'center' });
-    doc.setFontSize(9);
+    doc.text(label + ':', 15, y);
     doc.setFont('helvetica', 'normal');
-    doc.text('Gobierno del Estado de Oaxaca', 105, 16, { align: 'center' });
-    doc.text('Centro de Rehabilitación Camino Hacia La Fe', 105, 21, { align: 'center' });
+    doc.text(String(value || '—'), 70, y);
+    y += altoLinea;
+  };
 
-    // Folio con estilo
-    doc.setTextColor(123, 29, 58);
-    doc.setFontSize(11);
-    doc.setFont('helvetica', 'bold');
-    doc.text(`FOLIO: ${datos.folio || 'Sin asignar'}`, 15, 35);
-
-    let y = 45;
-
-    const addField = (label: string, value: any, yPos: number) => {
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(123, 29, 58);
-      doc.text(label + ':', 15, yPos);
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(0, 0, 0);
-      doc.text(String(value || '—'), 70, yPos);
-    };
-
-    // I. GENERALES
+  // Función para agregar sección
+  const addSection = (titulo: string) => {
+    verificarNuevaPagina(12); // Espacio para el header de sección
     doc.setFillColor(123, 29, 58);
     doc.rect(15, y, 180, 7, 'F');
-    doc.setFillColor(200, 149, 42);
-    doc.rect(15, y, 3, 7, 'F');
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(11);
     doc.setFont('helvetica', 'bold');
-    doc.text('I. GENERALES', 18, y + 5);
+    doc.text(titulo, 18, y + 5);
 
     y += 12;
     doc.setTextColor(0, 0, 0);
     doc.setFontSize(9);
+  };
 
-    addField('Nombre', datos.nombre, y); y += 6;
-    addField('Sobrenombre', datos.sobrenombre, y); y += 6;
-    addField('Edad', datos.edad, y); y += 6;
-    addField('Fecha de nacimiento', datos.fechaNacimiento, y); y += 6;
-    addField('CURP', datos.curp, y); y += 6;
-    addField('Lugar de origen', datos.lugarOrigen, y); y += 6;
-    addField('Motivo de ingreso', datos.motivoIngreso, y); y += 6;
-    addField('Fecha inicio tratamiento', datos.fechaInicioTratamiento, y); y += 6;
-    addField('Fecha término tratamiento', datos.fechaTerminoTratamiento, y); y += 6;
-    addField('Religión', datos.religion, y); y += 6;
-    addField('Practica deporte', datos.practicaDeporte, y); y += 6;
-    if (datos.practicaDeporte === 'Si') {
-      addField('  ¿Cuál deporte?', datos.cualDeporte, y); y += 6;
-    }
-    addField('Pasatiempo', datos.pasatiempo, y); y += 6;
-    addField('Tiene acta de nacimiento', datos.tieneActaNacimiento, y); y += 6;
+  // ========== HEADER ==========
+  doc.setFillColor(123, 29, 58);
+  doc.rect(0, 0, 210, 25, 'F');
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(16);
+  doc.setFont('helvetica', 'bold');
+  doc.text('RECONECTA CON LA PAZ', 105, 10, { align: 'center' });
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'normal');
+  doc.text('Gobierno del Estado de Oaxaca', 105, 16, { align: 'center' });
+  doc.text('Centro de Rehabilitación Camino Hacia La Fe', 105, 21, { align: 'center' });
 
-    if (datos.tieneActaNacimiento === 'No') {
-      addField('  Lugar de nacimiento', datos.lugarNacimientoRegistro, y); y += 6;
-      addField('  Personas que registraron', datos.personasRegistraron, y); y += 6;
-    }
+  // Folio
+  y = 35;
+  doc.setTextColor(0, 0, 0);
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'bold');
+  doc.text(`FOLIO: ${datos.folio || 'Sin asignar'}`, 15, y);
 
-    // II. ESCOLARIDAD
-    y += 5;
-    doc.setFillColor(123, 29, 58);
-    doc.rect(15, y, 180, 7, 'F');
-    doc.setFillColor(200, 149, 42);
-    doc.rect(15, y, 3, 7, 'F');
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(11);
-    doc.setFont('helvetica', 'bold');
-    doc.text('II. ESCOLARIDAD', 18, y + 5);
+  y = 45;
+  doc.setFontSize(9);
 
-    y += 12;
-    doc.setTextColor(0, 0, 0);
-    doc.setFontSize(9);
+  // ========== I. GENERALES ==========
+  addSection('I. GENERALES');
 
-    addField('Sabe leer y escribir', datos.sabeLeerEscribir, y); y += 6;
-    addField('Grado máximo de estudios', datos.gradoMaximoEstudios, y); y += 6;
-    addField('Le gustaría seguir estudiando', datos.leGustariaEstudiar, y); y += 6;
+  addField('Nombre', datos.nombre);
+  addField('Sobrenombre', datos.sobrenombre);
+  addField('Edad', datos.edad);
+  addField('Fecha de nacimiento', datos.fechaNacimiento);
+  addField('CURP', datos.curp);
+  addField('Lugar de origen', datos.lugarOrigen);
+  addField('Motivo de ingreso', datos.motivoIngreso);
+  addField('Fecha inicio tratamiento', datos.fechaInicioTratamiento);
+  addField('Fecha término tratamiento', datos.fechaTerminoTratamiento);
+  addField('Religión', datos.religion);
+  addField('Practica deporte', datos.practicaDeporte);
 
-    const certificados = [];
-    if (datos.certificadoPrimaria) certificados.push('Primaria');
-    if (datos.certificadoSecundaria) certificados.push('Secundaria');
-    if (datos.certificadoBachillerato) certificados.push('Bachillerato');
-    addField('Certificados', certificados.length ? certificados.join(', ') : 'Ninguno', y); y += 6;
-
-    addField('Nombre del plantel', datos.nombrePlantel, y); y += 6;
-    addField('Dirección del plantel', datos.direccionPlantel, y); y += 6;
-    addField('Fecha de término', datos.fechaTerminoPlantel, y); y += 6;
-
-    if (y > 250) { doc.addPage(); y = 20; }
-
-    // III. LABORAL
-    y += 5;
-    doc.setFillColor(123, 29, 58);
-    doc.rect(15, y, 180, 7, 'F');
-    doc.setFillColor(200, 149, 42);
-    doc.rect(15, y, 3, 7, 'F');
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(11);
-    doc.setFont('helvetica', 'bold');
-    doc.text('III. LABORAL', 18, y + 5);
-
-    y += 12;
-    doc.setTextColor(0, 0, 0);
-    doc.setFontSize(9);
-
-    addField('Trabaja formalmente', datos.trabajaFormal, y); y += 6;
-    if (datos.trabajaFormal === 'Si') {
-      addField('  Funciones', datos.funcionesTrabajo, y); y += 6;
-    }
-    addField('Le gustaría cambiar de trabajo', datos.leGustariaCambiarTrabajo, y); y += 6;
-    addField('Sabe algún oficio', datos.sabeOficio, y); y += 6;
-    addField('Le gustaría aprender alguno', datos.leGustariaAprenderOficio, y); y += 6;
-
-    // IV. SALUD
-    y += 5;
-    doc.setFillColor(123, 29, 58);
-    doc.rect(15, y, 180, 7, 'F');
-    doc.setFillColor(200, 149, 42);
-    doc.rect(15, y, 3, 7, 'F');
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(11);
-    doc.setFont('helvetica', 'bold');
-    doc.text('IV. SALUD', 18, y + 5);
-
-    y += 12;
-    doc.setTextColor(0, 0, 0);
-    doc.setFontSize(9);
-
-    addField('Padece alguna enfermedad', datos.padecimientoEnfermedad, y); y += 6;
-    addField('Servicio de salud', datos.servicioSalud, y); y += 6;
-    addField('Cuenta con tratamiento', datos.cuentaTratamiento, y); y += 6;
-    addField('Enfermedad de transmisión sexual', datos.enfermedadTransmisionSexual, y); y += 6;
-    addField('Necesita lentes', datos.necesitaLentes, y); y += 6;
-    addField('Atención psicológica reciente', datos.atencionPsicologica, y); y += 6;
-
-    // CONTACTOS
-    y += 5;
-    doc.setFillColor(123, 29, 58);
-    doc.rect(15, y, 180, 7, 'F');
-    doc.setFillColor(200, 149, 42);
-    doc.rect(15, y, 3, 7, 'F');
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(11);
-    doc.setFont('helvetica', 'bold');
-    doc.text('CONTACTOS DE REFERENCIA', 18, y + 5);
-
-    y += 12;
-    doc.setTextColor(0, 0, 0);
-    doc.setFontSize(9);
-
-    addField('Contacto 1 - Nombre', datos.contacto1Nombre, y); y += 6;
-    addField('Relación', datos.contacto1Relacion, y); y += 6;
-    addField('Teléfono', datos.contacto1Telefono, y); y += 8;
-
-    addField('Contacto 2 - Nombre', datos.contacto2Nombre, y); y += 6;
-    addField('Relación', datos.contacto2Relacion, y); y += 6;
-    addField('Teléfono', datos.contacto2Telefono, y);
-
-    const fileName = `${datos.nombre || 'persona'}_${datos.folio || 'sin-folio'}.pdf`;
-    doc.save(fileName);
+  if (datos.practicaDeporte === 'Si') {
+    addField('  ¿Cuál deporte?', datos.cualDeporte);
   }
+
+  addField('Pasatiempo', datos.pasatiempo);
+  addField('Tiene acta de nacimiento', datos.tieneActaNacimiento);
+
+  if (datos.tieneActaNacimiento === 'No') {
+    addField('  Lugar de nacimiento', datos.lugarNacimientoRegistro);
+    addField('  Personas que registraron', datos.personasRegistraron);
+  }
+
+  // ========== II. ESCOLARIDAD ==========
+  y += 5;
+  addSection('II. ESCOLARIDAD');
+
+  addField('Sabe leer y escribir', datos.sabeLeerEscribir);
+  addField('Grado máximo de estudios', datos.gradoMaximoEstudios);
+  addField('Le gustaría seguir estudiando', datos.leGustariaEstudiar);
+
+  const certificados = [];
+  if (datos.certificadoPrimaria) certificados.push('Primaria');
+  if (datos.certificadoSecundaria) certificados.push('Secundaria');
+  if (datos.certificadoBachillerato) certificados.push('Bachillerato');
+  addField('Certificados', certificados.length ? certificados.join(', ') : 'Ninguno');
+
+  addField('Nombre del plantel', datos.nombrePlantel);
+  addField('Dirección del plantel', datos.direccionPlantel);
+  addField('Fecha de término', datos.fechaTerminoPlantel);
+
+  // ========== III. LABORAL ==========
+  y += 5;
+  addSection('III. LABORAL');
+
+  addField('Trabaja formalmente', datos.trabajaFormal);
+
+  if (datos.trabajaFormal === 'Si') {
+    addField('  Funciones', datos.funcionesTrabajo);
+  }
+
+  addField('Le gustaría cambiar de trabajo', datos.leGustariaCambiarTrabajo);
+  addField('Sabe algún oficio', datos.sabeOficio);
+  addField('Le gustaría aprender alguno', datos.leGustariaAprenderOficio);
+
+  // ========== IV. SALUD ==========
+  y += 5;
+  addSection('IV. SALUD');
+
+  addField('Padece alguna enfermedad', datos.padecimientoEnfermedad);
+  addField('Servicio de salud', datos.servicioSalud);
+  addField('Cuenta con tratamiento', datos.cuentaTratamiento);
+  addField('Enfermedad de transmisión sexual', datos.enfermedadTransmisionSexual);
+  addField('Necesita lentes', datos.necesitaLentes);
+  addField('Atención psicológica reciente', datos.atencionPsicologica);
+
+  // ========== CONTACTOS ==========
+  y += 5;
+  addSection('CONTACTOS DE REFERENCIA');
+
+  addField('Contacto 1 - Nombre', datos.contacto1Nombre);
+  addField('Relación', datos.contacto1Relacion);
+  addField('Teléfono', datos.contacto1Telefono);
+
+  y += 2; // Espacio extra entre contactos
+
+  addField('Contacto 2 - Nombre', datos.contacto2Nombre);
+  addField('Relación', datos.contacto2Relacion);
+  addField('Teléfono', datos.contacto2Telefono);
+
+  // ========== GUARDAR ==========
+  const fileName = `${datos.nombre || 'persona'}_${datos.folio || 'sin-folio'}.pdf`;
+  doc.save(fileName);
+}
+
+ private procesarErrores(mensaje: any): string[] {
+  // Si es un array, procesarlo como tal
+  if (Array.isArray(mensaje)) {
+    return mensaje.map(m => this.traducirError(String(m)));
+  }
+
+  // Si es un objeto, convertirlo a string
+  if (typeof mensaje === 'object' && mensaje !== null) {
+    mensaje = JSON.stringify(mensaje);
+  }
+
+  // Convertir a string por si acaso
+  const mensajeStr = String(mensaje);
+
+  // Si el mensaje contiene comas, dividirlo
+  const mensajes = mensajeStr.includes(',')
+    ? mensajeStr.split(',').map(m => m.trim())
+    : [mensajeStr];
+
+  return mensajes.map(msg => this.traducirError(msg));
+}
+
+private traducirError(error: any): string {
+  const errorStr = String(error);
+
+  const traducciones: { [key: string]: string } = {
+    // Validaciones generales
+    'must be a valid ISO 8601 date string': 'debe tener formato de fecha válido (Ej: 2024-12-31)',
+    'must be shorter than or equal to': 'debe tener máximo',
+    'must be longer than or equal to': 'debe tener mínimo',
+    'must be a string': 'debe ser texto',
+    'must be a number': 'debe ser un número',
+    'must be an integer': 'debe ser un número entero',
+    'must be a boolean': 'debe ser verdadero o falso',
+    'should not be empty': 'no puede estar vacío',
+    'must be a valid email': 'debe ser un correo electrónico válido',
+    'must be a valid date': 'debe tener formato de fecha válido',
+
+    // Campos específicos (con sus variaciones)
+    'fechaNacimiento': 'Fecha de nacimiento',
+    'Fecha de nacimiento': 'Fecha de nacimiento',
+    'fechaInicioTratamiento': 'Fecha de inicio del tratamiento',
+    'fechaTerminoTratamiento': 'Fecha de término del tratamiento',
+    'FechaTerminoTratamiento': 'Fecha de término del tratamiento',
+    'fechaTerminoPlantel': 'Fecha de término del plantel',
+    'FechaTerminoPlantel': 'Fecha de término del plantel',
+    'nombre': 'Nombre',
+    'edad': 'Edad',
+    'folio': 'Folio',
+    'curp': 'CURP',
+    'email': 'Correo electrónico',
+    'sobrenombre': 'Sobrenombre',
+    'lugarOrigen': 'Lugar de origen',
+    'motivoIngreso': 'Motivo de ingreso',
+    'religion': 'Religión',
+    'practicaDeporte': 'Practica deporte',
+    'cualDeporte': 'Cuál deporte',
+    'pasatiempo': 'Pasatiempo',
+    'tieneActaNacimiento': 'Tiene acta de nacimiento',
+    'lugarNacimientoRegistro': 'Lugar de nacimiento en registro',
+    'personasRegistraron': 'Personas que registraron',
+    'sabeLeerEscribir': 'Sabe leer y escribir',
+    'gradoMaximoEstudios': 'Grado máximo de estudios',
+    'leGustariaEstudiar': 'Le gustaría estudiar',
+    'certificadoPrimaria': 'Certificado de primaria',
+    'certificadoSecundaria': 'Certificado de secundaria',
+    'certificadoBachillerato': 'Certificado de bachillerato',
+    'nombrePlantel': 'Nombre del plantel',
+    'direccionPlantel': 'Dirección del plantel',
+    'trabajaFormal': 'Trabaja formalmente',
+    'funcionesTrabajo': 'Funciones en el trabajo',
+    'leGustariaCambiarTrabajo': 'Le gustaría cambiar de trabajo',
+    'sabeOficio': 'Sabe algún oficio',
+    'leGustariaAprenderOficio': 'Le gustaría aprender un oficio',
+    'padecimientoEnfermedad': 'Padece alguna enfermedad',
+    'servicioSalud': 'Servicio de salud',
+    'cuentaTratamiento': 'Cuenta con tratamiento',
+    'enfermedadTransmisionSexual': 'Enfermedad de transmisión sexual',
+    'necesitaLentes': 'Necesita lentes',
+    'atencionPsicologica': 'Atención psicológica',
+    'contacto1Nombre': 'Nombre del contacto 1',
+    'contacto1Relacion': 'Relación del contacto 1',
+    'contacto1Telefono': 'Teléfono del contacto 1',
+    'contacto2Nombre': 'Nombre del contacto 2',
+    'contacto2Relacion': 'Relación del contacto 2',
+    'contacto2Telefono': 'Teléfono del contacto 2',
+
+    // Palabras comunes
+    'characters': 'caracteres',
+    'character': 'caracter'
+  };
+
+  let traducido = errorStr;
+
+  // Reemplazar cada patrón encontrado
+  Object.entries(traducciones).forEach(([en, es]) => {
+    traducido = traducido.replace(new RegExp(en, 'gi'), es);
+  });
+
+  // Capitalizar la primera letra
+  return traducido.charAt(0).toUpperCase() + traducido.slice(1);
+}
+volver() {
+  this.location.back();
+}
 }

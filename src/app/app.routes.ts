@@ -3,6 +3,7 @@ import { Routes } from '@angular/router';
 // 🔹 AUTH
 import { LoginComponent } from './auth/login/login';
 import { authGuard } from './guards/auth-guard';
+import { roleGuard } from './guards/role-guard';
 
 // 🔹 DASHBOARD
 import { SeleccionComponent } from './dashboard/seleccion/seleccion';
@@ -23,6 +24,8 @@ import { PerfilPsicologa } from './civil/perfil-psicologa/perfil-psicologa';
 import { PerfilGuia } from './civil/perfil-guia/perfil-guia';
 import { PerfilTrabajoS } from './civil/perfil-trabajo-s/perfil-trabajo-s';
 import { PerfilAdmin } from './civil/perfil-admin/perfil-admin';
+
+const VOLUNTARIOS_ALLOWED_ROLES = ['admin', 'coordinador', 'tallerista'];
 
 export const routes: Routes = [
 
@@ -82,42 +85,48 @@ export const routes: Routes = [
   // 🔐 VOLUNTARIOS (SIN DUPLICADOS)
   {
     path: 'voluntarios/personas',
-    canActivate: [authGuard],
+    canActivate: [authGuard, roleGuard],
+    data: { roles: VOLUNTARIOS_ALLOWED_ROLES },
     loadComponent: () =>
       import('./voluntarios/pages/personas/personas-list/personas-list')
         .then(m => m.PersonasList)
   },
   {
     path: 'voluntarios/personas/nuevo',
-    canActivate: [authGuard],
+    canActivate: [authGuard, roleGuard],
+    data: { roles: VOLUNTARIOS_ALLOWED_ROLES },
     loadComponent: () =>
       import('./voluntarios/pages/personas/persona-form/persona-form')
         .then(m => m.PersonaForm)
   },
   {
     path: 'voluntarios/personas/editar/:id',
-    canActivate: [authGuard],
+    canActivate: [authGuard, roleGuard],
+    data: { roles: VOLUNTARIOS_ALLOWED_ROLES },
     loadComponent: () =>
       import('./voluntarios/pages/personas/persona-form/persona-form')
         .then(m => m.PersonaForm)
   },
   {
     path: 'voluntarios/actividades',
-    canActivate: [authGuard],
+    canActivate: [authGuard, roleGuard],
+    data: { roles: VOLUNTARIOS_ALLOWED_ROLES },
     loadComponent: () =>
       import('./voluntarios/pages/actividades/actividades-list/actividades-list')
         .then(m => m.ActividadesList)
   },
   {
     path: 'voluntarios/actividades/nueva',
-    canActivate: [authGuard],
+    canActivate: [authGuard, roleGuard],
+    data: { roles: VOLUNTARIOS_ALLOWED_ROLES },
     loadComponent: () =>
       import('./voluntarios/pages/actividades/actividad-form/actividad-form')
         .then(m => m.ActividadForm)
   },
   {
     path: 'voluntarios/actividades/editar/:id',
-    canActivate: [authGuard],
+    canActivate: [authGuard, roleGuard],
+    data: { roles: VOLUNTARIOS_ALLOWED_ROLES },
     loadComponent: () =>
       import('./voluntarios/pages/actividades/actividad-form/actividad-form')
         .then(m => m.ActividadForm)
