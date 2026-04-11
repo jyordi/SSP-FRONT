@@ -9,7 +9,7 @@ import { Location } from '@angular/common';
 @Component({
   selector: 'app-persona-form',
   standalone: true,
-  imports: [ReactiveFormsModule, CommonModule, RouterLink],
+  imports: [ReactiveFormsModule, CommonModule],
   templateUrl: './persona-form.html',
   styleUrl: './persona-form.css'
 })

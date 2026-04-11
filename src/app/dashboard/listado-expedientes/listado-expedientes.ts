@@ -204,4 +204,8 @@ export class ListadoExpedientesComponent implements OnInit {
   puedeGestionarUsuarios(): boolean {
     return this.role === 'admin';
   }
+
+  puedeAccederVoluntarios(): boolean {
+    return this.sessionService.puedeAccederVoluntarios();
+  }
 }

@@ -4,7 +4,7 @@
   /* Vino */
   --v9:   #3d0516;
   --v7:   #6b0f26;
-  --v5:   #850a31;   
+  --v5:   #850a31;
   --v1:   #f2dde4;
 
   /* Neutros */
@@ -148,11 +148,14 @@
   width: 42px; height: 42px; border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
   font-weight: 800; color: white; border: 2px solid rgba(255,255,255,0.2);
+  background: var(--t3);
 }
 .av-admin          { background: var(--v5); }
 .av-psicologo      { background: #5c3e7d; }
 .av-trabajo_social { background: #3e5a7d; }
 .av-guia           { background: #3e7d5c; }
+.av-coordinador    { background: #b45309; }
+.av-tallerista     { background: #0f766e; }
 
 .user-info h3 { margin: 0; font-size: .95rem; font-weight: 700; color: var(--t9); }
 .u-login { font-size: .78rem; color: var(--t5); font-weight: 500; }
@@ -162,11 +165,15 @@
 .u-role-chip {
   font-size: .65rem; font-weight: 700; text-transform: uppercase; letter-spacing: .4px;
   padding: 2px 8px; border-radius: 4px;
+  background: #f8f1f4;
+  color: var(--t7);
 }
 .r-admin          { background: var(--v1); color: var(--v5); }
 .r-psicologo      { background: #f3f0ff; color: #502e7d; }
 .r-trabajo_social { background: #f0f7ff; color: #2e507d; }
 .r-guia           { background: #f0fff4; color: #2e7d50; }
+.r-coordinador    { background: #fff7ed; color: #9a3412; }
+.r-tallerista     { background: #ecfeff; color: #115e59; }
 
 .u-status { display: flex; align-items: center; gap: 5px; font-size: .65rem; font-weight: 700; color: var(--t5); text-transform: uppercase;}
 .s-dot { width: 6px; height: 6px; border-radius: 50%; background: #ccc; }
