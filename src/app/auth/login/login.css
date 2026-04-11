@@ -13,61 +13,67 @@
    -------------------------------------------------------------------------- */
 :root {
   /* Paleta institucional */
-  --brand-primary:   #850a31;
-  --brand-hover:     #9E2A4A;
-  --brand-dark:      #5A1229;
-  --brand-light:     #a82448;
-  --gold-accent:     #C8952A;
-  --gold-light:      #e8b84b;
+  --brand-primary: #850a31;
+  --brand-hover: #9E2A4A;
+  --brand-dark: #5A1229;
+  --brand-light: #a82448;
+  --gold-accent: #C8952A;
+  --gold-light: #e8b84b;
 
   /* Estados */
-  --success-bg:      #dcfce7;
-  --success-text:    #166534;
-  --error-bg:        #fee2e2;
-  --error-text:      #991b1b;
+  --success-bg: #dcfce7;
+  --success-text: #166534;
+  --error-bg: #fee2e2;
+  --error-text: #991b1b;
 
   /* Texto */
-  --text-primary:    #111827;
-  --text-secondary:  #374151;
-  --text-tertiary:   #6b7280;
-  --text-muted:      #9ca3af;
-  --text-error:      #dc2626;
+  --text-primary: #111827;
+  --text-secondary: #374151;
+  --text-tertiary: #6b7280;
+  --text-muted: #9ca3af;
+  --text-error: #dc2626;
 
   /* Fondos oficiales */
-  --bg-white:        #ffffff;
-  --bg-page:         #f4f0ed;
-  --bg-light:        #f9fafb;
-  --bg-pink-pale:    #fdf8f9;
+  --bg-white: #ffffff;
+  --bg-page: #f4f0ed;
+  --bg-light: #f9fafb;
+  --bg-pink-pale: #fdf8f9;
   --bg-yellow-light: #fff8e7;
 
   /* Bordes */
-  --border-primary:  #e5e7eb;
-  --border-input:    #d1d5db;
-  --border-soft:     #f3f4f6;
+  --border-primary: #e5e7eb;
+  --border-input: #d1d5db;
+  --border-soft: #f3f4f6;
 
   /* Sombras */
-  --shadow-card:     0 8px 32px rgba(123,29,58,0.10), 0 2px 8px rgba(0,0,0,0.06);
-  --shadow-btn:      0 10px 28px rgba(123,29,58,0.40);
-  --shadow-input:    0 3px 10px rgba(123,29,58,0.10);
+  --shadow-card: 0 8px 32px rgba(123, 29, 58, 0.10), 0 2px 8px rgba(0, 0, 0, 0.06);
+  --shadow-btn: 0 10px 28px rgba(123, 29, 58, 0.40);
+  --shadow-input: 0 3px 10px rgba(123, 29, 58, 0.10);
 
   /* Curvas de animación */
   --ease-smooth: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
   --t-fast: 0.22s;
-  --t-mid:  0.40s;
+  --t-mid: 0.40s;
   --t-slow: 0.70s;
 
   /* Radios */
-  --radius-sm:   8px;
-  --radius-md:   12px;
-  --radius-lg:   18px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
   --radius-full: 9999px;
 }
 
 /* --------------------------------------------------------------------------
    2. RESET
    -------------------------------------------------------------------------- */
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
 
 /* --------------------------------------------------------------------------
    3. WRAPPER — Fondo claro institucional
@@ -90,8 +96,8 @@
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(circle at 15% 15%, rgba(123,29,58,0.04) 0%, transparent 48%),
-    radial-gradient(circle at 85% 85%, rgba(123,29,58,0.03) 0%, transparent 48%);
+    radial-gradient(circle at 15% 15%, rgba(123, 29, 58, 0.04) 0%, transparent 48%),
+    radial-gradient(circle at 85% 85%, rgba(123, 29, 58, 0.03) 0%, transparent 48%);
   pointer-events: none;
   z-index: 0;
 }
@@ -100,21 +106,27 @@
 .login-wrapper::after {
   content: '';
   position: absolute;
-  top: 0; left: 0; right: 0;
+  top: 0;
+  left: 0;
+  right: 0;
   height: 4px;
-  background: linear-gradient(
-    90deg,
-    var(--brand-dark) 0%, var(--brand-primary) 30%,
-    var(--gold-accent) 50%, var(--brand-primary) 70%,
-    var(--brand-dark) 100%
-  );
+  background: linear-gradient(90deg,
+      var(--brand-dark) 0%, var(--brand-primary) 30%,
+      var(--gold-accent) 50%, var(--brand-primary) 70%,
+      var(--brand-dark) 100%);
   background-size: 200% 100%;
   animation: viewportBorder 5s linear infinite;
   z-index: 2;
 }
+
 @keyframes viewportBorder {
-  0%   { background-position: 0%   0%; }
-  100% { background-position: 200% 0%; }
+  0% {
+    background-position: 0% 0%;
+  }
+
+  100% {
+    background-position: 200% 0%;
+  }
 }
 
 /* --------------------------------------------------------------------------
@@ -138,14 +150,14 @@
 .login-card::before {
   content: '';
   position: absolute;
-  top: 0; left: 0; right: 0;
+  top: 0;
+  left: 0;
+  right: 0;
   height: 4px;
-  background: linear-gradient(
-    90deg,
-    var(--brand-dark) 0%, var(--brand-primary) 20%,
-    var(--gold-accent) 50%, var(--brand-primary) 80%,
-    var(--brand-dark) 100%
-  );
+  background: linear-gradient(90deg,
+      var(--brand-dark) 0%, var(--brand-primary) 20%,
+      var(--gold-accent) 50%, var(--brand-primary) 80%,
+      var(--brand-dark) 100%);
   background-size: 200% 100%;
   animation: borderFlow 3.5s linear infinite;
 }
@@ -154,14 +166,22 @@
 .login-card::after {
   content: '';
   position: absolute;
-  top: 0; left: 0; right: 0;
+  top: 0;
+  left: 0;
+  right: 0;
   height: 80px;
   background: linear-gradient(to bottom, var(--bg-pink-pale) 0%, transparent 100%);
   pointer-events: none;
 }
+
 @keyframes borderFlow {
-  0%   { background-position: 0%   0%; }
-  100% { background-position: 200% 0%; }
+  0% {
+    background-position: 0% 0%;
+  }
+
+  100% {
+    background-position: 200% 0%;
+  }
 }
 
 /* --------------------------------------------------------------------------
@@ -172,34 +192,79 @@
 .fade-in-up {
   animation: fadeInUp var(--t-slow) var(--ease-smooth) forwards;
 }
+
 @keyframes fadeInUp {
-  0%   { opacity: 0; transform: translateY(32px) scale(0.97); }
-  100% { opacity: 1; transform: translateY(0)    scale(1); }
+  0% {
+    opacity: 0;
+    transform: translateY(32px) scale(0.97);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 /* Alerta que desciende */
 .slide-down {
   animation: slideDown var(--t-mid) var(--ease-smooth) forwards;
 }
+
 @keyframes slideDown {
-  0%   { opacity: 0; transform: translateY(-12px) scale(0.97); }
-  100% { opacity: 1; transform: translateY(0)      scale(1); }
+  0% {
+    opacity: 0;
+    transform: translateY(-12px) scale(0.97);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 /* Vibración en error */
 .shake {
-  animation: shake 0.55s cubic-bezier(.36,.07,.19,.97) both;
+  animation: shake 0.55s cubic-bezier(.36, .07, .19, .97) both;
 }
+
 @keyframes shake {
-  10%, 90%      { transform: translate3d(-3px, 0, 0); }
-  20%, 80%      { transform: translate3d(5px, 0, 0);  }
-  30%, 50%, 70% { transform: translate3d(-7px, 0, 0); }
-  40%, 60%      { transform: translate3d(7px, 0, 0);  }
+
+  10%,
+  90% {
+    transform: translate3d(-3px, 0, 0);
+  }
+
+  20%,
+  80% {
+    transform: translate3d(5px, 0, 0);
+  }
+
+  30%,
+  50%,
+  70% {
+    transform: translate3d(-7px, 0, 0);
+  }
+
+  40%,
+  60% {
+    transform: translate3d(7px, 0, 0);
+  }
 }
 
 /* Fade simple */
-.fade-in { animation: fadeIn 0.3s ease-in; }
-@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+.fade-in {
+  animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
 
 /* --------------------------------------------------------------------------
    6. LOGO CIRCULAR MEJORADO
@@ -237,16 +302,14 @@
   position: absolute;
   inset: 0;
   border-radius: var(--radius-full);
-  background: conic-gradient(
-    from 0deg,
-    var(--brand-dark)    0%,
-    var(--brand-primary) 20%,
-    var(--gold-accent)   45%,
-    var(--gold-light)    50%,
-    var(--gold-accent)   55%,
-    var(--brand-primary) 80%,
-    var(--brand-dark)    100%
-  );
+  background: conic-gradient(from 0deg,
+      var(--brand-dark) 0%,
+      var(--brand-primary) 20%,
+      var(--gold-accent) 45%,
+      var(--gold-light) 50%,
+      var(--gold-accent) 55%,
+      var(--brand-primary) 80%,
+      var(--brand-dark) 100%);
   animation: rotateBorder 3.5s linear infinite;
   z-index: 0;
 }
@@ -261,12 +324,24 @@
   z-index: 0;
 }
 
-@keyframes rotateBorder { to { transform: rotate(360deg); } }
+@keyframes rotateBorder {
+  to {
+    transform: rotate(360deg);
+  }
+}
 
 @keyframes pulseLogoGlow {
-  0%   { box-shadow: 0 0 0 0    rgba(123,29,58,0.20); }
-  70%  { box-shadow: 0 0 0 10px rgba(123,29,58,0);    }
-  100% { box-shadow: 0 0 0 0    rgba(123,29,58,0);    }
+  0% {
+    box-shadow: 0 0 0 0 rgba(123, 29, 58, 0.20);
+  }
+
+  70% {
+    box-shadow: 0 0 0 10px rgba(123, 29, 58, 0);
+  }
+
+  100% {
+    box-shadow: 0 0 0 0 rgba(123, 29, 58, 0);
+  }
 }
 
 /*
@@ -286,16 +361,17 @@
   background: var(--bg-white);
   border: 4px solid var(--bg-white);
   display: block;
-  box-shadow: 0 2px 12px rgba(123,29,58,0.15);
+  box-shadow: 0 2px 12px rgba(123, 29, 58, 0.15);
 }
 
 .brand-title {
-  color: var(--brand-dark);
-  font-size: 1.5rem;
+  color: #850a31 !important;
+  font-size: 1.6rem;
   font-weight: 800;
-  letter-spacing: -0.4px;
+  letter-spacing: -0.5px;
   line-height: 1.25;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
+  text-shadow: 0 1px 2px rgba(133, 10, 49, 0.05);
 }
 
 .brand-subtitle {
@@ -313,6 +389,20 @@
   display: flex;
   flex-direction: column;
   gap: 1.3rem;
+  position: relative;
+  padding-top: 1.2rem;
+}
+
+/* Línea decorativa vino entre cabecera y formulario */
+.login-form::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 20%;
+  right: 20%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--brand-primary), transparent);
+  opacity: 0.3;
 }
 
 /* ── Alerta de credenciales incorrectas ── */
@@ -340,6 +430,7 @@
   line-height: 1.5;
   animation: slideDown var(--t-mid) var(--ease-smooth) forwards;
 }
+
 .lockout-countdown {
   font-size: 1.1rem;
   font-weight: 900;
@@ -377,7 +468,7 @@
   width: 18px;
   height: 18px;
   transition:
-    color     var(--t-mid) var(--ease-smooth),
+    color var(--t-mid) var(--ease-smooth),
     transform var(--t-mid) var(--ease-bounce);
   pointer-events: none;
   z-index: 1;
@@ -395,22 +486,22 @@
   background: var(--bg-light);
   transition:
     border-color var(--t-mid) var(--ease-smooth),
-    background   var(--t-mid) var(--ease-smooth),
-    box-shadow   var(--t-mid) var(--ease-smooth),
-    transform    var(--t-mid) var(--ease-smooth);
+    background var(--t-mid) var(--ease-smooth),
+    box-shadow var(--t-mid) var(--ease-smooth),
+    transform var(--t-mid) var(--ease-smooth);
   outline: none;
 }
 
 /* Focus: borde vino + elevación */
 .input-container input:focus {
-  border-color: var(--brand-primary);
-  background: var(--bg-white);
-  box-shadow: var(--shadow-input);
+  border-color: var(--brand-primary) !important;
+  background: var(--bg-white) !important;
+  box-shadow: 0 0 0 4px rgba(133, 10, 49, 0.08), var(--shadow-input) !important;
   transform: translateY(-2px);
 }
 
 /* El ícono reacciona al focus del input hermano (~) */
-.input-container input:focus ~ .icon {
+.input-container input:focus~.icon {
   color: var(--brand-primary);
   transform: scale(1.15) rotate(-5deg);
 }
@@ -420,7 +511,10 @@
   border-color: var(--text-error);
   background: var(--error-bg);
 }
-.input-container.invalid .icon { color: var(--text-error); }
+
+.input-container.invalid .icon {
+  color: var(--text-error);
+}
 
 /* Toggle visibilidad contraseña */
 .toggle-password {
@@ -437,32 +531,49 @@
   transition: color var(--t-fast) ease, transform var(--t-fast) ease;
   z-index: 1;
 }
-.toggle-password:hover { color: var(--brand-primary); transform: scale(1.14); }
-.input-container.has-toggle input { padding-right: 2.8rem; }
+
+.toggle-password:hover {
+  color: var(--brand-primary);
+  transform: scale(1.14);
+}
+
+.input-container.has-toggle input {
+  padding-right: 2.8rem;
+}
 
 /* --------------------------------------------------------------------------
    8. BARRA DE INTENTOS FALLIDOS
    -------------------------------------------------------------------------- */
-.attempts-bar-wrapper { display: flex; flex-direction: column; gap: 5px; }
+.attempts-bar-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
 .attempts-label {
   font-size: 0.77rem;
   color: var(--text-tertiary);
   font-weight: 600;
   text-align: right;
 }
+
 .attempts-bar-track {
   height: 5px;
   background: var(--border-soft);
   border-radius: var(--radius-full);
   overflow: hidden;
 }
+
 .attempts-bar-fill {
   height: 100%;
   border-radius: var(--radius-full);
   background: var(--brand-primary);
   transition: width 0.5s var(--ease-smooth), background-color 0.4s ease;
 }
-.attempts-bar-fill.danger { background: var(--text-error); }
+
+.attempts-bar-fill.danger {
+  background: var(--text-error);
+}
 
 /* --------------------------------------------------------------------------
    9. BOTÓN PRINCIPAL
@@ -486,22 +597,24 @@
   font-weight: 700;
   font-family: inherit;
   letter-spacing: 0.5px;
-  color: var(--text-muted);             /* texto apagado cuando está vacío */
+  color: var(--text-muted);
+  /* texto apagado cuando está vacío */
   cursor: not-allowed;
   min-height: 50px;
   display: flex;
   justify-content: center;
   align-items: center;
-  background: var(--bg-light);          /* gris claro base */
+  background: var(--bg-light);
+  /* gris claro base */
   background-size: 200% 200%;
 
   /* Transición suave entre todos los estados */
   transition:
-    background   0.5s var(--ease-smooth),
+    background 0.5s var(--ease-smooth),
     border-color 0.5s var(--ease-smooth),
-    color        0.5s var(--ease-smooth),
-    box-shadow   0.3s ease,
-    transform    var(--t-fast) var(--ease-bounce);
+    color 0.5s var(--ease-smooth),
+    box-shadow 0.3s ease,
+    transform var(--t-fast) var(--ease-bounce);
 }
 
 /*
@@ -511,18 +624,29 @@
   el estado base sin conflictos de especificidad con la animación.
 */
 .btn-primary.btn-ready {
-  /* color vino sólido cuando el formulario está listo */
-  background: var(--brand-primary) !important;
+  background: linear-gradient(135deg, #850a31, #5A1229) !important;
   border-color: var(--brand-dark);
   color: var(--bg-white);
   cursor: pointer;
-  box-shadow: 0 4px 16px rgba(123,29,58,0.25);
-  animation: btnColorShift 3s infinite alternate;
+  box-shadow: 0 6px 20px rgba(133, 10, 49, 0.3), 0 2px 4px rgba(0, 0, 0, 0.1);
+  transform: translateY(-1px);
+  animation: btnPulse 2s infinite ease-in-out;
+}
+
+@keyframes btnPulse {
+  0% { box-shadow: 0 6px 20px rgba(133, 10, 49, 0.3); }
+  50% { box-shadow: 0 8px 25px rgba(133, 10, 49, 0.45); transform: translateY(-2px) scale(1.01); }
+  100% { box-shadow: 0 6px 20px rgba(133, 10, 49, 0.3); }
 }
 
 @keyframes btnColorShift {
-  0%   { background: var(--brand-primary); }
-  100% { background: #5e2129; }
+  0% {
+    background: linear-gradient(135deg, #850a31, #5A1229);
+  }
+
+  100% {
+    background: linear-gradient(135deg, #9E2A4A, #850a31);
+  }
 }
 
 /*
@@ -536,19 +660,26 @@
   left: -130%;
   width: 70px;
   height: 100%;
-  background: linear-gradient(
-    120deg,
-    transparent 15%,
-    rgba(255,255,255,0.26) 50%,
-    transparent 85%
-  );
+  background: linear-gradient(120deg,
+      transparent 15%,
+      rgba(255, 255, 255, 0.26) 50%,
+      transparent 85%);
   animation: shimmer 3s ease-in-out infinite;
   pointer-events: none;
 }
+
 @keyframes shimmer {
-  0%   { left: -130%; }
-  55%  { left: 130%;  }
-  100% { left: 130%;  }
+  0% {
+    left: -130%;
+  }
+
+  55% {
+    left: 130%;
+  }
+
+  100% {
+    left: 130%;
+  }
 }
 
 /* Hover en estado LISTO */
@@ -570,7 +701,7 @@
 /* Presionado */
 .btn-primary.btn-ready:active {
   transform: translateY(1px) scale(0.99);
-  box-shadow: 0 3px 8px rgba(123,29,58,0.28);
+  box-shadow: 0 3px 8px rgba(123, 29, 58, 0.28);
 }
 
 /* Estado deshabilitado durante carga o bloqueo */
@@ -585,14 +716,31 @@
    10. SPINNER DE CARGA
    -------------------------------------------------------------------------- */
 .spinner {
-  width: 22px;
-  height: 22px;
-  border: 3px solid rgba(255,255,255,0.30);
+  width: 24px;
+  height: 24px;
+  border: 3px solid rgba(255, 255, 255, 0.15);
   border-radius: var(--radius-full);
   border-top-color: #ffffff;
-  animation: spin 0.75s cubic-bezier(0.6, 0.2, 0.4, 0.8) infinite;
+  border-right-color: var(--gold-accent); /* Detalle dorado en el spinner */
+  position: relative;
+  animation: premiumSpin 0.9s cubic-bezier(0.5, 0, 0.5, 1) infinite;
 }
-@keyframes spin { to { transform: rotate(360deg); } }
+
+.spinner::after {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  border-radius: inherit;
+  border: 2px solid var(--brand-primary);
+  opacity: 0.4;
+  animation: premiumSpin 1.8s linear infinite reverse;
+}
+
+@keyframes premiumSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
 
 /* --------------------------------------------------------------------------
    11. OVERLAY DE ÉXITO — Cubre toda la tarjeta al iniciar sesión exitosamente
@@ -634,13 +782,23 @@
   align-items: center;
   justify-content: center;
   animation: successPop 0.6s var(--ease-bounce) forwards;
-  box-shadow: 0 8px 24px rgba(123,29,58,0.35);
+  box-shadow: 0 8px 24px rgba(123, 29, 58, 0.35);
 }
 
 @keyframes successPop {
-  0%   { opacity: 0; transform: scale(0.4) rotate(-20deg); }
-  60%  { transform: scale(1.12) rotate(4deg); }
-  100% { opacity: 1; transform: scale(1) rotate(0deg); }
+  0% {
+    opacity: 0;
+    transform: scale(0.4) rotate(-20deg);
+  }
+
+  60% {
+    transform: scale(1.12) rotate(4deg);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
 }
 
 .success-icon svg {
@@ -684,8 +842,13 @@
 }
 
 @keyframes progressFill {
-  0%   { width: 0%; }
-  100% { width: 100%; }
+  0% {
+    width: 0%;
+  }
+
+  100% {
+    width: 100%;
+  }
 }
 
 /* --------------------------------------------------------------------------
@@ -700,81 +863,49 @@
   line-height: 1.5;
 }
 
+.footer-text strong {
+  color: #850a31 !important;
+  font-weight: 800;
+}
+
 /* --------------------------------------------------------------------------
    13. RESPONSIVE
    -------------------------------------------------------------------------- */
 @media (max-width: 480px) {
-  .login-card      { padding: 2.2rem 1.5rem 1.8rem; border-radius: var(--radius-md); }
-  .brand-title     { font-size: 1.3rem; }
-  .logo-container  { width: 90px; height: 90px; }
+  .login-card {
+    padding: 2.2rem 1.5rem 1.8rem;
+    border-radius: var(--radius-md);
+  }
+
+  .brand-title {
+    font-size: 1.3rem;
+  }
+
+  .logo-container {
+    width: 90px;
+    height: 90px;
+  }
 }
 
 
 
-/* --- BOTÓN PRINCIPAL SSPC OAXACA --- */
-.btn-primary {
-  position: relative;
-  width: 100%;
-  padding: 0.95rem 1rem;
-  border-radius: 12px;
-  font-size: 1rem;
-  font-weight: 700;
-  cursor: not-allowed;
-  border: 1.5px solid #e5e7eb;
-  background: #f3f4f6; /* Gris cuando está vacío */
-  color: #9ca3af;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  overflow: hidden;
-  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-}
 
-/* ESTADO LISTO (Cuando el formulario está lleno) */
-.btn-primary.btn-ready {
-  background: #850a31 !important; /* Vino Institucional */
-  border-color: #5A1229;
-  color: #ffffff;
-  cursor: pointer;
-  box-shadow: 0 4px 12px rgba(133, 10, 49, 0.2);
-}
 
-/* ANIMACIÓN 1: Al pasar el mouse (Hover) */
-.btn-primary.btn-ready:hover {
-  background: #5A1229 !important; /* Vino más oscuro */
-  transform: translateY(-3px) scale(1.02);
-  box-shadow: 0 8px 20px rgba(133, 10, 49, 0.4);
-}
+/* --------------------------------------------------------------------------
+   13. RESPONSIVE
+   -------------------------------------------------------------------------- */
+@media (max-width: 480px) {
+  .login-card {
+    padding: 2.2rem 1.5rem 1.8rem;
+    border-radius: var(--radius-md);
+  }
 
-/* Efecto de brillo sutil al pasar el mouse */
-.btn-primary.btn-ready::after {
-  content: '';
-  position: absolute;
-  top: 0; left: -100%;
-  width: 100%; height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-  transition: 0.5s;
-}
+  .brand-title {
+    font-size: 1.3rem;
+  }
 
-.btn-primary.btn-ready:hover::after {
-  left: 100%;
-}
-
-/* ANIMACIÓN 2: Iniciando sesión (Loading/Spinner) */
-.spinner {
-  width: 20px;
-  height: 20px;
-  border: 3px solid rgba(255, 255, 255, 0.3);
-  border-radius: 50%;
-  border-top-color: #ffffff;
-  animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-/* Estado presionado */
-.btn-primary:active {
-  transform: translateY(1px);
+  .logo-container {
+    width: 90px;
+    height: 90px;
+  }
 }
