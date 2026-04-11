@@ -20,7 +20,19 @@ export class CsvModal {
   resultado: CsvUploadResponse | null = null;
 
   descargarFormato(): void {
-    this.csvService.descargarTemplate();
+    this.csvService.descargarTemplate().subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'formato_voluntarios.csv';
+        link.click();
+        window.URL.revokeObjectURL(url);
+      },
+      error: (err) => {
+        console.error('Error al descargar plantilla CSV:', err);
+      }
+    });
   }
 
   onFileSelected(event: Event): void {

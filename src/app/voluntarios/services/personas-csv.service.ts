@@ -16,11 +16,8 @@ export class PersonasCsvService {
   private http = inject(HttpClient);
   private apiUrl = 'http://localhost:3000/voluntarios/personas/csv';
 
-  descargarTemplate(): void {
-    const link = document.createElement('a');
-    link.href = `${this.apiUrl}/template`;
-    link.download = 'formato_voluntarios.csv';
-    link.click();
+  descargarTemplate(): Observable<Blob> {
+    return this.http.get(`${this.apiUrl}/template`, { responseType: 'blob' });
   }
 
   uploadCsv(file: File): Observable<CsvUploadResponse> {
