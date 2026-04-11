@@ -267,3 +267,50 @@ button:disabled {
   background: #ccc;
   cursor: not-allowed;
 }
+
+/* ================= NOTIFICACIONES (TOAST) ================= */
+.in-app-toast {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 9999;
+  background: #10b981;
+  color: white;
+  padding: 1rem 2rem;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 300px;
+  animation: slideIn 0.3s ease-out;
+}
+
+.toast-error {
+  background: #ef4444;
+}
+
+.toast-content { 
+  display: flex; 
+  align-items: center; 
+  gap: 15px; 
+}
+
+.toast-content p { 
+  margin: 0; 
+  font-weight: 600; 
+  font-size: 0.95rem; 
+}
+
+.toast-icon { 
+  font-size: 1.4rem; 
+}
+
+@keyframes slideIn {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+.fade-in {
+  animation: slideIn 0.3s ease-out;
+}

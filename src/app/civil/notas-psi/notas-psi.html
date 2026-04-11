@@ -12,7 +12,9 @@
     placeholder="Buscar sesión #">
 
     <button (click)="buscar()">🔍 Buscar</button>
-    <button class="btn-pdf" (click)="descargarPDF()">📄 Descargar Nota (PDF)</button>
+    <button class="btn-pdf" (click)="descargarPDF()" *ngIf="notas.length > 0">
+      📄 Descargar Nota (PDF)
+    </button>
   </div>
 
 <!--  NO ENCONTRADO -->

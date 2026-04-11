@@ -23,6 +23,10 @@ export class NuevoExpedienteCivicoComponent {
 
   previewUrl: string | null = null;
   fotoBase64: string | null = null;
+  archivoCanalizacion: File | null = null;
+
+  mostrarMadre = false;
+  mostrarPadre = false;
 
   beneficiarioForm: FormGroup;
   civicoForm: FormGroup;
@@ -60,8 +64,8 @@ export class NuevoExpedienteCivicoComponent {
       ocupacionActual: [''],
       nacionalidad: ['Mexicana'],
 
-      madreNombre: ['', Validators.required],
-      madreTelefono: ['', Validators.required],
+      madreNombre: [''],
+      madreTelefono: [''],
 
       padreNombre: [''],
       padreTelefono: [''],
@@ -156,6 +160,16 @@ export class NuevoExpedienteCivicoComponent {
     reader.readAsDataURL(file);
   }
 
+  // DOCUMENTO CANALIZACIÓN
+  onCanalizacionChange(event: any) {
+    const file = event.target.files[0];
+    if (file) {
+      this.archivoCanalizacion = file;
+    } else {
+      this.archivoCanalizacion = null;
+    }
+  }
+
   //  PASO 1
   crearBeneficiario() {
 
@@ -214,27 +228,47 @@ export class NuevoExpedienteCivicoComponent {
 
       contactosFamiliares: {
         madre: {
-          nombre: raw.madreNombre,
-          telefono: raw.madreTelefono
+          nombre: this.mostrarMadre ? raw.madreNombre : 'NO TIENE MADRE',
+          telefono: this.mostrarMadre ? raw.madreTelefono : 'NO TIENE MADRE'
         },
         padre: {
-          nombre: raw.padreNombre || '',
-          telefono: raw.padreTelefono || ''
+          nombre: this.mostrarPadre ? raw.padreNombre : 'NO TIENE PADRE',
+          telefono: this.mostrarPadre ? raw.padreTelefono : 'NO TIENE PADRE'
         }
       }
     };
 
     this.service.crearCivico(data).subscribe({
-      next: () => {
-        this.mensaje = 'Expediente creado ';
+      next: (res: any) => {
+        const idExpediente = res.idUUID || res.id;
 
-        setTimeout(() => {
-          this.router.navigate(['/expedientes']);
-        }, 1500);
+        if (this.archivoCanalizacion && idExpediente) {
+          this.mensaje = 'Subiendo oficio de canalización...';
+          
+          const formData = new FormData();
+          formData.append('file', this.archivoCanalizacion);
+          formData.append('expedienteId', idExpediente);
+          formData.append('tipo', 'CANALIZACION');
+
+          this.service.subirDocumentoEscaneado(formData).subscribe({
+            next: () => {
+              this.mensaje = 'Expediente y Oficio guardados correctamente.';
+              setTimeout(() => this.router.navigate(['/expedientes']), 1500);
+            },
+            error: (err) => {
+              this.loading = false;
+              this.error = 'Expediente creado, pero falló la subida del oficio. ' + (err.error?.message || '');
+              setTimeout(() => this.router.navigate(['/expedientes']), 3000);
+            }
+          });
+        } else {
+          this.mensaje = 'Expediente creado exitosamente.';
+          setTimeout(() => this.router.navigate(['/expedientes']), 1500);
+        }
       },
       error: (err) => {
         this.loading = false;
-        this.error = err.error?.message || 'Error en backend';
+        this.error = err.error?.message || 'Error en backend al crear el expediente';
       }
     });
   }

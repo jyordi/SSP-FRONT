@@ -98,7 +98,12 @@
         </div>
         <div class="form-group">
           <label>Nacionalidad</label>
-          <input type="text" formControlName="nacionalidad">
+          <select formControlName="nacionalidad">
+            <option value="">Selecciona</option>
+            <option value="Mexicana">Mexicana</option>
+            <option value="Extranjera">Extranjera</option>
+            <option value="Otra">Otra</option>
+          </select>
           <div class="error"
  *ngIf="entrevistaForm.get('nacionalidad')?.invalid && entrevistaForm.get('nacionalidad')?.touched">
   Campo obligatorio
@@ -435,13 +440,13 @@
             <label><input type="radio" value="no" formControlName="enfermedadCronica"> No</label>
           </div>
         </div>
-        <div class="form-group">
+        <div class="form-group" *ngIf="enfermedadCronica">
           <label>¿Lleva tratamiento?</label>
           <div class="radio-group">
             <label><input type="radio" value="si" formControlName="llevaTratamiento"> Sí</label>
             <label><input type="radio" value="no" formControlName="llevaTratamiento"> No</label>
           </div>
-          <textarea placeholder="Indique cuál" formControlName="detalleTratamiento"></textarea>
+          <textarea *ngIf="llevaTratamiento" placeholder="Indique cuál" formControlName="detalleTratamiento"></textarea>
         </div>
       </div>
     </div>
@@ -483,9 +488,16 @@
       <button type="submit"
   class="btn-success"
   >
-  Guardar Evaluación
+  {{ datosF1 ? 'Actualizar Entrevista' : 'Guardar Evaluación' }}
 </button>
     </div>
-
   </form>
+</div>
+
+<!-- NOTIFICACIÓN INTEGRADA (TOAST) -->
+<div class="in-app-toast fade-in" *ngIf="mensajeInApp" [class.toast-error]="mensajeInApp.tipo === 'error'">
+  <div class="toast-content">
+    <span class="toast-icon">{{ mensajeInApp.tipo === 'success' ? '✅' : '❌' }}</span>
+    <p>{{ mensajeInApp.texto }}</p>
+  </div>
 </div>

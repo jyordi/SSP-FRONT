@@ -19,6 +19,8 @@ export class FormuPsico {
   @Input() datosAdmin: any = null;  // Los datos que llenó el admin
   @Output() entrevistaGuardada = new EventEmitter<any>();
 
+  mensajeInApp: { texto: string, tipo: 'success' | 'error' } | null = null;
+
   entrevistaForm: FormGroup;
 
   constructor(private fb: FormBuilder, private civicoService: Civico) {
@@ -51,22 +53,22 @@ export class FormuPsico {
       observacionesFamilia: [''],
 
       // SUSTANCIAS
-      consumeAlcohol: ['no', Validators.required],
+      consumeAlcohol: ['', Validators.required],
       especificaConsumo: [''],
 
-      haRecibidoTerapias: ['no', Validators.required],
+      haRecibidoTerapias: ['', Validators.required],
       especificaTerapias: [''],
 
-      necesitaApoyoPsicologico: ['no', Validators.required],
+      necesitaApoyoPsicologico: ['', Validators.required],
       especificaApoyo: [''],
 
-      acudeSesionesGrupos: ['no', Validators.required],
+      acudeSesionesGrupos: ['', Validators.required],
       especificaDonde: [''],
 
-      haEstadoRehabilitacion: ['no', Validators.required],
+      haEstadoRehabilitacion: ['', Validators.required],
       especificaEnCual: [''],
 
-      perteneceGrupoCultural: ['no', Validators.required],
+      perteneceGrupoCultural: ['', Validators.required],
       especificaGrupo: [''],
 
       // EMOCIONES
@@ -81,10 +83,17 @@ export class FormuPsico {
       deportes: ['', Validators.required],
       tiempoLibre: ['', Validators.required],
       saludGeneral: ['', Validators.required],
-      enfermedadCronica: ['no', Validators.required],
-      llevaTratamiento: ['no', Validators.required],
+      enfermedadCronica: ['', Validators.required],
+      llevaTratamiento: ['', Validators.required],
       detalleTratamiento: ['', ],
 
+      // PROYECTO DE VIDA
+      proyectoPersonal: [''],
+      proyectoFamiliar: [''],
+      proyectoLaboral: [''],
+      proyectoEspiritual: [''],
+      proyectoAcademico: [''],
+      proyectoSocial: [''],
 
     });
   }
@@ -139,9 +148,15 @@ export class FormuPsico {
         
         especificaConsumo: this.datosF1.sustanciasDetalle?.especifique || '',
         especificaTerapias: this.datosF1.sustanciasDetalle?.donde_terapias || '',
-        especificaDonde: this.datosF1.sustanciasDetalle?.donde_grupos_aa || '',
-        especificaEnCual: this.datosF1.sustanciasDetalle?.donde_rehabilitacion || '',
-        especificaGrupo: this.datosF1.sustanciasDetalle?.cual_grupo || ''
+        especificaGrupo: this.datosF1.sustanciasDetalle?.cual_grupo || '',
+
+        // PROYECTO DE VIDA (Aseguramos que se parchen todos los ejes)
+        proyectoPersonal: this.datosF1.proyectoVida?.personal || this.datosF1.proyectoVida?.proyectoPersonal || '',
+        proyectoFamiliar: this.datosF1.proyectoVida?.familiar || this.datosF1.proyectoVida?.proyectoFamiliar || '',
+        proyectoLaboral: this.datosF1.proyectoVida?.laboral || this.datosF1.proyectoVida?.proyectoLaboral || '',
+        proyectoEspiritual: this.datosF1.proyectoVida?.espiritual || this.datosF1.proyectoVida?.proyectoEspiritual || '',
+        proyectoAcademico: this.datosF1.proyectoVida?.academico || this.datosF1.proyectoVida?.proyectoAcademico || '',
+        proyectoSocial: this.datosF1.proyectoVida?.social || this.datosF1.proyectoVida?.proyectoSocial || ''
       });
 
       this.entrevistaForm.patchValue({
@@ -181,6 +196,9 @@ export class FormuPsico {
       next: (expediente: any) => {
         console.log('2. ✅ Datos del Expediente (/civico/expedientes/{id}):', expediente);
         
+        // --- AUTORELLENO DE PADRES ---
+        this.autorellenarPadresDesdeContactos(expediente);
+
         // Buscar el ID del beneficiario
         const beneficiarioId = expediente.beneficiarioId || expediente.beneficiario_id || expediente.beneficiario?.id;
         
@@ -207,12 +225,51 @@ export class FormuPsico {
             },
             error: (err) => console.error('🔴 Error al obtener /beneficiarios/{id}:', err)
           });
-        } else {
-          console.warn('🟡 No se encontró un beneficiarioId en la respuesta del expediente.');
         }
       },
       error: (err) => console.error('🔴 Error al obtener /civico/expedientes/{id}:', err)
     });
+  }
+
+  private autorellenarPadresDesdeContactos(exp: any) {
+    if (this.familiares.length > 0) return;
+
+    const contactos = exp.contactosFamiliares;
+    if (!contactos) return;
+
+    const esValido = (nombre: any) => {
+      if (!nombre) return false;
+      const n = String(nombre).toUpperCase().trim();
+      return n !== '' && n !== 'NO TIENE MADRE' && n !== 'NO TIENE PADRE' && n !== 'UNDEFINED' && n !== 'NULL';
+    };
+
+    // Madre
+    if (contactos.madre && esValido(contactos.madre.nombre)) {
+      this.familiares.push(this.fb.group({
+        nombre: [contactos.madre.nombre, Validators.required],
+        parentesco: ['MADRE', Validators.required],
+        edad: [''],
+        estadoCivil: [''],
+        escolaridad: [''],
+        ocupacion: ['']
+      }));
+    }
+
+    // Padre
+    if (contactos.padre && esValido(contactos.padre.nombre)) {
+      this.familiares.push(this.fb.group({
+        nombre: [contactos.padre.nombre, Validators.required],
+        parentesco: ['PADRE', Validators.required],
+        edad: [''],
+        estadoCivil: [''],
+        escolaridad: [''],
+        ocupacion: ['']
+      }));
+    }
+
+    if (this.familiares.length > 0) {
+      console.log('👨‍👩‍👦 Padres autorrellenados con éxito:', this.familiares.value);
+    }
   }
 
   // ✨ FUNCIÓN EXTRA (Ponla en cualquier lugar de tu clase)
@@ -229,6 +286,13 @@ export class FormuPsico {
     return Math.max(0, edad); // Evitamos edades negativas
   }
 
+  mostrarMensaje(texto: string, tipo: 'success' | 'error' = 'success') {
+    this.mensajeInApp = { texto, tipo };
+    setTimeout(() => {
+      this.mensajeInApp = null;
+    }, 4000);
+  }
+
   // 🔥 VALIDACIONES DINÁMICAS
   validacionesDinamicas() {
     const esSi = (v: string) => v === 'si';
@@ -241,13 +305,16 @@ export class FormuPsico {
       });
     };
 
-    setReq('especificaConsumo', 'consumeAlcohol');
-    setReq('especificaTerapias', 'haRecibidoTerapias');
-    setReq('especificaApoyo', 'necesitaApoyoPsicologico');
-    setReq('especificaDonde', 'acudeSesionesGrupos');
-    setReq('especificaEnCual', 'haEstadoRehabilitacion');
     setReq('especificaGrupo', 'perteneceGrupoCultural');
     setReq('detalleTratamiento', 'llevaTratamiento');
+
+    // 🔥 CÁLCULO AUTOMÁTICO DE EDAD (RF-GENERAL)
+    this.entrevistaForm.get('fechaNacimiento')?.valueChanges.subscribe(fecha => {
+      if (fecha) {
+        const edadActual = this.calcularEdad(fecha);
+        this.entrevistaForm.patchValue({ edad: edadActual }, { emitEvent: false });
+      }
+    });
   }
 
   // 🔥 BOTÓN (ARREGLADO)
@@ -286,6 +353,7 @@ export class FormuPsico {
     console.log('CLICK FUNCIONA');
     if (this.entrevistaForm.invalid) {
       this.entrevistaForm.markAllAsTouched();
+      this.mostrarMensaje("Atención: Por favor completa todos los campos obligatorios correctamente.", 'error');
       console.warn('Formulario inválido');
       return;
     }
@@ -324,7 +392,7 @@ export class FormuPsico {
         },
         error: (err) => {
           console.error(' ERROR AL CREAR', err);
-          alert('Error al guardar la entrevista');
+          this.mostrarMensaje("Error al guardar la entrevista", 'error');
         }
       });
     }
@@ -405,6 +473,16 @@ export class FormuPsico {
         indique_tratamiento: f.detalleTratamiento || ""
       },
 
+      // Bloque Proyecto de Vida
+      proyectoVida: {
+        personal: f.proyectoPersonal || "",
+        familiar: f.proyectoFamiliar || "",
+        laboral: f.proyectoLaboral || "",
+        espiritual: f.proyectoEspiritual || "",
+        academico: f.proyectoAcademico || "",
+        social: f.proyectoSocial || ""
+      },
+
       // El enum del DTO dice que debe ser "COMPLETADO" o "EN_PROCESO"
       estatusF1: "COMPLETADO" 
     };
@@ -417,5 +495,7 @@ export class FormuPsico {
   get acudeSesionesGrupos() { return this.entrevistaForm.get('acudeSesionesGrupos')?.value === 'si'; }
   get haEstadoRehabilitacion() { return this.entrevistaForm.get('haEstadoRehabilitacion')?.value === 'si'; }
   get perteneceGrupoCultural() { return this.entrevistaForm.get('perteneceGrupoCultural')?.value === 'si'; }
+  get enfermedadCronica() { return this.entrevistaForm.get('enfermedadCronica')?.value === 'si'; }
+  get llevaTratamiento() { return this.entrevistaForm.get('llevaTratamiento')?.value === 'si'; }
 
 }

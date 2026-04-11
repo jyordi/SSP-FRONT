@@ -4,13 +4,14 @@ import { ActivatedRoute } from '@angular/router';
 import { SessionService } from '../../services/session';
 import { Civico } from '../../services/civico';
 import { CommonModule, Location } from '@angular/common';
-import Swal from 'sweetalert2';
 import { NavbarReconectaComponent } from "../../shared/navbar-reconecta/navbar-reconecta";
+import { ToastService } from '../../services/toast.service';
+import { ToastComponent } from '../../shared/toast/toast.component';
 
 @Component({
   standalone:true,
   selector: 'app-seguimiento-psi',
-  imports: [ ReactiveFormsModule,CommonModule, NavbarReconectaComponent],
+  imports: [ ReactiveFormsModule,CommonModule, NavbarReconectaComponent, ToastComponent],
   templateUrl: './seguimiento-psi.html',
   styleUrls: ['./seguimiento-psi.css'],
 })
@@ -25,7 +26,8 @@ export class SeguimientoPsi {
     private route: ActivatedRoute,
     private notaService: Civico,
     private sessionService: SessionService,
-    private location: Location
+    private location: Location,
+    private toast: ToastService
   ) {}
 
   ngOnInit(): void {
@@ -63,20 +65,12 @@ export class SeguimientoPsi {
   }
 
   onSubmit() {
-
-    Swal.fire({
-      title: '¿Guardar nota?',
-      text: 'Verifica que la información sea correcta',
-      icon: 'question',
-      showCancelButton: true,
-      confirmButtonText: 'Sí, guardar',
-      cancelButtonText: 'Cancelar'
-    }).then((result) => {
-
-      if (!result.isConfirmed) return;
-
-      this.guardarNota();
-    });
+    if (this.notaEvolucionForm.invalid) {
+      this.toast.showError("Por favor, completa los campos obligatorios.");
+      this.notaEvolucionForm.markAllAsTouched();
+      return;
+    }
+    this.guardarNota();
   }
 
   guardarNota() {
@@ -101,21 +95,13 @@ export class SeguimientoPsi {
     this.notaService.crearnota(payload).subscribe({
       next: () => {
         this.loading = false;
-
-        Swal.fire('Guardado', 'Nota guardada correctamente', 'success').then(() => {
-          this.location.back();
-        });
-
-        this.notaEvolucionForm.reset({
-          avancePercibido: 'INICIAL',
-          numSesion: form.numSesion + 1,
-          esCierre: false
-        });
+        this.toast.showSuccess('Nota de sesión guardada correctamente');
+        setTimeout(() => this.location.back(), 2000);
       },
       error: (err) => {
         this.loading = false;
         console.error(err);
-        Swal.fire('Error', 'No se pudo guardar', 'error');
+        this.toast.showError('Error: No se pudo guardar la nota');
       }
     });
   }

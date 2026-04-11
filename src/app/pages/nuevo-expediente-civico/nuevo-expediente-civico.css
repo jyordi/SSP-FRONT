@@ -127,6 +127,66 @@ button:hover {
   to { transform: rotate(360deg); }
 }
 
+/* FAMILY SECTION */
+.family-section {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  background: #fdfdfd;
+  padding: 15px;
+  border-radius: 12px;
+  border: 1px dashed #ccc;
+  margin: 15px 0;
+}
+
+.btn-toggle {
+  background: #28a745;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 8px;
+  cursor: pointer;
+  width: auto;
+  font-size: 0.9rem;
+  transition: 0.3s;
+}
+
+.btn-toggle:hover {
+  background: #218838;
+}
+
+.field-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.field-header h4 {
+  margin: 0;
+  color: #555;
+  font-size: 0.95rem;
+}
+
+.btn-remove {
+  background: #dc3545;
+  color: white;
+  padding: 4px 10px;
+  font-size: 0.75rem;
+  width: auto;
+  margin: 0;
+}
+
+.btn-remove:hover {
+  background: #c82333;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid #eee;
+  width: 100%;
+}
+
 /* ANIMACIÓN */
 .fade {
   animation: fadeIn 0.4s ease;

@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormsModule } from '@angular/forms';
 import { Civico } from '../../services/civico';
 import { SessionService } from '../../services/session';
+import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-ficha-tecnica',
@@ -21,6 +22,7 @@ export class FichaTecnica implements OnInit {
   private fb = inject(FormBuilder);
   private civicoService = inject(Civico);
   private session = inject(SessionService);
+  private toast = inject(ToastService);
 
   f4Form: FormGroup = new FormGroup({});
 
@@ -68,13 +70,12 @@ export class FichaTecnica implements OnInit {
       // Proceso de ingreso
       procesoIngreso: [''],
 
-      // 6 categorías de seguimiento (incluye PSICOLÓGICA)
+      // 5 categorías de seguimiento
       educativa:    [''],
       laboral:      [''],
       familiar:     [''],
       deportivo:    [''],
       cultural:     [''],
-      psicologica:  [''],
 
       estatusF4: ['PENDIENTE', Validators.required],
     });
@@ -97,7 +98,6 @@ export class FichaTecnica implements OnInit {
           familiar:    act['FAMILIAR']    || '',
           deportivo:   act['DEPORTIVO']   || '',
           cultural:    act['CULTURAL']    || '',
-          psicologica: act['PSICOLOGICA'] || '',
           estatusF4:   res.estatusF4      || 'PENDIENTE',
         });
 
@@ -135,7 +135,6 @@ export class FichaTecnica implements OnInit {
         FAMILIAR:    v.familiar    || undefined,
         DEPORTIVO:   v.deportivo   || undefined,
         CULTURAL:    v.cultural    || undefined,
-        PSICOLOGICA: v.psicologica || undefined,
       },
       estatusF4: v.estatusF4 || 'EN_PROCESO',
     };
@@ -180,7 +179,7 @@ export class FichaTecnica implements OnInit {
 
   confirmarYDescargar() {
     if (!this.modalidadFalta || this.modalidadFalta.trim() === '') {
-      alert('Por favor, ingresa la modalidad antes de continuar.');
+      this.toast.showError('Ingresa la modalidad para continuar.');
       return;
     }
 
@@ -192,6 +191,7 @@ export class FichaTecnica implements OnInit {
       modalidadFalta: this.modalidadFalta.trim().toUpperCase()
     }).subscribe({
       next: () => {
+        this.toast.showSuccess("Modalidad actualizada. Generando PDF...");
         // 2. Si se actualizó bien, llamar a la generación de PDF
         this.civicoService.generarDocumentoPDF('f4-cedula-inicial', this.expedienteId).subscribe({
           next: (blob: any) => {
@@ -208,7 +208,7 @@ export class FichaTecnica implements OnInit {
       },
       error: (err: any) => {
         this.generandoPDF = false;
-        alert('Error al actualizar la modalidad en el expediente: ' + (err.error?.message || err.message));
+        this.toast.showError('Error al actualizar modalidad: ' + (err.error?.message || err.message));
       }
     });
   }
@@ -217,14 +217,13 @@ export class FichaTecnica implements OnInit {
     this.generandoPDF = false;
     let msg = err.error?.message || err.message;
     if (Array.isArray(msg)) msg = msg.join(', ');
-    alert(`Error al generar PDF: ${msg}`);
+    this.toast.showError(`Error al generar PDF: ${msg}`);
   }
 
   private finalizarGuardado() {
     this.guardando = false;
-    this.guardadoExito = true;
+    this.toast.showSuccess("Ficha Técnica (F4) guardada correctamente.");
     this.f4Estatus = this.f4Form.getRawValue().estatusF4 || this.f4Estatus;
-    setTimeout(() => (this.guardadoExito = false), 3500);
   }
 
   private manejarError(err: any) {
@@ -235,7 +234,7 @@ export class FichaTecnica implements OnInit {
         ? err.error.message.join('\n')
         : err.error.message;
     }
-    alert('Error al guardar la Ficha Técnica:\n\n' + msg);
+    this.toast.showError('Error al guardar F4: ' + msg);
     console.error('F4 error:', err);
   }
 }

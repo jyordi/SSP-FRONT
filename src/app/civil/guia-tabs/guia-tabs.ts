@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormGroup, ReactiveFormsModule, FormsModule, Validators, FormBuilder } from '@angular/forms';
 import { Civico } from '../../services/civico';
 import { SessionService } from '../../services/session';
+import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-guia-tabs',
@@ -54,10 +55,17 @@ export class GuiaTabsComponent implements OnInit {
   totalFaltas: number = 0;
   estadoBaja: boolean = false;
 
+  // NOTIFICACIONES IN-APP (MIGRADO A GLOBAL)
+  registroEliminar: any = null;
+
+  // Lógica de Selección para Reportes (Frontend-Only)
+  idsSeleccionados: Set<any> = new Set();
+
   constructor(
     private fb: FormBuilder,
     private civico: Civico,
-    private session: SessionService
+    private session: SessionService,
+    private toast: ToastService
   ) {
     this.horasTotalesAsignadas = 25;
     this.initForms();
@@ -89,6 +97,41 @@ export class GuiaTabsComponent implements OnInit {
   get esGuia(): boolean { return this.session.esGuia(); }
   get puedeRegistrar(): boolean { return this.esGuia; } // Admin solo visualiza
 
+  // MÉTODOS DE SELECCIÓN
+  toggleSeleccion(reg: any) {
+    const id = reg.idUUID || reg.id;
+    if (this.idsSeleccionados.has(id)) {
+      this.idsSeleccionados.delete(id);
+    } else {
+      this.idsSeleccionados.add(id);
+    }
+  }
+
+  estaSeleccionado(reg: any): boolean {
+    return this.idsSeleccionados.has(reg.idUUID || reg.id);
+  }
+
+  get haySeleccionados(): boolean {
+    return this.idsSeleccionados.size > 0;
+  }
+
+  seleccionarTodoToggle() {
+    if (this.haySeleccionados && this.idsSeleccionados.size === this.registrosHoras.length) {
+      this.idsSeleccionados.clear();
+    } else {
+      this.registrosHoras.forEach((r: any) => this.idsSeleccionados.add(r.idUUID || r.id));
+    }
+  }
+
+  get horasRestantes(): number {
+    const faltan = this.resumenHoras.horasSentencia - this.resumenHoras.horasAcumuladas;
+    return faltan > 0 ? faltan : 0;
+  }
+
+  get estaCompletado(): boolean {
+    return this.resumenHoras.porcentajeAvance >= 100;
+  }
+
   ngOnInit() {
     this.cargarDatos();
   }
@@ -96,36 +139,65 @@ export class GuiaTabsComponent implements OnInit {
   cargarDatos() {
     if (!this.expediente) return;
     const id = this.expediente.idUUID || this.expediente.id;
-    if (this.expediente.horasSentencia) {
-        this.horasTotalesAsignadas = this.expediente.horasSentencia;
-    }
+    
+    // Asegurar que horas totales estén sincronizadas desde el inicio
+    const horasSentencia = Number(this.expediente.horasSentencia || 0);
+    this.resumenHoras.horasSentencia = horasSentencia;
+    this.horasTotalesAsignadas = horasSentencia;
 
+    // 1. Cargar Bitácora y Calcular todo localmente para mayor fiabilidad
     this.civico.obtenerBitacoraPorExpediente(id).subscribe({
-      next: (res: any[]) => this.registrosHoras = res?.length ? res : [],
-      error: () => this.registrosHoras = []
+      next: (res: any[]) => {
+        this.registrosHoras = res?.length ? res : [];
+        console.log("BITÁCORA LOADED:", this.registrosHoras);
+        if (res?.length) console.table(this.registrosHoras); // 📸 Ver las columnas reales de la bitácora
+        
+        // Calcular faltas (strikes)
+        this.totalFaltas = this.registrosHoras.filter((r: any) => r.asistencia === 'FALTA_INJUSTIFICADA').length;
+        this.estadoBaja = this.totalFaltas >= 3;
+
+        // Calcular progreso local
+        this.calcularResumenLocal();
+      },
+      error: (err) => {
+        console.error("Error cargando bitácora:", err);
+        this.registrosHoras = [];
+      }
     });
 
+    // 2. Cargar Incidencias (Opcional si ya se traen en bitácora, pero se mantiene por ahora)
     this.civico.obtenerIncidenciasPorExpediente(id).subscribe({
       next: (res: any[]) => this.listaInasistencias = res?.length ? res : [],
       error: () => this.listaInasistencias = []
     });
 
-    // Cargar resumen de horas oficial del backend
+    // 3. Intentar cargar resumen del backend (como respaldo/verificación)
     this.civico.obtenerResumenHorasBitacora(id).subscribe({
       next: (res) => {
-        this.resumenHoras = res;
+        if (res && res.horasSentencia > 0) {
+           // Si el backend trae algo válido, lo tomamos
+           this.resumenHoras = res;
+        } else {
+           // Si no, recalculamos local
+           this.calcularResumenLocal();
+        }
       },
-      error: (err) => console.error("Error cargando resumen de horas:", err)
+      error: () => this.calcularResumenLocal()
     });
+  }
 
-    // Calcular strikes (Feltas Injustificadas)
-    this.civico.obtenerBitacoraPorExpediente(id).subscribe({
-      next: (res: any[]) => {
-        this.registrosHoras = res;
-        this.totalFaltas = res.filter(r => r.asistencia === 'FALTA_INJUSTIFICADA').length;
-        this.estadoBaja = this.totalFaltas >= 3;
-      }
-    });
+  private calcularResumenLocal() {
+    const acumuladas = this.registrosHoras.reduce((acc, reg) => acc + Number(reg.horasCubiertas || 0), 0);
+    const sentencia = Number(this.resumenHoras.horasSentencia || this.expediente?.horasSentencia || 0);
+    
+    this.resumenHoras.horasAcumuladas = acumuladas;
+    this.resumenHoras.horasSentencia = sentencia;
+    
+    if (sentencia > 0) {
+      this.resumenHoras.porcentajeAvance = Math.round((acumuladas / sentencia) * 100);
+    } else {
+      this.resumenHoras.porcentajeAvance = 0;
+    }
   }
 
   cambiarTab(tab: 'horas' | 'inasistencias' | 'asistencia') {
@@ -136,7 +208,7 @@ export class GuiaTabsComponent implements OnInit {
   obtenerAcumuladas(index: number): number {
     let sum = 0;
     for (let i = 0; i <= index; i++) {
-        sum += Number(this.registrosHoras[i]?.horas || 0);
+        sum += Number(this.registrosHoras[i]?.horasCubiertas || 0);
     }
     return sum;
   }
@@ -148,9 +220,10 @@ export class GuiaTabsComponent implements OnInit {
   agregarRegistroHora() {
     this.registrosHoras.push({
       id: Date.now(),
-      fecha: new Date().toLocaleDateString(),
+      fechaActividad: new Date().toISOString().split('T')[0],
       actividad: 'Nueva Actividad',
-      horas: 0,
+      horasCubiertas: 0,
+      asistencia: 'PRESENTE'
     });
   }
 
@@ -166,7 +239,7 @@ export class GuiaTabsComponent implements OnInit {
   }
 
   eliminarFilaAsistencia(id: number) {
-    this.listaAsistencia = this.listaAsistencia.filter(f => f.id !== id);
+    this.listaAsistencia = this.listaAsistencia.filter((f: any) => f.id !== id);
   }
 
   guardarBitacora() {
@@ -183,29 +256,48 @@ export class GuiaTabsComponent implements OnInit {
       horasCubiertas: Number(value.horasCubiertas)
     };
 
+    console.log('🚀 ENVIANDO BITÁCORA AL BACKEND:', payload);
+
     this.civico.registrarBitacora(payload).subscribe({
       next: () => {
-        alert("Registro de bitácora guardado correctamente.");
+        this.toast.showSuccess("Registro de bitácora guardado correctamente.");
         this.cerrarModalBitacora();
         this.cargarDatos();
       },
       error: (err: any) => {
         const msg = err.error?.message || "Error al registrar asistencia";
-        alert("Atención: " + msg);
+        this.toast.showError("Atención: " + msg);
       }
     });
   }
 
-  eliminarRegistro(id: number) {
-    if (!confirm('¿Estás seguro de que deseas eliminar este registro de la bitácora? Esto afectará el cálculo de horas.')) return;
+  // MIGRACIÓN: Se eliminó mostrarMensaje local en favor de ToastService global.
+
+
+  eliminarRegistro(reg: any) {
+    this.registroEliminar = reg;
+  }
+
+  confirmarEliminarDefinitivo() {
+    if (!this.registroEliminar) return;
+    const id = this.registroEliminar.idUUID || this.registroEliminar.id;
+
+    console.log("DELETING BITACORA REG:", id);
+    if (!id) {
+      this.toast.showError("Error: ID del registro no encontrado.");
+      this.registroEliminar = null;
+      return;
+    }
 
     this.civico.eliminarRegistroBitacora(id).subscribe({
       next: () => {
-        alert("Registro eliminado exitosamente.");
-        this.cargarDatos(); // Recargar la bitácora y los recálculos
+        this.toast.showSuccess("Registro eliminado exitosamente.");
+        this.registroEliminar = null;
+        this.cargarDatos(); 
       },
       error: (err: any) => {
-        alert("Error al eliminar el registro: " + (err.error?.message || err.message));
+        this.toast.showError("Error al eliminar: " + (err.error?.message || err.message));
+        this.registroEliminar = null;
       }
     });
   }
@@ -217,57 +309,14 @@ export class GuiaTabsComponent implements OnInit {
       asistencia: '',
       actividadId: 1
     });
-    this.previewUrl = null;
     this.mostrarModalBitacora = true;
   }
 
   cerrarModalBitacora() {
     this.mostrarModalBitacora = false;
-    this.previewUrl = null;
   }
 
-  onFileChange(event: any) {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-
-    reader.onload = (e: any) => {
-      const img = new Image();
-      img.src = e.target.result;
-
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        const MAX_WIDTH = 500;
-        const scale = MAX_WIDTH / img.width;
-
-        canvas.width = MAX_WIDTH;
-        canvas.height = img.height * scale;
-
-        const ctx = canvas.getContext('2d');
-        ctx?.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-        // Compresión a JPEG para reducir tamaño de la cadena Base64
-        const compressed = canvas.toDataURL('image/jpeg', 0.6);
-
-        this.previewUrl = compressed;
-        this.bitacoraForm.patchValue({
-          evidenciaUrl: compressed
-        });
-      };
-    };
-
-    reader.readAsDataURL(file);
-  }
-
-  quitarFoto() {
-    this.previewUrl = null;
-    this.bitacoraForm.patchValue({ evidenciaUrl: '' });
-  }
-
-  verImagen(url: string) {
-    if (url) window.open(url, '_blank');
-  }
+  // Se utilizará un enlace directo a Drive para evidencia
 
   descargarPDF(tipo: string) {
     if (!this.expediente) return;
@@ -304,21 +353,150 @@ export class GuiaTabsComponent implements OnInit {
     }
 
     // Para los de tipo GET simple (Plantillas y Fichas)
+    this.toast.showSuccess(`Iniciando descarga de ${nombres[tipo] || 'documento'}...`);
     this.civico.generarDocumentoPDF(tipo, expId).subscribe({
       next: (blob) => this.abrirBlob(blob, nombres[tipo] || tipo),
       error: (err) => {
         let msg = err.error?.message || err.message;
         if (Array.isArray(msg)) msg = msg.join(', ');
-        alert(`Aún no se puede realizar esta acción: ${msg}`);
+        this.toast.showError(`Error en descarga: ${msg}`);
       }
     });
+  }
+
+  /**
+   * Genera el reporte semanal automáticamente tomando los registros de los últimos 7 días.
+   */
+  descargarReporteSemanalAuto() {
+    if (!this.registrosHoras || this.registrosHoras.length === 0) {
+      this.toast.showError("No hay registros recientes para generar un reporte.");
+      return;
+    }
+
+    // Definimos "una semana" como los registros de los últimos 7 días con actividad
+    const haceUnaSemana = new Date();
+    haceUnaSemana.setDate(haceUnaSemana.getDate() - 7);
+
+    const seleccion = this.registrosHoras
+      .filter((r: any) => new Date(r.fechaActividad) >= haceUnaSemana)
+      .sort((a, b) => new Date(a.fechaActividad).getTime() - new Date(b.fechaActividad).getTime());
+
+    // Si no hay en los últimos 7 días, tomamos los últimos 5 registros por defecto
+    const rFinales = seleccion.length > 0 ? seleccion : this.registrosHoras.slice(0, 5);
+    
+    this.toast.showSuccess("Generando reporte semanal automático...");
+    this.generarReporteConsolidado(rFinales, "Reporte_Semanal_Automatico");
+  }
+
+  /**
+   * Genera el reporte semanal utilizando una selección específica de registros.
+   */
+  descargarReporteSeleccionado() {
+    if (!this.haySeleccionados) return;
+    this.toast.showSuccess(`Generando reporte de ${this.idsSeleccionados.size} registros...`);
+    const seleccion = this.registrosHoras
+      .filter((r: any) => this.estaSeleccionado(r))
+      .sort((a, b) => new Date(a.fechaActividad).getTime() - new Date(b.fechaActividad).getTime());
+
+    this.generarReporteConsolidado(seleccion, "Reporte_Personalizado_Seleccion");
+  }
+
+  private generarReporteConsolidado(seleccion: any[], nombreArchivo: string) {
+    const expId = this.expediente.idUUID || this.expediente.id;
+    if (seleccion.length === 0) return;
+
+    const fechaInicio = seleccion[0].fechaActividad;
+    const fechaFin = seleccion[seleccion.length - 1].fechaActividad;
+
+    const payload = {
+      expedienteId: expId,
+      fechaInicio: fechaInicio,
+      fechaFin: fechaFin,
+      semanaNumero: 1,
+      observaciones: "Reporte generado automáticamente por el sistema.",
+      renglones: seleccion.map((s: any) => ({
+        asistencia: s.asistencia,
+        fecha: s.fechaActividad,
+        descripcion: s.detalleIncidencia || s.observaciones || 'Actividad de seguimiento'
+      }))
+    };
+
+    this.civico.generarDocumentoPDFPost('reporte-semanal', payload).subscribe({
+      next: (blob) => this.abrirBlob(blob, nombreArchivo),
+      error: (err) => {
+        let msg = err.error?.message || err.message;
+        alert(`Error al generar reporte: ${msg}`);
+      }
+    });
+  }
+
+  /**
+   * Genera el PDF de Asistencia (Hoja individual) para cada registro seleccionado.
+   * IMPORTANTE: No enviamos expedienteId para evitar que el backend cree duplicados en la BD,
+   * enviamos los datos descriptivos directamente.
+   */
+  descargarAsistenciaSeleccionada() {
+    if (!this.haySeleccionados) return;
+    
+    const seleccion = this.registrosHoras.filter((r: any) => this.estaSeleccionado(r));
+    if (seleccion.length === 0) return;
+
+    this.toast.showSuccess(`Generando ${seleccion.length} hoja(s) de asistencia rellenada(s)...`);
+
+    const nombreBen = this.expediente.beneficiario?.nombre?.toUpperCase() || 'BENEFICIARIO';
+    const guiaNombre = seleccion[0].guia?.nombre?.toUpperCase() || '—';
+
+    // Generamos uno por cada seleccionados (el template es por sesión)
+    seleccion.forEach((reg, index) => {
+      // Iniciales para firma
+      const iniciales = nombreBen.split(/\s+/).filter(Boolean).map((w: string) => w[0].toUpperCase()).join('');
+      const fechaLimpia = reg.fechaActividad ? reg.fechaActividad.split('T')[0] : '';
+
+      const payload = {
+        // expedienteId: OMITIDO para no guardar duplicado en BD
+        nombreBeneficiario: nombreBen,
+        nombreGuia: guiaNombre,
+        fecha: fechaLimpia,        // Campo estándar
+        fechaHoja: fechaLimpia,    // Campo alternativo en template
+        observaciones: reg.observaciones || '',
+        actividades: [
+          {
+            horario: reg.horasCubiertas ? `${reg.horasCubiertas} HORAS` : '—',
+            actividad: reg.detalleIncidencia || reg.observaciones || 'Actividad de seguimiento',
+            sede: reg.sede || '—',
+            firma: iniciales,
+            asistencia: reg.asistencia || '—',
+            evidenciaUrl: reg.evidenciaUrl || ''
+          }
+        ]
+      };
+
+      console.log(`🚀 GENERANDO HOJA ASISTENCIA RELLENA [${index+1}]:`, payload);
+
+      this.civico.generarDocumentoPDFPost('lista-asistencia', payload).subscribe({
+        next: (blob) => this.abrirBlob(blob, `Asistencia_Rellena_${index+1}`),
+        error: (err) => console.error("Error al generar hoja de asistencia:", err)
+      });
+    });
+
+    if (seleccion.length > 2) {
+      this.toast.showSuccess("Se están descargando varios documentos. Verifique las descargas de su navegador.");
+    }
   }
 
   private abrirBlob(blob: Blob, nombre: string) {
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${nombre}_${this.expediente.beneficiario?.nombre || 'Doc'}.pdf`;
+    
+    // Convertir nombre a algo muy descriptivo según el contexto
+    let prefijo = nombre;
+    if (nombre.includes('Asistencia_Rellena')) prefijo = 'HOJA_ASISTENCIA_INDIVIDUAL';
+    if (nombre.includes('Reporte_Personalizado')) prefijo = 'REPORTE_SEMANAL_CONSOLIDADO';
+
+    const nombreReal = `${prefijo}_${this.expediente.beneficiario?.nombre || 'Doc'}.pdf`;
+    
+    a.download = nombreReal;
     a.click();
     window.URL.revokeObjectURL(url);
   }

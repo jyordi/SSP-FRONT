@@ -176,7 +176,7 @@ obtenerBitacoraPorExpediente(expedienteId: string): Observable<any> {
   });
 }
 
-eliminarRegistroBitacora(id: number): Observable<any> {
+eliminarRegistroBitacora(id: string | number): Observable<any> {
   return this.http.delete(`${this.BASE}/civico/bitacora/${id}`, {
     headers: this._headers(),
   });

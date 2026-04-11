@@ -67,6 +67,13 @@
    Ficha Técnica
 </button>
 
+<!-- INFO GENERAL -->
+<button class="tab"
+  [class.active]="tabActual === 'infoGeneral'"
+  (click)="cambiarTab('infoGeneral')">
+   Información General
+</button>
+
 <!-- OFICIO -->
 <button class="tab"
   *ngIf="esAdmin()"
@@ -102,7 +109,8 @@
      <app-plan-individual 
         [modoSoloLectura]="!esAdmin()"
         [expedienteId]="expediente?.idUUID || expediente?.id"
-        [datosExpediente]="expediente">
+        [datosExpediente]="expediente"
+        [datosCompletos]="datosCompletos">
      </app-plan-individual>
   </div>
 
@@ -167,81 +175,127 @@
         </div>
       </div>
 
-      <!-- HISTORIAL DE DOCUMENTOS -->
-      <div class="history-section">
-        <h4>📦 Historial de Documentos Generados</h4>
-        
-        <div *ngIf="cargandoHistorial" class="loader-small"></div>
-        
-        <div class="table-card" *ngIf="!cargandoHistorial && historialDocumentos.length > 0">
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>Fecha</th>
-                <th>Tipo de Documento</th>
-                <th>Nombre del Archivo</th>
-                <th>Acción</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let doc of historialDocumentos">
-                <td>{{ doc.createdAt | date:'dd/MM/yyyy HH:mm' }}</td>
-                <td><span class="badge-type">{{ doc.tipo }}</span></td>
-                <td>{{ doc.filename }}</td>
-                <td>
-                  <a [href]="doc.driveUrl" target="_blank" class="btn-small">Link Drive</a>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
 
-        <div *ngIf="!cargandoHistorial && historialDocumentos.length === 0" class="empty-state">
-          Aún no se han generado documentos oficiales para este expediente.
-        </div>
-      </div>
     </div>
   </div>
 
-  <!-- ================= INFO GENERAL  ================= -->
-  <div class="card">
+  <!-- ================= INFO GENERAL (NUEVA PESTAÑA) ================= -->
+  <div class="card fade-in" *ngIf="tabActual === 'infoGeneral'">
 
-    <h3>📋 Información General</h3>
+    <div style="border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; margin-bottom: 20px;">
+      <h3 style="margin: 0; color: #334155;"> Información General </h3>
+    </div>
 
-    <div class="grid">
-
+    <!-- DATOS PERSONALES -->
+    <h4 style="color: #475569; margin-bottom: 20px; font-weight: 600;">👤 Datos Personales</h4>
+    <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; row-gap: 30px; margin-bottom: 45px;">
       <div class="form-group">
         <label>CURP</label>
-        <input [(ngModel)]="expediente.curp" [disabled]="!puedeEditarGeneral">
+        <input [(ngModel)]="expediente.curp" [disabled]="!puedeEditarGeneral" style="text-transform: uppercase;">
       </div>
-
+      <div class="form-group">
+        <label>Género</label>
+        <input [value]="expediente.genero === 'M' ? 'Masculino' : (expediente.genero === 'F' ? 'Femenino' : expediente.genero)" disabled>
+      </div>
+      <div class="form-group">
+        <label>Fecha de Nacimiento</label>
+        <input type="date" [(ngModel)]="expediente.fechaNacimiento" [disabled]="!puedeEditarGeneral">
+      </div>
+      <div class="form-group" style="grid-column: span 2;">
+        <label>Domicilio</label>
+        <input [(ngModel)]="expediente.domicilioCompleto" [disabled]="!puedeEditarGeneral">
+      </div>
       <div class="form-group">
         <label>Municipio</label>
         <input [(ngModel)]="expediente.municipio" [disabled]="!puedeEditarGeneral">
       </div>
-
       <div class="form-group">
-        <label>Delito</label>
+        <label>Código Postal</label>
+        <input [(ngModel)]="expediente.codigoPostal" [disabled]="!puedeEditarGeneral">
+      </div>
+      <div class="form-group">
+        <label>Teléfono Contacto</label>
+        <input [(ngModel)]="expediente.telefonoContacto" [disabled]="!puedeEditarGeneral">
+      </div>
+    </div>
+
+    <!-- CONTEXTO FAMILIAR -->
+    <h4 style="color: #475569; margin-bottom: 20px; font-weight: 600;">👨‍👩‍👧 Contexto Familiar</h4>
+    <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; row-gap: 30px; margin-bottom: 45px;">
+
+      <ng-container *ngIf="expediente.contactosFamiliares">
+        
+        <div class="form-group" *ngIf="expediente.contactosFamiliares?.madre">
+          <label>Nombre Madre</label>
+          <input [(ngModel)]="expediente.contactosFamiliares.madre.nombre" [disabled]="!puedeEditarGeneral">
+        </div>
+        <div class="form-group" *ngIf="expediente.contactosFamiliares?.madre">
+          <label>Teléfono Madre</label>
+          <input [(ngModel)]="expediente.contactosFamiliares.madre.telefono" [disabled]="!puedeEditarGeneral">
+        </div>
+
+        <div class="form-group" *ngIf="expediente.contactosFamiliares?.padre">
+          <label>Nombre Padre</label>
+          <input [(ngModel)]="expediente.contactosFamiliares.padre.nombre" [disabled]="!puedeEditarGeneral">
+        </div>
+        <div class="form-group" *ngIf="expediente.contactosFamiliares?.padre">
+          <label>Teléfono Padre</label>
+          <input [(ngModel)]="expediente.contactosFamiliares.padre.telefono" [disabled]="!puedeEditarGeneral">
+        </div>
+      </ng-container>
+    </div>
+
+    <!-- DATOS JUDICIALES Y SENTENCIA -->
+    <h4 style="color: #475569; margin-bottom: 20px; font-weight: 600;">⚖️ Datos Judiciales y Sentencia</h4>
+    <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; row-gap: 30px; margin-bottom: 35px;">
+      <div class="form-group">
+        <label>Juzgado Cívico</label>
+        <input [(ngModel)]="expediente.numJuzgadoCivico" [disabled]="!puedeEditarGeneral">
+      </div>
+      <div class="form-group">
+        <label>Juez de Control</label>
+        <input [(ngModel)]="expediente.juezControl" [disabled]="!puedeEditarGeneral">
+      </div>
+      <div class="form-group">
+        <label>Causa Penal / Folio Control</label>
+        <input [(ngModel)]="expediente.causaPenal" [disabled]="!puedeEditarGeneral">
+      </div>
+      <div class="form-group" style="grid-column: span 2;">
+        <label>Delito Imputado / Falta Cívica</label>
         <input [(ngModel)]="expediente.delitoImputado" [disabled]="!puedeEditarGeneral">
       </div>
-
       <div class="form-group">
         <label>Agraviado</label>
         <input [(ngModel)]="expediente.agraviado" [disabled]="!puedeEditarGeneral">
       </div>
-
+      
+      <div class="form-group" style="border-left: 3px solid #8b5cf6; padding-left: 10px;">
+        <label style="color: #6d28d9; font-weight: bold;">Horas de Sentencia</label>
+        <input type="number" [(ngModel)]="expediente.horasSentencia" [disabled]="!puedeEditarGeneral" style="font-weight: bold;">
+      </div>
+      <div class="form-group">
+        <label>Fecha de Detención</label>
+        <input type="date" [(ngModel)]="expediente.fechaDetencion" [disabled]="!puedeEditarGeneral">
+      </div>
+      <div class="form-group">
+        <label>Fecha Oficio de Canalización</label>
+        <input type="date" [(ngModel)]="expediente.fechaOficioCanalizacion" [disabled]="!puedeEditarGeneral">
+      </div>
     </div>
 
-    <button class="btn-guardar"
-      (click)="guardarCambios()"
-      [disabled]="guardando || !puedeEditarGeneral"
-      *ngIf="puedeEditarGeneral">
-
-      {{ guardando ? 'Guardando...' : 'Guardar cambios' }}
-
-    </button>
-
+    <!-- GUARDADO -->
+    <div style="display: flex; justify-content: flex-end; border-top: 1px solid #e2e8f0; padding-top: 20px;">
+      <button class="btn-guardar"
+        (click)="guardarCambios()"
+        [disabled]="guardando || !puedeEditarGeneral"
+        *ngIf="puedeEditarGeneral"
+        style="padding: 10px 30px; font-size: 1.05em;">
+        {{ guardando ? 'Guardando cambios...' : 'Guardar Cambios Oficiales' }}
+      </button>
   </div>
+
+  <app-toast />
+
 
 
  

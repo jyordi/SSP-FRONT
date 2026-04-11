@@ -13,15 +13,23 @@
     <div class="bitacora-dashboard fade-in">
       
       <!-- CARD: PROGRESO -->
-      <div class="dash-card glass">
-        <div class="dash-icon">📊</div>
+      <div class="dash-card glass" [class.dash-success]="estaCompletado">
+        <div class="dash-icon">{{ estaCompletado ? '🏆' : '📊' }}</div>
         <div class="dash-body">
           <span class="dash-label">Progreso del Expediente</span>
+          <div class="progress-info">
+            <span class="progress-status" *ngIf="!estaCompletado">
+              Faltan <strong>{{ horasRestantes }}</strong> horas por cubrir
+            </span>
+            <span class="progress-status" *ngIf="estaCompletado">
+              <strong>¡SENTENCIA CUMPLIDA!</strong>
+            </span>
+          </div>
           <div class="progress-container">
             <div class="progress-bar-fill" [style.width.%]="resumenHoras.porcentajeAvance"></div>
           </div>
           <div class="dash-footer">
-            <span class="dash-value">{{ resumenHoras.porcentajeAvance }}% Completado</span>
+            <span class="dash-value">{{ resumenHoras.porcentajeAvance }}%</span>
             <span class="dash-sub">{{ resumenHoras.horasAcumuladas }} / {{ resumenHoras.horasSentencia }} hrs</span>
           </div>
         </div>
@@ -55,13 +63,47 @@
       </div>
     </div>
 
-    <!-- BOTONES DE ACCIÓN -->
-    <div class="bitacora-actions">
-      <div class="doc-btns" *ngIf="esGuia">
-        <button class="btn-ghost" (click)="descargarPDF('ficha-incidencias')">📄 Ficha Incidencias</button>
-        <button class="btn-ghost" (click)="descargarPDF('lista-asistencia')">📄 Plantilla Asistencia</button>
-        <button class="btn-ghost" (click)="descargarPDF('reporte-semanal')">📄 Planilla Semanal</button>
+    <!-- PANEL DE ACCIONES DE SELECCIÓN (Solo para Asistencia Personalizada) -->
+    <div class="selection-floating-panel fade-in" *ngIf="haySeleccionados">
+      <div class="selection-info">
+        <span class="count-text">📋 {{ idsSeleccionados.size }} registros marcados</span>
+        <span class="helper-text">Genera las hojas de asistencia individuales para estos registros:</span>
       </div>
+      
+      <div class="selection-actions-group">
+        <button class="btn-action-premium" 
+                (click)="descargarAsistenciaSeleccionada()" 
+                style="background: #10b981;">
+          <span class="btn-title">📄 Generar Hojas de Asistencia</span>
+          <span class="btn-subtitle">Auto-rellenadas con firma</span>
+        </button>
+
+        <!-- Opción secundaria para reporte de selección específica si se desea -->
+        <button class="btn-action-premium" 
+                (click)="descargarReporteSeleccionado()" 
+                style="background: #6366f1; min-width: 140px;">
+          <span class="btn-title">📊 Reporte de Selección</span>
+          <span class="btn-subtitle">Solo lo marcado</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- BOTONES DE ACCIÓN GENERALES / REPORTES AUTOMÁTICOS -->
+    <div class="bitacora-actions" style="margin-top: 20px; flex-wrap: wrap;">
+      <div class="doc-btns" *ngIf="esGuia || esAdmin">
+        <!-- BOTÓN PRINCIPAL DE REPORTE (Sin necesidad de selección) -->
+        <button class="btn-primary-premium" 
+                (click)="descargarReporteSemanalAuto()"
+                style="background: #8b5cf6; padding: 0.8rem 1.5rem;">
+          📊 Generar Reporte Semanal (Auto)
+        </button>
+
+        <div class="template-group" style="display: flex; gap: 8px; margin-left: 10px;">
+          <button class="btn-ghost" (click)="descargarPDF('ficha-incidencias')" title="Ficha de incidencias">📄 Incidencias</button>
+          <button class="btn-ghost" (click)="descargarPDF('lista-asistencia')" title="Plantilla en blanco">📄 Asistencia Vacía</button>
+        </div>
+      </div>
+      
       <button class="btn-primary-premium" (click)="abrirModalBitacora()" *ngIf="puedeRegistrar">
         <span class="plus-icon">+</span> Registrar en Bitácora
       </button>
@@ -72,6 +114,9 @@
       <table class="premium-table">
         <thead>
           <tr>
+            <th style="width: 40px;">
+              <input type="checkbox" (change)="seleccionarTodoToggle()" [checked]="haySeleccionados && idsSeleccionados.size === registrosHoras.length">
+            </th>
             <th>Fecha</th>
             <th>Asistencia</th>
             <th>Hrs</th>
@@ -80,7 +125,10 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let reg of registrosHoras; let i = index">
+          <tr *ngFor="let reg of registrosHoras; let i = index" [class.row-selected]="estaSeleccionado(reg)">
+            <td style="text-align: center;">
+              <input type="checkbox" [checked]="estaSeleccionado(reg)" (change)="toggleSeleccion(reg)">
+            </td>
             <td>
               <div class="date-cell">
                 <span class="day">{{ reg.fechaActividad | date:'dd' }}</span>
@@ -102,14 +150,13 @@
             </td>
             <td style="display: flex; gap: 10px; align-items: center; justify-content: space-between;">
               <div style="display: flex; gap: 10px; align-items: center;">
-                <div class="evidence-wrapper" *ngIf="reg.evidenciaUrl">
-                  <img [src]="reg.evidenciaUrl" (click)="verImagen(reg.evidenciaUrl)" alt="Evidencia">
-                  <div class="img-overlay"><i class="eye-icon">👁️</i></div>
+                <div *ngIf="reg.evidenciaUrl || reg.evidencia_url">
+                  <a [href]="reg.evidenciaUrl || reg.evidencia_url" target="_blank" style="background:#0ea5e9; color:white; padding:5px 10px; border-radius:5px; text-decoration:none; font-size: 0.85em;">🔗 Ver Drive</a>
                 </div>
-                <span class="no-evidence" *ngIf="!reg.evidenciaUrl">-</span>
+                <span class="no-evidence" *ngIf="!(reg.evidenciaUrl || reg.evidencia_url)">-</span>
               </div>
               
-              <button *ngIf="esAdmin" class="btn-delete-icon" (click)="eliminarRegistro(reg.id)" style="background: none; border: none; font-size: 1.2em; cursor: pointer; color: #ef4444;" title="Eliminar Registro">
+              <button *ngIf="esAdmin" class="btn-delete-icon" (click)="eliminarRegistro(reg)" style="background: none; border: none; font-size: 1.2em; cursor: pointer; color: #ef4444;" title="Eliminar Registro">
                 🗑️
               </button>
             </td>
@@ -184,25 +231,11 @@
             <textarea formControlName="observaciones" rows="1" class="input-premium"></textarea>
           </div>
 
-          <!-- Evidencia -->
+          <!-- Evidencia (Link Drive) -->
           <div class="form-group full">
-            <label>Evidencia Fotográfica</label>
-            <div class="upload-zone-premium">
-              <div class="preview-active" *ngIf="previewUrl">
-                <img [src]="previewUrl" alt="Preview">
-                <button type="button" class="btn-delete-photo" (click)="quitarFoto()">Eliminar</button>
-              </div>
-              <div class="upload-trigger" *ngIf="!previewUrl">
-                <input type="file" (change)="onFileChange($event)" accept="image/*" id="modalFile" hidden>
-                <label for="modalFile" class="upload-label-premium">
-                  <span class="up-icon">📷</span>
-                  <div class="up-text">
-                    <strong>Subir Evidencia</strong>
-                    <p>Click para seleccionar o capturar</p>
-                  </div>
-                </label>
-              </div>
-            </div>
+            <label>Enlace de Evidencia (Drive, Docs, Fotos)</label>
+            <input type="url" formControlName="evidenciaUrl" class="input-premium" placeholder="https://drive.google.com/file/d/...">
+            <small style="color: #64748b; margin-top: 4px; display: block;">Pegue aquí el enlace para que el Administrador pueda validarlo.</small>
           </div>
         </div>
       </div>
@@ -212,5 +245,28 @@
         <button type="submit" class="btn-save-confirm" [disabled]="bitacoraForm.invalid">Guardar en Bitácora</button>
       </div>
     </form>
+  </div>
+</div>
+
+
+
+<!-- MODAL DE CONFIRMACIÓN DE ELIMINACIÓN -->
+<div class="modal-premium-overlay" *ngIf="registroEliminar">
+  <div class="modal-glass modal-confirm">
+    <div class="modal-header header-danger">
+      <div class="header-title">
+        
+        <h3>Confirmar Eliminación</h3> 
+      </div>
+      <button class="btn-close" (click)="registroEliminar = null">×</button>
+    </div>
+    <div class="modal-body">
+      <p>¿Estás seguro de que deseas eliminar este registro de la bitácora?</p>
+      <p class="warning-text">Esta acción afectará el cálculo de horas acumuladas y no se puede deshacer.</p>
+    </div>
+    <div class="modal-footer-premium">
+      <button class="btn-cancel-premium" (click)="registroEliminar = null">Cancelar</button>
+      <button class="btn-danger-premium" (click)="confirmarEliminarDefinitivo()">Borrar Definitivamente</button>
+    </div>
   </div>
 </div>

@@ -5,6 +5,8 @@ import { Router } from '@angular/router';
 import { Civico } from '../../services/civico';
 import { SessionDetalleC } from '../session-detalle-c/session-detalle-c';
 import { SessionService } from '../../services/session';
+import { ToastService } from '../../services/toast.service';
+
 @Component({
   standalone:true,
   selector: 'app-notas-psi',
@@ -29,7 +31,8 @@ mostrarModal = false;
 constructor(
   private civico: Civico, 
   private router: Router,
-  private session: SessionService
+  private session: SessionService,
+  private toast: ToastService
 ){}
 
 get puedeEditar(): boolean {
@@ -103,6 +106,7 @@ descargarPDF() {
   const id = this.expediente?.idUUID;
   if (!id) return;
 
+  this.toast.showSuccess("Preparando Nota de Evolución para descarga...");
   this.civico.generarDocumentoPDF('nota-evolucion', id).subscribe({
     next: (blob) => {
       const url = window.URL.createObjectURL(blob);
@@ -114,7 +118,7 @@ descargarPDF() {
     error: (err) => {
       let msg = err.error?.message || err.message;
       if (Array.isArray(msg)) msg = msg.join(', ');
-      alert(`Aún no se puede realizar esta acción: ${msg}`);
+      this.toast.showError(`Error: ${msg}`);
     }
   });
 }

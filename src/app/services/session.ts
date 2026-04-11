@@ -57,7 +57,7 @@ export class SessionService {
   esAdmin(): boolean { return this.getRole().toLowerCase() === 'admin'; }
   esGuia(): boolean { return this.getRole().toLowerCase() === 'guia'; }
   esPsicologo(): boolean { return this.getRole().toLowerCase() === 'psicologo'; }
-  esTrabajadorSocial(): boolean { return this.getRole().toLowerCase() === 'trabajadorsocial'; }
+  esTrabajadorSocial(): boolean { const r = this.getRole().toLowerCase(); return r === 'trabajadorsocial' || r === 'trabajo_social'; }
 
   isTokenExpired(): boolean {
     const payload = this.getPayload();

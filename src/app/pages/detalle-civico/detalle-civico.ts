@@ -14,10 +14,13 @@ import { PlanIndividualComponent } from '../../civil/plan-ts-civico/plan-ts-civi
 import { GuiaTabsComponent } from '../../civil/guia-tabs/guia-tabs';
 import { FichaTecnica } from '../../civil/ficha-tecnica/ficha-tecnica';
 import { NavbarReconectaComponent } from "../../shared/navbar-reconecta/navbar-reconecta";
+import { ToastService } from '../../services/toast.service';
+
+import { ToastComponent } from '../../shared/toast/toast.component';
 
 @Component({
   standalone: true,
-  imports: [CommonModule, FormsModule, PsicoTabs, EstudioTsCivicoComponent, PlanIndividualComponent, GuiaTabsComponent, FichaTecnica, NavbarReconectaComponent],
+  imports: [CommonModule, FormsModule, PsicoTabs, EstudioTsCivicoComponent, PlanIndividualComponent, GuiaTabsComponent, FichaTecnica, NavbarReconectaComponent, ToastComponent],
 
   templateUrl: './detalle-civico.html',
   styleUrls: ['./detalle-civico.css']  
@@ -35,8 +38,6 @@ notaSeleccionada: any = null;
 
   //  NUEVO
   notas: any[] = [];
-  historialDocumentos: any[] = [];
-  cargandoHistorial = false;
   subiendoFirmado = false;
   
   // Datos CENTRALIZADOS para todos los componentes
@@ -54,7 +55,8 @@ notaSeleccionada: any = null;
     private router: Router,
     private service: ExpedientesService,
     private session: SessionService,
-    private civico: Civico
+    private civico: Civico,
+    private toast: ToastService
   ) {}
 
   ngOnInit() {
@@ -124,6 +126,10 @@ notaSeleccionada: any = null;
           next: (f1) => {
             this.datosCompletos.f1 = f1;
             this.sincronizarCache();
+          },
+          error: (err) => {
+            if (err.status === 403) console.log("🔒 F1 bloqueado por permisos (Rol Guía)");
+            else console.error("Error al cargar F1:", err);
           }
         });
 
@@ -132,6 +138,10 @@ notaSeleccionada: any = null;
           next: (f2) => {
             this.datosCompletos.f2 = f2;
             this.sincronizarCache();
+          },
+          error: (err) => {
+            if (err.status === 403) console.log("🔒 F2 bloqueado por permisos (Rol Guía)");
+            else console.error("Error al cargar F2:", err);
           }
         });
 
@@ -140,6 +150,11 @@ notaSeleccionada: any = null;
           next: (f3) => {
             this.datosCompletos.f3 = f3;
             this.sincronizarCache();
+          },
+          error: (err) => {
+            // El 404 es normal si aún no lo crean
+            if (err.status === 404) console.log("📝 F3 aún no creado para este expediente.");
+            else console.error("Error al cargar F3:", err);
           }
         });
 
@@ -162,9 +177,6 @@ notaSeleccionada: any = null;
 
   cambiarTab(tab: string) {
     this.tabActual = tab;
-    if (tab === 'oficio') {
-      this.cargarHistorial();
-    }
   }
 
   //  LISTAR SESIONES
@@ -184,20 +196,7 @@ notaSeleccionada: any = null;
     });
   }
 
-  cargarHistorial() {
-    const id = this.expediente?.idUUID;
-    if (!id) return;
-    this.cargandoHistorial = true;
-    this.civico.obtenerHistorialDocumentos(id).subscribe({
-      next: (res: any) => {
-        this.historialDocumentos = res;
-        this.cargandoHistorial = false;
-      },
-      error: () => {
-        this.cargandoHistorial = false;
-      }
-    });
-  }
+
 
   generarPDF(tipo: string) {
     const id = this.expediente?.idUUID;
@@ -207,7 +206,6 @@ notaSeleccionada: any = null;
       next: (blob: any) => {
         const url = window.URL.createObjectURL(blob);
         window.open(url);
-        this.cargarHistorial();
       },
       error: (err: any) => {
         let msg = err.error?.message || err.message;
@@ -233,12 +231,11 @@ notaSeleccionada: any = null;
     this.civico.subirDocumentoEscaneado(formData).subscribe({
       next: () => {
         this.subiendoFirmado = false;
-        alert("Documento subido y vinculado correctamente.");
-        this.cargarHistorial();
+        this.toast.showSuccess("Documento subido y vinculado correctamente.");
       },
       error: (err: any) => {
         this.subiendoFirmado = false;
-        alert("Error al subir: " + (err.error?.message || "Archivo no válido o error de red"));
+        this.toast.showError("Error al subir: " + (err.error?.message || "Archivo no válido o error de red"));
       }
     });
   }
@@ -246,15 +243,16 @@ notaSeleccionada: any = null;
   guardarCambios() {
     this.guardando = true;
 
-    this.civico.updateCivico(this.expediente.id, this.expediente)
+    const id = this.expediente.idUUID || this.expediente.id;
+    this.civico.actualizarExpedienteCivico(id, this.expediente)
       .subscribe({
         next: () => {
           this.guardando = false;
-          alert('Actualizado correctamente');
+          this.toast.showSuccess('Información actualizada correctamente');
         },
         error: () => {
           this.guardando = false;
-          alert('Error al actualizar');
+          this.toast.showError('Error al actualizar la información');
         }
       });
   }
@@ -271,6 +269,8 @@ notaSeleccionada: any = null;
   get puedeEditarGeneral(): boolean {
     return this.esAdmin();
   }
+
+
 
   //  NAVEGACIÓN
   irPsico(tipo: string) {

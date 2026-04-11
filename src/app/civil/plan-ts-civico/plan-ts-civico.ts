@@ -4,6 +4,8 @@ import { FormBuilder, FormGroup, FormArray, ReactiveFormsModule } from '@angular
 import { Civico } from '../../services/civico';
 import { SessionService } from '../../services/session';
 import { jsPDF } from 'jspdf';
+import { WordGeneratorService } from '../../services/word-generator.service';
+import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-plan-individual',
@@ -16,12 +18,13 @@ export class PlanIndividualComponent implements OnInit, OnChanges {
   @Input() modoSoloLectura: boolean = false;
   @Input() expedienteId!: string;
   @Input() datosExpediente: any;
+  @Input() datosCompletos: any;
 
   planForm!: FormGroup;
-  
+
   f3Existente = false;
   f3IdPropio: string | number | null = null;
-  
+
   guardando = false;
   guardadoExito = false;
   generandoPDF = false;
@@ -40,8 +43,10 @@ export class PlanIndividualComponent implements OnInit, OnChanges {
   constructor(
     private fb: FormBuilder,
     private civicoService: Civico,
-    private session: SessionService
-  ) {}
+    private session: SessionService,
+    private wordGenerator: WordGeneratorService,
+    private toast: ToastService
+  ) { }
 
   esAdmin(): boolean {
     return this.session.getRole() === 'admin';
@@ -55,7 +60,7 @@ export class PlanIndividualComponent implements OnInit, OnChanges {
     if (changes['expedienteId'] && this.expedienteId) {
       this.verificarF3();
     }
-    
+
     // Bloquear formulario si es solo lectura
     if (this.modoSoloLectura && this.planForm) {
       this.planForm.disable();
@@ -76,8 +81,8 @@ export class PlanIndividualComponent implements OnInit, OnChanges {
     if (this.modoSoloLectura) {
       this.planForm.disable();
     }
-    
-    
+
+
     // Rellenamos el FormArray con las tablas base
     this.ACTIVIDADES_BASE.forEach(act => {
       this.actividades.push(this.crearFilaActividad(act));
@@ -105,7 +110,7 @@ export class PlanIndividualComponent implements OnInit, OnChanges {
         if (res && (res.id || res.idUUID)) {
           this.f3Existente = true;
           this.f3IdPropio = res.idUUID || res.id;
-          
+
           // Set values base
           this.planForm.patchValue({
             fechaInicioEstimada: res.fechaInicioEstimada || new Date().toISOString().split('T')[0],
@@ -119,7 +124,7 @@ export class PlanIndividualComponent implements OnInit, OnChanges {
           if (res.actividadesPlan && typeof res.actividadesPlan === 'object') {
             this.actividades.clear();
             const keys = Object.keys(res.actividadesPlan);
-            
+
             if (keys.length > 0) {
               keys.forEach(key => {
                 const act = res.actividadesPlan[key];
@@ -138,7 +143,7 @@ export class PlanIndividualComponent implements OnInit, OnChanges {
           // Bloqueo duro: Si es solo lectura, deshabilitamos todo el formulario de nuevo 
           // después de haber inyectado los nuevos controles.
           if (this.modoSoloLectura) {
-             this.planForm.disable();
+            this.planForm.disable();
           }
         }
       },
@@ -146,21 +151,9 @@ export class PlanIndividualComponent implements OnInit, OnChanges {
         this.f3Existente = false;
         // Si no existe, mantenemos el form vacío que ya creó initForm()
         if (this.modoSoloLectura) {
-           this.planForm.disable();
-        } else {
-           // ES CREACIÓN, Verificar dependencias previas (CANDADO F3)
-           this.civicoService.verificarCandadoF3(this.expedienteId).subscribe({
-             next: () => {
-               this.bloqueadoPorFlujo = false;
-             },
-             error: (err) => {
-               this.bloqueadoPorFlujo = true;
-               let msg = err.error?.message || 'Documentos previos';
-               if (Array.isArray(msg)) msg = msg.join(', ');
-               this.mensajeBloqueo = `Aún no se puede realizar esta acción, falta completar: ${msg}`;
-               this.planForm.disable();
-             }
-           });
+          this.planForm.disable();
+          // ES CREACIÓN, Verificar dependencias previas (CANDADO F3) de forma local o remota
+          this.verificarFlujoLocal();
         }
       }
     });
@@ -168,7 +161,7 @@ export class PlanIndividualComponent implements OnInit, OnChanges {
     // Validar si tampoco hay datosExpediente cargados por el Input, intentamos bajarlos (Opcional)
     if (!this.datosExpediente) {
       this.civicoService.getExpedienteCivico(this.expedienteId).subscribe(res => {
-         this.datosExpediente = res;
+        this.datosExpediente = res;
       });
     }
   }
@@ -176,8 +169,26 @@ export class PlanIndividualComponent implements OnInit, OnChanges {
   bloqueadoPorFlujo = false;
   mensajeBloqueo = '';
 
+  private verificarFlujoLocal() {
+    const f1 = this.datosCompletos?.f1;
+    const f2 = this.datosCompletos?.f2;
+
+    const f1Completado = f1?.estatusF1 === 'COMPLETADO' || f1?.estatus === 'COMPLETADO' || f1?.id; // backend a veces omite estatus, validamos id al menos, pero el backend exige COMPLETADO.
+    const f2Completado = f2?.estatusF2 === 'COMPLETADO' || f2?.estatus === 'COMPLETADO';
+
+    // Como el MSJ de error del servidor era explícito (RF-008):
+    if (!f1Completado || !f2Completado) {
+      this.bloqueadoPorFlujo = true;
+      this.mensajeBloqueo = 'Aún no puedes crear el Plan de Trabajo: Las Fichas de Entrevista Clínica (F1) y Estudio Socioeconómico (F2) deben llenarse primero.';
+      this.planForm.disable();
+    } else {
+      this.bloqueadoPorFlujo = false;
+      this.mensajeBloqueo = '';
+    }
+  }
+
   guardarF3() {
-    if (this.planForm.invalid) return;
+    if (this.planForm.invalid || this.bloqueadoPorFlujo) return;
 
     this.guardando = true;
     this.guardadoExito = false;
@@ -224,13 +235,12 @@ export class PlanIndividualComponent implements OnInit, OnChanges {
 
   private finalizarGuardado() {
     this.guardando = false;
-    this.guardadoExito = true;
-    setTimeout(() => this.guardadoExito = false, 3000);
+    this.toast.showSuccess("Plan de Trabajo (F3) guardado correctamente.");
   }
 
   private manejarError(err: any) {
     this.guardando = false;
-    alert('Error del Servidor: \n' + (err.error?.message || err.message));
+    this.toast.showError('Error al guardar F3: ' + (err.error?.message || err.message));
     console.error(err);
   }
 
@@ -241,6 +251,7 @@ export class PlanIndividualComponent implements OnInit, OnChanges {
     if (!this.expedienteId) return;
     this.generandoPDF = true;
 
+    this.toast.showSuccess("Preparando PDF oficial para descarga...");
     this.civicoService.generarDocumentoPDF('f3-plan-trabajo', this.expedienteId).subscribe({
       next: (blob) => {
         const url = window.URL.createObjectURL(blob);
@@ -254,8 +265,58 @@ export class PlanIndividualComponent implements OnInit, OnChanges {
         this.generandoPDF = false;
         let msg = err.error?.message || err.message;
         if (Array.isArray(msg)) msg = msg.join(', ');
-        alert(`Aún no se puede realizar esta acción: ${msg}`);
+        this.toast.showError(`Aún no se puede realizar esta acción: ${msg}`);
       }
     });
+  }
+
+  /**
+   * Generación Nativa Frontend Word (.docx)
+   */
+  async generarWordLocal() {
+    this.generandoPDF = true;
+    try {
+      const formValue = this.planForm.getRawValue();
+      const ben = this.datosExpediente?.beneficiario || {};
+      const exp = this.datosExpediente || {};
+      const f1 = this.datosCompletos?.f1 || {};
+      
+      const nucleoFamiliarArray: any[] = [];
+      if (f1 && f1.nucleoFamiliarPrimario) {
+        Object.keys(f1.nucleoFamiliarPrimario).forEach(key => {
+          nucleoFamiliarArray.push(f1.nucleoFamiliarPrimario[key]);
+        });
+      }
+
+      // Convertir Actividades a un diccionario simple para Handlebars
+      const acts: any = {};
+      this.actividades.value.forEach((act: any) => {
+        const nombreSano = act.nombre.replace(/Ó/g, 'O'); // Para PSICOLÓGICA -> PSICOLOGICA
+        acts[nombreSano] = act;
+      });
+
+      const datosTemplate = {
+        nombreBeneficiario: ben.nombre || '—',
+        folioExpediente: exp.folioExpediente || '—',
+        causaPenal: exp.causaPenal || '—',
+        horasSentencia: exp.horasSentencia || '—',
+        fechaInicio: formValue.fechaInicioEstimada,
+        fechaTermino: formValue.fechaTerminoEstimada,
+        metasPrograma: formValue.metasPrograma,
+        observaciones: formValue.observacionesPlan,
+        actividadesPlan: acts,
+        nucleoFamiliar: nucleoFamiliarArray
+      };
+
+      await this.wordGenerator.generarDesdePlantilla(
+        'f3_plantilla.docx', 
+        datosTemplate, 
+        `F3_Plan_${ben.nombre || 'Beneficiario'}.docx`
+      );
+      this.generandoPDF = false;
+    } catch (error: any) {
+      this.generandoPDF = false;
+      alert('Error generando Word local: ' + (error.message || error));
+    }
   }
 }

@@ -87,17 +87,47 @@
       <!--  FAMILIA -->
       <h3>Contactos Familiares</h3>
 
-      <label>Nombre de la madre</label>
-      <input formControlName="madreNombre">
+      <div class="family-section">
+        <!-- BOTÓN MADRE -->
+        <div *ngIf="!mostrarMadre" class="toggle-container">
+          <button type="button" class="btn-toggle" (click)="mostrarMadre = true">
+            ➕ Agregar Madre
+          </button>
+        </div>
 
-      <label>Teléfono de la madre</label>
-      <input formControlName="madreTelefono">
+        <!-- CAMPOS MADRE -->
+        <div *ngIf="mostrarMadre" class="family-fields fade">
+          <div class="field-header">
+            <h4>Datos de la Madre</h4>
+            <button type="button" class="btn-remove" (click)="mostrarMadre = false">Quitar</button>
+          </div>
+          <label>Nombre de la madre</label>
+          <input formControlName="madreNombre" placeholder="Nombre completo">
+          <label>Teléfono de la madre</label>
+          <input formControlName="madreTelefono" placeholder="Teléfono">
+        </div>
 
-      <label>Nombre del padre</label>
-      <input formControlName="padreNombre">
+        <hr>
 
-      <label>Teléfono del padre</label>
-      <input formControlName="padreTelefono">
+        <!-- BOTÓN PADRE -->
+        <div *ngIf="!mostrarPadre" class="toggle-container">
+          <button type="button" class="btn-toggle" (click)="mostrarPadre = true">
+            ➕ Agregar Padre
+          </button>
+        </div>
+
+        <!-- CAMPOS PADRE -->
+        <div *ngIf="mostrarPadre" class="family-fields fade">
+          <div class="field-header">
+            <h4>Datos del Padre</h4>
+            <button type="button" class="btn-remove" (click)="mostrarPadre = false">Quitar</button>
+          </div>
+          <label>Nombre del padre</label>
+          <input formControlName="padreNombre" placeholder="Nombre completo">
+          <label>Teléfono del padre</label>
+          <input formControlName="padreTelefono" placeholder="Teléfono">
+        </div>
+      </div>
 
       <!--  EXPEDIENTE -->
       <h3> Información del Expediente</h3>
@@ -140,6 +170,14 @@
 
       <label>Término de beneficio</label>
       <input type="date" formControlName="fechaTerminoBeneficio">
+
+      <!-- OFICIO CANALIZACIÓN -->
+      <h3>📁 Oficio de Canalización (Recomendado)</h3>
+      <label class="file-label">Oficio Escaneado / Digitalizado</label>
+      <input type="file" (change)="onCanalizacionChange($event)" accept="application/pdf, image/*">
+      <div *ngIf="archivoCanalizacion" class="file-info" style="margin-top: 10px; font-weight: bold; color: #2e7d32;">
+        ✅ Archivo seleccionado: {{ archivoCanalizacion.name }}
+      </div>
 
       <!-- BOTÓN -->
       <button type="button" (click)="crearExpediente()">

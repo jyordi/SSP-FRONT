@@ -29,41 +29,7 @@
     </div>
   </div>
 
-  <!-- Info bar - Ampliada con Foto y Datos Personales -->
-  <div class="ft-info-card" *ngIf="beneficiario">
-    <div class="ft-card-avatar">
-      <img [src]="beneficiario?.urlFoto || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'" alt="Foto Beneficiario">
-    </div>
-    
-    <div class="ft-card-content">
-      <div class="ft-grid-info">
-        <div class="ft-info-item">
-          <span class="ft-info-label">Beneficiario</span>
-          <span class="ft-info-value">{{ beneficiario?.nombre || '—' }}</span>
-        </div>
-        <div class="ft-info-item">
-          <span class="ft-info-label">Género</span>
-          <span class="ft-info-value">{{ expedienteInfo?.genero || '—' }}</span>
-        </div>
-        <div class="ft-info-item">
-          <span class="ft-info-label">Estado Civil</span>
-          <span class="ft-info-value">{{ expedienteInfo?.estadoCivil || '—' }}</span>
-        </div>
-        <div class="ft-info-item">
-          <span class="ft-info-label">Ocupación</span>
-          <span class="ft-info-value">{{ expedienteInfo?.ocupacionActual || '—' }}</span>
-        </div>
-        <div class="ft-info-item">
-          <span class="ft-info-label">Nacionalidad</span>
-          <span class="ft-info-value">{{ expedienteInfo?.nacionalidad || '—' }}</span>
-        </div>
-        <div class="ft-info-item">
-          <span class="ft-info-label">Folio</span>
-          <span class="ft-info-value">{{ expedienteInfo?.folioExpediente || '—' }}</span>
-        </div>
-      </div>
-    </div>
-  </div>
+  <!-- SE REMOVIÓ LA BARRA DE INFORMACIÓN DEL BENEFICIARIO (Se imprime solo en el PDF) -->
 
   <!-- Aviso: aún no existe F4 -->
   <div *ngIf="!f4Existente && puedeEditar" class="ft-alert-info">
@@ -127,8 +93,7 @@
         <textarea
           formControlName="procesoIngreso"
           class="form-control"
-          rows="5"
-          placeholder="El beneficiario se presenta en tiempo y forma. Se le explica el programa y firma carta de compromiso...">
+          rows="5">
         </textarea>
       </div>
     </div>
@@ -138,7 +103,7 @@
       <div class="ft-section-header">
         <span class="ft-section-icon">📊</span>
         <h4>Seguimiento de Actividades</h4>
-        <p class="ft-section-hint">6 categorías reconocidas por el sistema. Complete las observaciones de cada área.</p>
+        <p class="ft-section-hint">5 categorías reconocidas por el sistema. Complete las observaciones de cada área.</p>
       </div>
 
       <div class="ft-grid-2">
@@ -147,48 +112,35 @@
           <label class="form-label">
             <span class="ft-cat-pill cat-educativa">EDUCATIVA</span>
           </label>
-          <textarea formControlName="educativa" class="form-control" rows="3"
-            placeholder="Ej. Manual Fénix — 0/8 sesiones completadas..."></textarea>
+          <textarea formControlName="educativa" class="form-control" rows="3"></textarea>
         </div>
 
         <div class="form-group">
           <label class="form-label">
             <span class="ft-cat-pill cat-laboral">LABORAL</span>
           </label>
-          <textarea formControlName="laboral" class="form-control" rows="3"
-            placeholder="Ej. Pendiente asignación de actividad laboral..."></textarea>
+          <textarea formControlName="laboral" class="form-control" rows="3"></textarea>
         </div>
 
         <div class="form-group">
           <label class="form-label">
             <span class="ft-cat-pill cat-familiar">FAMILIAR</span>
           </label>
-          <textarea formControlName="familiar" class="form-control" rows="3"
-            placeholder="Ej. Red de apoyo familiar identificada..."></textarea>
+          <textarea formControlName="familiar" class="form-control" rows="3"></textarea>
         </div>
 
         <div class="form-group">
           <label class="form-label">
             <span class="ft-cat-pill cat-deportivo">DEPORTIVO</span>
           </label>
-          <textarea formControlName="deportivo" class="form-control" rows="3"
-            placeholder="Ej. Participación en actividades físicas..."></textarea>
+          <textarea formControlName="deportivo" class="form-control" rows="3"></textarea>
         </div>
 
         <div class="form-group">
           <label class="form-label">
             <span class="ft-cat-pill cat-cultural">CULTURAL</span>
           </label>
-          <textarea formControlName="cultural" class="form-control" rows="3"
-            placeholder="Ej. Asistencia a taller de pintura comunitaria..."></textarea>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">
-            <span class="ft-cat-pill cat-psicologica">PSICOLÓGICA</span>
-          </label>
-          <textarea formControlName="psicologica" class="form-control" rows="3"
-            placeholder="Ej. Sesiones de seguimiento psicológico, avances observados..."></textarea>
+          <textarea formControlName="cultural" class="form-control" rows="3"></textarea>
         </div>
 
       </div>
