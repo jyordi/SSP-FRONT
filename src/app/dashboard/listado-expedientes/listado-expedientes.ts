@@ -209,12 +209,7 @@ export class ListadoExpedientesComponent implements OnInit {
   puedeGestionarUsuarios(): boolean {
     return this.role === 'admin';
   }
-<<<<<<< HEAD
-}
-=======
-
   puedeAccederVoluntarios(): boolean {
     return this.sessionService.puedeAccederVoluntarios();
   }
 }
->>>>>>> f46111a9bae756b79b6a4b3a1f65109e7b752fe1

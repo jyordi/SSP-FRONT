@@ -86,12 +86,8 @@
     <div class="cards-grid" *ngIf="!loading && expedientesFiltrados.length > 0">
 
       <div class="exp-card slide-up" *ngFor="let exp of expedientesFiltrados; let i = index"
-<<<<<<< HEAD
-        [style.animation-delay]="((i % 10) * 0.05) + 's'" [ngClass]="'c-' + exp.tipo.toLowerCase()">
-=======
-           [style.animation-delay]="((i % 10) * 0.05) + 's'"
-           [ngClass]="'c-' + exp.tipo.toLowerCase()">
->>>>>>> f46111a9bae756b79b6a4b3a1f65109e7b752fe1
+        [style.animation-delay]="((i % 10) * 0.05) + 's'"
+        [ngClass]="'c-' + exp.tipo.toLowerCase()">
 
         <div class="card-head">
           <div class="head-left">
