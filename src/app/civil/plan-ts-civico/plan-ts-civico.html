@@ -53,10 +53,31 @@
       </div>
     </div>
 
-    <div class="form-group" style="margin-bottom: 20px;">
+    <div class="form-group" style="margin-bottom: 25px;">
       <label style="font-weight: bold; font-size: 0.9em; display: block; margin-bottom: 5px;">Metas del Programa</label>
-      <textarea formControlName="metasPrograma" placeholder="Descripción de las metas..."
-        style="width: 100%; min-height: 60px; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; resize: vertical;"></textarea>
+      <textarea formControlName="metasPrograma" placeholder="Descripción de las metas generales..."
+        style="width: 100%; min-height: 50px; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; resize: vertical;"></textarea>
+    </div>
+
+    <!-- PROYECTO DE VIDA (EJES F3) -->
+    <div style="background: #f1f5f9; padding: 15px; border-radius: 8px; margin-bottom: 30px;">
+      <h4 style="margin: 0 0 15px 0; color: #475569; font-size: 1rem; border-bottom: 1px solid #cbd5e1; padding-bottom: 5px;">
+        Esferas de Vida (Proyecto de Vida)
+      </h4>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
+        <div class="form-group">
+          <label style="font-weight: bold; font-size: 0.85em; display: block; margin-bottom: 4px;">Personal</label>
+          <textarea formControlName="personal" rows="2" placeholder="..." style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px;"></textarea>
+        </div>
+        <div class="form-group">
+          <label style="font-weight: bold; font-size: 0.85em; display: block; margin-bottom: 4px;">Familiar</label>
+          <textarea formControlName="familiar" rows="2" placeholder="..." style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px;"></textarea>
+        </div>
+        <div class="form-group">
+          <label style="font-weight: bold; font-size: 0.85em; display: block; margin-bottom: 4px;">Social</label>
+          <textarea formControlName="social" rows="2" placeholder="..." style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px;"></textarea>
+        </div>
+      </div>
     </div>
 
     <div class="table-wrapper">
@@ -67,34 +88,40 @@
       </div>
 
       <div class="table-responsive" style="overflow-x: auto;">
-        <table class="data-table" style="width: 100%; border-collapse: collapse; text-align: left;">
+        <table class="data-table" style="width: 100%; border-collapse: collapse; text-align: left; min-width: 1200px;">
           <thead>
             <tr>
-              <th style="padding: 10px; border-bottom: 2px solid #ddd; width: 20%;">ACTIVIDAD</th>
-              <th style="padding: 10px; border-bottom: 2px solid #ddd; width: 20%;">ESTATUS</th>
-              <th style="padding: 10px; border-bottom: 2px solid #ddd; width: 30%;">OBJETIVO</th>
-              <th style="padding: 10px; border-bottom: 2px solid #ddd; width: 30%;">CUMPLIMIENTO</th>
+              <th style="padding: 10px; border-bottom: 2px solid #ddd; width: 12%;">EJE</th>
+              <th style="padding: 10px; border-bottom: 2px solid #ddd; width: 14%;">ESTADO INICIAL</th>
+              <th style="padding: 10px; border-bottom: 2px solid #ddd; width: 14%;">ACCIÓN</th>
+              <th style="padding: 10px; border-bottom: 2px solid #ddd; width: 15%;">VINCULACIÓN</th>
+              <th style="padding: 10px; border-bottom: 2px solid #ddd; width: 15%;">TEMPORALIDAD</th>
+              <th style="padding: 10px; border-bottom: 2px solid #ddd; width: 15%;">SEGUIMIENTO</th>
+              <th style="padding: 10px; border-bottom: 2px solid #ddd; width: 15%;">OBSERVACIONES</th>
             </tr>
           </thead>
-
           <tbody formArrayName="actividades">
             <tr *ngFor="let act of actividades.controls; let i=index" [formGroupName]="i">
-              <td class="cell-actividad" style="padding: 10px; border-bottom: 1px solid #eee;">
+              <td class="cell-actividad" style="padding: 10px; border-bottom: 1px solid #eee; font-weight: bold;">
                 {{ act.get('nombre')?.value }}
               </td>
               <td class="cell-input" style="padding: 10px; border-bottom: 1px solid #eee;">
-                <input type="text" formControlName="estatus" style="width: 100%; padding: 5px; box-sizing: border-box;"
-                  placeholder="Ej. Cumplido">
+                <textarea formControlName="estadoInicial" placeholder="..." rows="2" style="width: 100%; box-sizing: border-box;"></textarea>
               </td>
               <td class="cell-input" style="padding: 10px; border-bottom: 1px solid #eee;">
-                <textarea formControlName="objetivo"
-                  style="width: 100%; padding: 5px; box-sizing: border-box; resize: vertical;"
-                  placeholder="Descripción..."></textarea>
+                <textarea formControlName="accion" placeholder="..." rows="2" style="width: 100%; box-sizing: border-box;"></textarea>
               </td>
               <td class="cell-input" style="padding: 10px; border-bottom: 1px solid #eee;">
-                <textarea formControlName="cumplimiento"
-                  style="width: 100%; padding: 5px; box-sizing: border-box; resize: vertical;"
-                  placeholder="Evidencia..."></textarea>
+                <textarea formControlName="vinculacion" placeholder="..." rows="2" style="width: 100%; box-sizing: border-box;"></textarea>
+              </td>
+              <td class="cell-input" style="padding: 10px; border-bottom: 1px solid #eee;">
+                <textarea formControlName="temporalidad" placeholder="..." rows="2" style="width: 100%; box-sizing: border-box;"></textarea>
+              </td>
+              <td class="cell-input" style="padding: 10px; border-bottom: 1px solid #eee;">
+                <textarea formControlName="seguimiento" placeholder="..." rows="2" style="width: 100%; box-sizing: border-box;"></textarea>
+              </td>
+              <td class="cell-input" style="padding: 10px; border-bottom: 1px solid #eee;">
+                <textarea formControlName="observaciones" placeholder="..." rows="2" style="width: 100%; box-sizing: border-box;"></textarea>
               </td>
             </tr>
           </tbody>
@@ -124,12 +151,6 @@
       <button *ngIf="esAdmin()" type="button" class="btn-primary" style="background-color: #475569;"
         (click)="generarPDF()" [disabled]="generandoPDF || !f3Existente">
         {{ generandoPDF ? 'Generando Papelería...' : '📄 Generar Documento PDF' }}
-      </button>
-
-      <!-- BOTÓN GENERAR WORD LOCAL -->
-      <button *ngIf="esAdmin()" type="button" class="btn-primary" style="background-color: #2563eb;" 
-        (click)="generarWordLocal()" [disabled]="generandoPDF || !f3Existente">
-        {{ generandoPDF ? 'Generando Word...' : '📝 Descargar en Word' }}
       </button>
 
       <button *ngIf="!modoSoloLectura" type="submit" class="btn-primary"

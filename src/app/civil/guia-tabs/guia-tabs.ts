@@ -58,7 +58,16 @@ export class GuiaTabsComponent implements OnInit {
   // NOTIFICACIONES IN-APP (MIGRADO A GLOBAL)
   registroEliminar: any = null;
 
-  // Lógica de Selección para Reportes (Frontend-Only)
+  // Estado de carga de Drive
+  subiendoDrive: boolean = false;
+  mostrarMenuPlantillas: boolean = false;
+
+  // Notificación central en pantalla
+  notificacionCentral: { visible: boolean; mensaje: string; tipo: 'success' | 'error' | 'info' } = {
+    visible: false, mensaje: '', tipo: 'success'
+  };
+
+  // Lógica de Selección (se mantiene para reportes)
   idsSeleccionados: Set<any> = new Set();
 
   constructor(
@@ -321,38 +330,11 @@ export class GuiaTabsComponent implements OnInit {
   descargarPDF(tipo: string) {
     if (!this.expediente) return;
     const expId = this.expediente.idUUID || this.expediente.id;
-
-    // Mapa de nombres legibles para el archivo
     const nombres: any = {
       'lista-asistencia': 'Plantilla_Asistencia',
       'ficha-incidencias': 'Ficha_Incidencias',
       'reporte-semanal': 'Plantilla_Reporte_Semanal'
     };
-
-    // Si es el registro + PDF de asistencia (proceso híbrido existente)
-    if (tipo === 'registro-asistencia') {
-      const payload = {
-        expedienteId: expId,
-        fecha: new Date().toISOString().split('T')[0],
-        horasCubiertas: 0,
-        asistencia: "PRESENTE",
-        horario: "N/A",
-        sede: "N/A",
-        actividadNombre: "Generación Documento PDF",
-        observaciones: "Descarga de lista"
-      };
-      this.civico.registrarAsistenciaYGenerarPDF(payload).subscribe({
-        next: (blob) => this.abrirBlob(blob, 'Lista_Asistencia_Registro'),
-        error: (err) => {
-          let msg = err.error?.message || err.message;
-          if (Array.isArray(msg)) msg = msg.join(', ');
-          alert(`Aún no se puede realizar esta acción: ${msg}`);
-        }
-      });
-      return;
-    }
-
-    // Para los de tipo GET simple (Plantillas y Fichas)
     this.toast.showSuccess(`Iniciando descarga de ${nombres[tipo] || 'documento'}...`);
     this.civico.generarDocumentoPDF(tipo, expId).subscribe({
       next: (blob) => this.abrirBlob(blob, nombres[tipo] || tipo),
@@ -360,6 +342,116 @@ export class GuiaTabsComponent implements OnInit {
         let msg = err.error?.message || err.message;
         if (Array.isArray(msg)) msg = msg.join(', ');
         this.toast.showError(`Error en descarga: ${msg}`);
+      }
+    });
+  }
+
+  /**
+   * Muestra una notificación centrada en pantalla y la cierra automáticamente.
+   */
+  mostrarNotificacion(mensaje: string, tipo: 'success' | 'error' | 'info' = 'success', duracionMs = 4000) {
+    this.notificacionCentral = { visible: true, mensaje, tipo };
+    setTimeout(() => {
+      this.notificacionCentral.visible = false;
+    }, duracionMs);
+  }
+
+  /**
+   * Sube todos los registros con foto a Drive y muestra notificación centrada.
+   */
+  subirAsistenciaDrive() {
+    if (!this.expediente || this.subiendoDrive) return;
+    const expId = this.expediente.idUUID || this.expediente.id;
+    this.subiendoDrive = true;
+    this.mostrarNotificacion('⏳ Subiendo todos los registros a Drive...', 'info', 15000);
+
+    this.civico.generarDocumentoPDF('lista-asistencia', expId).subscribe({
+      next: () => {
+        this.subiendoDrive = false;
+        this.mostrarNotificacion('✅ Todos los registros de asistencia fueron subidos a Drive correctamente.', 'success');
+      },
+      error: (err) => {
+        this.subiendoDrive = false;
+        let msg = err.error?.message || err.message;
+        if (Array.isArray(msg)) msg = msg.join(', ');
+        this.mostrarNotificacion(`❌ Error al subir a Drive: ${msg}`, 'error', 6000);
+      }
+    });
+  }
+
+  /**
+   * Muestra/oculta el menú de selección de plantilla en blanco.
+   */
+  toggleMenuPlantillas() {
+    this.mostrarMenuPlantillas = !this.mostrarMenuPlantillas;
+  }
+
+  /**
+   * Descarga la plantilla en blanco seleccionada usando POST sin expedienteId.
+   * Esto SOLO genera el PDF localmente, sin subir nada a Drive.
+   */
+  descargarPlantilla(tipo: 'lista-asistencia' | 'reporte-semanal') {
+    this.mostrarMenuPlantillas = false;
+    const nombre = tipo === 'lista-asistencia' ? 'Plantilla_Lista_Asistencia' : 'Plantilla_Reporte_Semanal';
+    this.toast.showSuccess('Descargando plantilla en blanco...');
+    // POST sin expedienteId → el backend solo genera el PDF, no sube nada a Drive
+    this.civico.generarDocumentoPDFPost(tipo, {}).subscribe({
+      next: (blob) => this.abrirBlob(blob, nombre),
+      error: (err) => {
+        let msg = err.error?.message || err.message;
+        this.toast.showError(`Error: ${msg}`);
+      }
+    });
+  }
+
+  /**
+   * Sube la ficha de incidencias a Drive y muestra notificación centrada.
+   */
+  subirIncidenciasDrive() {
+    if (!this.expediente) return;
+    const expId = this.expediente.idUUID || this.expediente.id;
+    this.mostrarNotificacion('⏳ Generando ficha de incidencias...', 'info', 15000);
+    this.civico.generarDocumentoPDF('ficha-incidencias', expId).subscribe({
+      next: (blob) => {
+        this.mostrarNotificacion('✅ Ficha de Incidencias generada y disponible en Drive.', 'success');
+      },
+      error: (err) => {
+        let msg = err.error?.message || err.message;
+        this.mostrarNotificacion(`❌ Error: ${msg}`, 'error', 6000);
+      }
+    });
+  }
+
+  /**
+   * Descarga el PDF de asistencia relleno para un registro individual.
+   */
+  descargarListaRellenaPorRegistro(reg: any) {
+    const nombreBen = this.expediente?.beneficiario?.nombre?.toUpperCase() || 'BENEFICIARIO';
+    const guiaNombre = reg.guia?.nombre?.toUpperCase() || '—';
+    const iniciales = nombreBen.split(/\s+/).filter(Boolean).map((w: string) => w[0].toUpperCase()).join('');
+    const fechaLimpia = reg.fechaActividad ? reg.fechaActividad.split('T')[0] : '';
+
+    const payload = {
+      nombreBeneficiario: nombreBen,
+      nombreGuia: guiaNombre,
+      fecha: fechaLimpia,
+      fechaHoja: fechaLimpia,
+      observaciones: reg.observaciones || '',
+      actividades: [{
+        horario: reg.horasCubiertas ? `${reg.horasCubiertas} HORAS` : '—',
+        actividad: reg.detalleIncidencia || reg.observaciones || 'Actividad de seguimiento',
+        sede: reg.sede || '—',
+        firma: iniciales,
+        asistencia: reg.asistencia || '—',
+        evidenciaUrl: reg.evidenciaUrl || reg.evidencia_url || ''
+      }]
+    };
+
+    this.civico.generarDocumentoPDFPost('lista-asistencia', payload).subscribe({
+      next: (blob) => this.abrirBlob(blob, 'Lista_Asistencia_Rellena'),
+      error: (err) => {
+        let msg = err.error?.message || err.message;
+        this.toast.showError(`Error al generar PDF: ${msg}`);
       }
     });
   }
@@ -466,7 +558,7 @@ export class GuiaTabsComponent implements OnInit {
             sede: reg.sede || '—',
             firma: iniciales,
             asistencia: reg.asistencia || '—',
-            evidenciaUrl: reg.evidenciaUrl || ''
+            evidenciaUrl: reg.evidenciaUrl || reg.evidencia_url || ''
           }
         ]
       };

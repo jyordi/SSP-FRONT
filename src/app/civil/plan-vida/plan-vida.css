@@ -22,15 +22,15 @@ h3 {
   margin: 0;
 }
 
-.grid {
+.header-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 24px;
-  margin-top: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  margin-bottom: 20px;
 }
 
-.form-group.full {
-  grid-column: span 2;
+.sphere-card.full-width {
+  width: 100%;
 }
 
 /* Para pantallas grandes, 2 columnas. Para móviles, 1. */
@@ -147,4 +147,101 @@ textarea:focus {
 .sphere-card:focus-within {
   border-color: #be185d;
   box-shadow: 0 4px 20px -5px rgba(190, 24, 93, 0.1);
+}
+
+.header-grid input {
+  width: 100%;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+}
+
+/* TABLE STYLES */
+.table-container {
+  margin-top: 30px;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.table-header {
+  background: #f8fafc;
+  padding: 16px 24px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.table-header h4 {
+  margin: 0;
+  color: #334155;
+  font-size: 1.1rem;
+}
+
+.activities-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 1200px; /* Asegura espacio para las 7 columnas */
+}
+
+.table-responsive {
+  overflow-x: auto;
+}
+
+.activities-table th {
+  text-align: left;
+  padding: 12px 18px;
+  background: #f1f5f9;
+  color: #475569;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.activities-table td {
+  padding: 12px 18px;
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: top;
+}
+
+.name-col {
+  font-weight: 700;
+  color: #1e293b;
+  font-size: 0.9rem;
+  background: #f8fafc;
+  width: 180px;
+}
+
+.activities-table input,
+.activities-table textarea {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid transparent;
+  background: transparent;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  transition: all 0.2s;
+}
+
+.activities-table input:focus,
+.activities-table textarea:focus {
+  background: white;
+  border-color: #be185d;
+  box-shadow: 0 0 0 3px rgba(190, 24, 93, 0.1);
+  outline: none;
+}
+
+.activities-table tr:hover {
+  background: #fffcfd;
+}
+
+.activities-table tfoot {
+  background: #f8fafc;
+}
+
+.footer-actions {
+  margin-top: 32px;
+  display: flex;
+  justify-content: flex-end;
 }

@@ -3,6 +3,7 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormArray } fr
 import { Civico } from '../../services/civico';
 import { CommonModule } from '@angular/common';
 import { NavbarReconectaComponent } from "../../shared/navbar-reconecta/navbar-reconecta";
+import { WordGeneratorService } from '../../services/word-generator.service';
 
 @Component({
   selector: 'app-formu-psico',
@@ -22,8 +23,13 @@ export class FormuPsico {
   mensajeInApp: { texto: string, tipo: 'success' | 'error' } | null = null;
 
   entrevistaForm: FormGroup;
+  generandoWord = false;
 
-  constructor(private fb: FormBuilder, private civicoService: Civico) {
+  constructor(
+    private fb: FormBuilder, 
+    private civicoService: Civico,
+    private wordGenerator: WordGeneratorService
+  ) {
 
     this.entrevistaForm = this.fb.group({
 
@@ -84,6 +90,7 @@ export class FormuPsico {
       tiempoLibre: ['', Validators.required],
       saludGeneral: ['', Validators.required],
       enfermedadCronica: ['', Validators.required],
+      cualEnfermedad: [''],
       llevaTratamiento: ['', Validators.required],
       detalleTratamiento: ['', ],
 
@@ -144,6 +151,7 @@ export class FormuPsico {
 
 
         saludGeneral: this.datosF1.saludDetalle?.descripcion_enfermedad || '',
+        cualEnfermedad: this.datosF1.saludDetalle?.nombre_enfermedad || '',
         detalleTratamiento: this.datosF1.saludDetalle?.indique_tratamiento || '',
         
         especificaConsumo: this.datosF1.sustanciasDetalle?.especifique || '',
@@ -307,6 +315,7 @@ export class FormuPsico {
 
     setReq('especificaGrupo', 'perteneceGrupoCultural');
     setReq('detalleTratamiento', 'llevaTratamiento');
+    setReq('cualEnfermedad', 'enfermedadCronica');
 
     // 🔥 CÁLCULO AUTOMÁTICO DE EDAD (RF-GENERAL)
     this.entrevistaForm.get('fechaNacimiento')?.valueChanges.subscribe(fecha => {
@@ -469,6 +478,7 @@ export class FormuPsico {
       },
       saludDetalle: {
         descripcion_enfermedad: f.saludGeneral || "",
+        nombre_enfermedad: f.cualEnfermedad || "",
         lleva_tratamiento: f.llevaTratamiento === 'si',
         indique_tratamiento: f.detalleTratamiento || ""
       },
@@ -497,5 +507,91 @@ export class FormuPsico {
   get perteneceGrupoCultural() { return this.entrevistaForm.get('perteneceGrupoCultural')?.value === 'si'; }
   get enfermedadCronica() { return this.entrevistaForm.get('enfermedadCronica')?.value === 'si'; }
   get llevaTratamiento() { return this.entrevistaForm.get('llevaTratamiento')?.value === 'si'; }
+
+  // ================= GENERACIÓN DE WORD LOCAL =================
+  async generarWordLocal() {
+    this.generandoWord = true;
+    try {
+      const f = this.entrevistaForm.value;
+      
+      // Mapeo de SÍ/NO a textos amigables o X
+      const siNo = (v: any) => v === 'si' ? 'SÍ' : 'NO';
+      const xSiNo = (v: any) => v === 'si' ? 'X' : ' ';
+
+      const datosTemplate = {
+        fechaentrevista: new Date().toLocaleDateString(),
+        institucioncana: "Municipio de Oaxaca de Juárez",
+        
+        nombre: f.nombre || '—',
+        edad: f.edad || '—',
+        sobrenombre: f.sobrenombre || '—',
+        fechanacimiento: f.fechaNacimiento || '—',
+        originario: f.originario || '—',
+        nacionalidad: f.nacionalidad || '—',
+        escolaridad: f.escolaridad || '—',
+        escolaridadac: f.escolaridad || '—', 
+        estadoCivil: f.estadoCivil || '—',
+        estadocivil: f.estadoCivil || '—', 
+        ocupacion: f.ocupacion || '—',
+        ocupacionac: f.ocupacion || '—',
+        religion: f.religion || '—',
+        domicilioac: f.domicilio || '—',
+        curp: f.curp || '—',
+        telefono: f.telefono || '—',
+        lenguain: f.lenguaIndigena || '—',
+
+        fechadetencion: f.fechaDetencion || '—',
+        faltacivica: f.faltaCivica || '—',
+        relatoechos: f.relatoHechos || '—',
+
+        miembros: f.familiares || [],
+        observacionesfamilia: f.observacionesFamilia || '—',
+
+        consume: siNo(f.consumeAlcohol),
+        cual: f.especificaConsumo || '—',
+        terapia: siNo(f.haRecibidoTerapias),
+        donde: f.especificaTerapias || '—',
+        neapoy: siNo(f.necesitaApoyoPsicologico),
+        quecon: f.especificaApoyo || '—',
+        grupo: siNo(f.acudeSesionesGrupos),
+        grupodonde: f.especificaDonde || '—',
+        rehabilitación: siNo(f.haEstadoRehabilitacion),
+        dondere: f.especificaEnCual || '—',
+        habilida: f.destrezas || '—', 
+
+        emociones: f.miedo || '—', 
+        alegría: f.alegria || '—',
+        enojo: f.enojo || '—',
+        tristeza: f.tristeza || '—',
+        amor: f.amor || '—',
+
+        deporte: f.deportes || '—',
+        tiempolibre: f.tiempoLibre || '—',
+        enfermedad: f.cualEnfermedad || (f.enfermedadCronica === 'si' ? 'SÍ' : 'NO'),
+        tratan: f.detalleTratamiento || '—',
+
+        personal: f.proyectoPersonal || '—',
+        familiar: f.proyectoFamiliar || '—',
+        laboral: f.proyectoLaboral || '—',
+        espiritual: f.proyectoEspiritual || '—',
+        académico: f.proyectoAcademico || '—',
+        social: f.proyectoSocial || '—'
+      };
+
+      console.log('Generando Word con datos:', datosTemplate);
+
+      await this.wordGenerator.generarDesdePlantilla(
+        'F1 entrevista-Psicologica.docx',
+        datosTemplate,
+        `F1_Entrevista_Psicologica_${f.nombre || 'Beneficiario'}.docx`
+      );
+
+      this.generandoWord = false;
+    } catch (error: any) {
+      console.error('Error al generar Word:', error);
+      this.generandoWord = false;
+      alert('Error al generar el documento Word: ' + (error.message || error));
+    }
+  }
 
 }

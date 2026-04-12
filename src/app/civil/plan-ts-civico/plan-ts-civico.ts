@@ -75,6 +75,10 @@ export class PlanIndividualComponent implements OnInit, OnChanges {
       diasAsignados: [''],
       metasPrograma: [''],
       observacionesPlan: [''],
+      // Esferas de vida (Proyecto de Vida F3)
+      personal: [''],
+      familiar: [''],
+      social: [''],
       actividades: this.fb.array([])
     });
 
@@ -93,12 +97,19 @@ export class PlanIndividualComponent implements OnInit, OnChanges {
     return this.planForm.get('actividades') as FormArray;
   }
 
-  private crearFilaActividad(nombre: string, estatus = '', objetivo = '', cumplimiento = ''): FormGroup {
+  private crearFilaActividad(nombre: string, state: any = {}): FormGroup {
     return this.fb.group({
       nombre: [nombre],
-      estatus: [estatus],
-      objetivo: [objetivo],
-      cumplimiento: [cumplimiento]
+      estadoInicial: [state.estadoInicial || ''],
+      accion: [state.accion || state.objetivo || ''],
+      vinculacion: [state.vinculacion || ''],
+      temporalidad: [state.temporalidad || ''],
+      seguimiento: [state.seguimiento || ''],
+      observaciones: [state.observaciones || state.cumplimiento || ''],
+      // Compatibilidad backend/Word
+      estatus: [state.estatus || state.estadoInicial || ''],
+      objetivo: [state.objetivo || state.accion || ''],
+      cumplimiento: [state.cumplimiento || state.observaciones || '']
     });
   }
 
@@ -117,8 +128,16 @@ export class PlanIndividualComponent implements OnInit, OnChanges {
             fechaTerminoEstimada: res.fechaTerminoEstimada || '',
             diasAsignados: res.diasAsignados || '',
             metasPrograma: res.metasPrograma || '',
-            observacionesPlan: res.observacionesPlan || ''
+            observacionesPlan: res.observacionesPlan || '',
+            personal: res.proyectoVidaF3?.personal || '',
+            familiar: res.proyectoVidaF3?.familiar || '',
+            social: res.proyectoVidaF3?.social || ''
           });
+
+          // Si el Proyecto de Vida en F3 está vacío, intentar auto-rellenar desde F1
+          if (!res.proyectoVidaF3?.personal && !res.proyectoVidaF3?.familiar && !res.proyectoVidaF3?.social) {
+            this.intentarAutoRellenarDesdeF1(this.expedienteId);
+          }
 
           // Reconstruir form arrays con el diccionario actividadesPlan
           if (res.actividadesPlan && typeof res.actividadesPlan === 'object') {
@@ -128,12 +147,7 @@ export class PlanIndividualComponent implements OnInit, OnChanges {
             if (keys.length > 0) {
               keys.forEach(key => {
                 const act = res.actividadesPlan[key];
-                this.actividades.push(this.crearFilaActividad(
-                  key,
-                  act.estatus,
-                  act.objetivo,
-                  act.cumplimiento
-                ));
+                this.actividades.push(this.crearFilaActividad(key, act));
               });
             } else {
               this.ACTIVIDADES_BASE.forEach(act => this.actividades.push(this.crearFilaActividad(act)));
@@ -150,6 +164,7 @@ export class PlanIndividualComponent implements OnInit, OnChanges {
       error: () => {
         this.f3Existente = false;
         // Si no existe, mantenemos el form vacío que ya creó initForm()
+        this.intentarAutoRellenarDesdeF1(this.expedienteId);
         if (this.modoSoloLectura) {
           this.planForm.disable();
           // ES CREACIÓN, Verificar dependencias previas (CANDADO F3) de forma local o remota
@@ -187,6 +202,20 @@ export class PlanIndividualComponent implements OnInit, OnChanges {
     }
   }
 
+  private intentarAutoRellenarDesdeF1(expedienteId: string) {
+    this.civicoService.obtenerF1PorExpediente(expedienteId).subscribe({
+      next: (f1: any) => {
+        if (f1 && f1.proyectoVida) {
+          this.planForm.patchValue({
+            personal: this.planForm.get('personal')?.value || f1.proyectoVida.personal || '',
+            familiar: this.planForm.get('familiar')?.value || f1.proyectoVida.familiar || '',
+            social: this.planForm.get('social')?.value || f1.proyectoVida.social || ''
+          });
+        }
+      }
+    });
+  }
+
   guardarF3() {
     if (this.planForm.invalid || this.bloqueadoPorFlujo) return;
 
@@ -196,12 +225,19 @@ export class PlanIndividualComponent implements OnInit, OnChanges {
     const dictActividades: any = {};
     this.actividades.value.forEach((act: any) => {
       dictActividades[act.nombre] = {
-        estatus: act.estatus || 'PENDIENTE',
-        objetivo: act.objetivo || '',
-        cumplimiento: act.cumplimiento || '',
-        vinculacion: '',
-        temporalidad: '',
-        seguimiento: ''
+        estadoInicial: act.estadoInicial,
+        accion: act.accion,
+        vinculacion: act.vinculacion,
+        temporalidad: act.temporalidad,
+        seguimiento: act.seguimiento,
+        observaciones: act.observaciones,
+        // Duplicidad para compatibilidad con Word F3
+        estatus: act.estadoInicial || 'PENDIENTE', 
+        objetivo: act.accion || '',
+        cumplimiento: act.observaciones || '',
+        vinculacion_extra: act.vinculacion, // redundancia
+        temporalidad_extra: act.temporalidad,
+        seguimiento_extra: act.seguimiento
       };
     });
 
@@ -213,6 +249,11 @@ export class PlanIndividualComponent implements OnInit, OnChanges {
       diasAsignados: this.planForm.get('diasAsignados')?.value?.toString(),
       metasPrograma: this.planForm.get('metasPrograma')?.value,
       observacionesPlan: this.planForm.get('observacionesPlan')?.value,
+      proyectoVidaF3: {
+        personal: this.planForm.get('personal')?.value,
+        familiar: this.planForm.get('familiar')?.value,
+        social: this.planForm.get('social')?.value
+      },
       actividadesPlan: dictActividades
     };
 

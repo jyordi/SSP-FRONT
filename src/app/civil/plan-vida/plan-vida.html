@@ -2,65 +2,94 @@
   <!-- Encabezado con el botón de PDF a la derecha -->
   <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
     <div>
-      <h3>🌟 Proyecto de Vida</h3>
-      <p style="color: #64748b; margin-top: 5px;">Define metas y objetivos para las distintas esferas de vida del beneficiario.</p>
+      <h3> Proyecto de Vida</h3>
+      <p style="color: #64748b; margin-top: 5px;">Define metas y objetivos para las distintas esferas de vida del
+        beneficiario.</p>
     </div>
-    <button class="btn-primary" [disabled]="generandoPDF || sinF1" (click)="descargarPlanPDF()" style="background: #be185d;">
+    <button class="btn-primary" [disabled]="generandoPDF || sinF3" (click)="descargarPlanPDF()"
+      style="background: #be185d;">
       {{ generandoPDF ? '⏳ Generando...' : '📄 Descargar Plan de Vida (PDF)' }}
     </button>
   </div>
 
   <div *ngIf="cargando" class="loader-small"></div>
 
-  <div *ngIf="!cargando && sinF1" style="background: #fef2f2; border: 1px solid #f87171; color: #b91c1c; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+  <div *ngIf="!cargando && sinF3"
+    style="background: #fef2f2; border: 1px solid #f87171; color: #b91c1c; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
     <span style="font-size: 1.5em;">⚠️</span>
-    <span style="font-weight: 500;">No se puede crear el Plan de Vida estructurado todavía. Falta crear el perfil principal de la Entrevista Clínica (F1).</span>
+    <span style="font-weight: 500;">No se puede crear el Plan de Vida estructurado todavía. Falta crear el perfil
+      principal de la Entrevista Clínica (F1).</span>
   </div>
 
-  <!-- FORMULARIO -->
-  <form [formGroup]="planForm" (ngSubmit)="guardarPlan()" *ngIf="!cargando && !sinF1">
-    <div class="grid">
-      <!-- Personal -->
-      <div class="sphere-card">
-        <label>👤 Personal</label>
-        <textarea formControlName="personal" rows="3" placeholder="Metas de autocuidado, autoestima y desarrollo individual..."></textarea>
+  <!-- AVISO DE AUTO-RELLENO -->
+  <div *ngIf="!cargando && !sinF3"
+    style="background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af; padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; font-size: 0.9rem; display: flex; align-items: center; gap: 10px;">
+    <span>✨</span>
+    <span>Los campos vacíos se han pre-rellenado automáticamente con la información de cumplimiento del <b>Plan de
+        Trabajo (F3)</b>.</span>
+  </div>
+
+  <!-- FORMULARIO REESTRUCTURADO (SOLO TABLA F3) -->
+  <form [formGroup]="planForm" (ngSubmit)="guardarPlan()" *ngIf="!cargando">
+
+    <!-- TABLA DE ACTIVIDADES -->
+    <div class="table-container fade-in">
+      <div class="table-header">
+        <h4>Tabla de Cumplimiento de Actividades</h4>
       </div>
 
-      <!-- Familiar -->
-      <div class="sphere-card">
-        <label>🏠 Familiar</label>
-        <textarea formControlName="familiar" rows="3" placeholder="Relaciones afectivas, comunicación y metas en el núcleo familiar..."></textarea>
-      </div>
-
-      <!-- Laboral -->
-      <div class="sphere-card">
-        <label>💼 Laboral / Productivo</label>
-        <textarea formControlName="laboral" rows="3" placeholder="Búsqueda de empleo, estabilidad laboral o emprendimiento..."></textarea>
-      </div>
-
-      <!-- Espiritual -->
-      <div class="sphere-card">
-        <label>🧘 Espiritual / Emocional</label>
-        <textarea formControlName="espiritual" rows="3" placeholder="Paz mental, creencias, reflexión y equilibrio interior..."></textarea>
-      </div>
-
-      <!-- Académico -->
-      <div class="sphere-card">
-        <label>🎓 Académico / Formativo</label>
-        <textarea formControlName="academico" rows="3" placeholder="Estudios, cursos, regularización académica o nuevas habilidades..."></textarea>
-      </div>
-
-      <!-- Social -->
-      <div class="sphere-card">
-        <label>🤝 Social / Comunitario</label>
-        <textarea formControlName="social" rows="3" placeholder="Participación en la comunidad, amistades y redes de apoyo..."></textarea>
+      <div class="table-responsive">
+        <table class="activities-table">
+          <thead>
+            <tr>
+              <th>EJE</th>
+              <th>ESTADO INICIAL</th>
+              <th>ACCIÓN</th>
+              <th>VINCULACIÓN</th>
+              <th>TEMPORALIDAD</th>
+              <th>SEGUIMIENTO</th>
+              <th>OBSERVACIONES</th>
+            </tr>
+          </thead>
+          <tbody formArrayName="actividades">
+            <tr *ngFor="let act of actividades.controls; let i=index" [formGroupName]="i">
+              <td class="name-col">{{ act.get('nombre')?.value }}</td>
+              <td>
+                <textarea formControlName="estadoInicial" placeholder="..." rows="2"></textarea>
+              </td>
+              <td>
+                <textarea formControlName="accion" placeholder="..." rows="2"></textarea>
+              </td>
+              <td>
+                <textarea formControlName="vinculacion" placeholder="..." rows="2"></textarea>
+              </td>
+              <td>
+                <textarea formControlName="temporalidad" placeholder="..." rows="2"></textarea>
+              </td>
+              <td>
+                <textarea formControlName="seguimiento" placeholder="..." rows="2"></textarea>
+              </td>
+              <td>
+                <textarea formControlName="observaciones" placeholder="..." rows="2"></textarea>
+              </td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr>
+              <td class="name-col">OBSERVACIONES GENERALES</td>
+              <td colspan="3">
+                <textarea formControlName="observacionesPlan" placeholder="Notas adicionales..." rows="3"></textarea>
+              </td>
+            </tr>
+          </tfoot>
+        </table>
       </div>
     </div>
 
-    <!-- Botón de Guardar en la parte inferior -->
-    <div style="margin-top: 32px; display: flex; justify-content: flex-end; padding: 20px; background: #f8fafc; border-radius: 16px; border: 1px dashed #e2e8f0;">
-      <button type="submit" class="btn-guardar" [disabled]="guardando || planForm.invalid">
-        {{ guardando ? '⏳ Guardando cambios...' : '💾 Guardar Plan de Vida' }}
+    <!-- Botón de Guardar -->
+    <div class="footer-actions">
+      <button type="submit" class="btn-guardar" [disabled]="guardando">
+        {{ guardando ? '⏳ Guardando cambios...' : (f3Existente ? '💾 Actualizar Plan' : '💾 Guardar Plan') }}
       </button>
     </div>
   </form>

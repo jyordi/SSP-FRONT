@@ -440,6 +440,15 @@
             <label><input type="radio" value="no" formControlName="enfermedadCronica"> No</label>
           </div>
         </div>
+
+        <div class="form-group" *ngIf="enfermedadCronica">
+          <label>¿Qué enfermedad degenerativa padece?</label>
+          <textarea formControlName="cualEnfermedad" placeholder="Especifique la enfermedad..."></textarea>
+          <div class="error" *ngIf="entrevistaForm.get('cualEnfermedad')?.invalid && entrevistaForm.get('cualEnfermedad')?.touched">
+            Este campo es obligatorio
+          </div>
+        </div>
+
         <div class="form-group" *ngIf="enfermedadCronica">
           <label>¿Lleva tratamiento?</label>
           <div class="radio-group">
@@ -484,12 +493,12 @@
     </div>
 
     <div class="button-container">
-      <button type="button" class="btn-secondary">Cancelar</button>
-      <button type="submit"
-  class="btn-success"
-  >
-  {{ datosF1 ? 'Actualizar Entrevista' : 'Guardar Evaluación' }}
-</button>
+      <button type="button" class="btn-secondary" (click)="generarWordLocal()" [disabled]="generandoWord">
+        {{ generandoWord ? '⌛ Generando...' : '📄 Descargar Word' }}
+      </button>
+      <button type="submit" class="btn-success">
+        {{ datosF1 ? 'Actualizar Entrevista' : 'Guardar Evaluación' }}
+      </button>
     </div>
   </form>
 </div>

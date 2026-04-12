@@ -209,6 +209,18 @@
   color: var(--text-primary) !important;
 }
 
+/* Estilo específico para el botón de Word */
+.button-container .btn-secondary {
+  border-color: #2b579a !important; /* Color azul Word */
+  color: #2b579a !important;
+}
+
+.button-container .btn-secondary:hover {
+  background-color: #e6eef7 !important;
+  border-color: #1e3e6d !important;
+  color: #1e3e6d !important;
+}
+
 .btn-delete {
   background-color: #fee2e2 !important;
   color: #991b1b !important;

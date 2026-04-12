@@ -1,7 +1,9 @@
 import { Component, Input, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, FormArray } from '@angular/forms';
 import { Civico } from '../../services/civico';
+import { SessionService } from '../../services/session';
+import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-plan-vida',
@@ -17,21 +19,55 @@ export class PlanVidaComponent implements OnInit {
   cargando = true;
   guardando = false;
   generandoPDF = false;
-  f1Id: string | null = null;
-  sinF1 = false;
+  f3IdPropio: string | null = null;
+  f3Existente = false;
+  sinF3 = false;
+
+  readonly ACTIVIDADES_BASE = [
+    'EDUCATIVA',
+    'PSICOSOCIAL',
+    'PSICOLÓGICA',
+    'ADICCIONES',
+    'FAMILIAR',
+    'LABORAL',
+    'DEPORTIVA',
+    'CULTURAL'
+  ];
 
   constructor(
     private fb: FormBuilder,
     private civico: Civico,
+    private session: SessionService,
+    private toast: ToastService,
     private cdr: ChangeDetectorRef
   ) {
     this.planForm = this.fb.group({
-      personal: ['', Validators.required],
-      familiar: ['', Validators.required],
-      laboral: ['', Validators.required],
-      espiritual: ['', Validators.required],
-      academico: ['', Validators.required],
-      social: ['', Validators.required]
+      fechaInicioEstimada: [new Date().toISOString().split('T')[0]],
+      fechaTerminoEstimada: [''],
+      diasAsignados: [''],
+      metasPrograma: [''],
+      observacionesPlan: [''],
+      actividades: this.fb.array([])
+    });
+  }
+
+  get actividades(): FormArray {
+    return this.planForm.get('actividades') as FormArray;
+  }
+
+  private crearFilaActividad(nombre: string, state: any = {}): FormGroup {
+    return this.fb.group({
+      nombre: [nombre],
+      estadoInicial: [state.estadoInicial || ''],
+      accion: [state.accion || state.objetivo || ''],
+      vinculacion: [state.vinculacion || ''],
+      temporalidad: [state.temporalidad || ''],
+      seguimiento: [state.seguimiento || ''],
+      observaciones: [state.observaciones || state.cumplimiento || ''],
+      // Compatibilidad backend/Word
+      estatus: [state.estatus || state.estadoInicial || 'PENDIENTE'],
+      objetivo: [state.objetivo || state.accion || ''],
+      cumplimiento: [state.cumplimiento || state.observaciones || '']
     });
   }
 
@@ -43,74 +79,130 @@ export class PlanVidaComponent implements OnInit {
     if (!this.expediente) return;
     const expId = this.expediente.idUUID || this.expediente.id;
 
-    this.civico.obtenerF1PorExpediente(expId).subscribe({
-      next: (f1: any) => {
-        if (!f1 || !f1.idUUID) {
-          this.sinF1 = true;
-        } else {
-          this.f1Id = f1.idUUID;
-          if (f1.proyectoVida) {
-            this.planForm.patchValue({
-              personal: f1.proyectoVida.personal || '',
-              familiar: f1.proyectoVida.familiar || '',
-              laboral: f1.proyectoVida.laboral || '',
-              espiritual: f1.proyectoVida.espiritual || '',
-              academico: f1.proyectoVida.academico || '',
-              social: f1.proyectoVida.social || ''
-            });
+    this.cargando = true;
+    this.civico.obtenerF3PorExpediente(expId).subscribe({
+      next: (res: any) => {
+        if (res && (res.id || res.idUUID)) {
+          this.f3Existente = true;
+          this.f3IdPropio = res.idUUID || res.id;
+
+          this.planForm.patchValue({
+            fechaInicioEstimada: res.fechaInicioEstimada || new Date().toISOString().split('T')[0],
+            fechaTerminoEstimada: res.fechaTerminoEstimada || '',
+            diasAsignados: res.diasAsignados || '',
+            metasPrograma: res.metasPrograma || '',
+            observacionesPlan: res.observacionesPlan || ''
+          });
+
+          if (res.actividadesPlan && typeof res.actividadesPlan === 'object') {
+            this.actividades.clear();
+            const keys = Object.keys(res.actividadesPlan);
+            if (keys.length > 0) {
+              keys.forEach(key => {
+                const act = res.actividadesPlan[key];
+                this.actividades.push(this.crearFilaActividad(key, act));
+              });
+            } else {
+              this.ACTIVIDADES_BASE.forEach(act => this.actividades.push(this.crearFilaActividad(act)));
+            }
           }
+        } else {
+          this.inicializarPlanVacio();
         }
         this.cargando = false;
         this.cdr.detectChanges();
       },
       error: () => {
-        this.sinF1 = true;
+        this.inicializarPlanVacio();
         this.cargando = false;
         this.cdr.detectChanges();
       }
     });
   }
 
-  guardarPlan() {
-    if (!this.f1Id) {
-      alert("No se puede guardar porque no existe la Entrevista Clínica (F1). Cree primero la Entrevista.");
-      return;
-    }
+  private inicializarPlanVacio() {
+    this.f3Existente = false;
+    this.actividades.clear();
+    this.ACTIVIDADES_BASE.forEach(act => this.actividades.push(this.crearFilaActividad(act)));
+  }
 
-    if (this.planForm.invalid) {
-      this.planForm.markAllAsTouched();
-      return;
-    }
+  guardarPlan() {
+    if (!this.expediente) return;
+    const expId = this.expediente.idUUID || this.expediente.id;
 
     this.guardando = true;
 
-    // Actualizamos ÚNICAMENTE el bloque proyectoVida usando el PATCH
+    // Convertir FormArray a Diccionario para el Backend
+    const dictActividades: any = {};
+    this.actividades.value.forEach((act: any) => {
+      dictActividades[act.nombre] = {
+        estadoInicial: act.estadoInicial,
+        accion: act.accion,
+        vinculacion: act.vinculacion,
+        temporalidad: act.temporalidad,
+        seguimiento: act.seguimiento,
+        observaciones: act.observaciones,
+        // Duplicidad para compatibilidad con Word F3
+        estatus: act.estadoInicial || 'PENDIENTE',
+        objetivo: act.accion || '',
+        cumplimiento: act.observaciones || ''
+      };
+    });
+
     const payload = {
-      proyectoVida: this.planForm.value
+      expedienteId: expId,
+      coordinadorId: this.session.getUserId() || null,
+      fechaInicioEstimada: this.planForm.get('fechaInicioEstimada')?.value,
+      fechaTerminoEstimada: this.planForm.get('fechaTerminoEstimada')?.value,
+      diasAsignados: this.planForm.get('diasAsignados')?.value?.toString(),
+      metasPrograma: this.planForm.get('metasPrograma')?.value,
+      observacionesPlan: this.planForm.get('observacionesPlan')?.value,
+      actividadesPlan: dictActividades
     };
 
-    this.civico.actualizarF1(this.f1Id, payload).subscribe({
-      next: () => {
-        this.guardando = false;
-        alert('Plan de Vida guardado correctamente.');
-        this.cdr.detectChanges();
-      },
-      error: (err: any) => {
-        this.guardando = false;
-        const msg = err.error?.message || err.message;
-        alert(`Error al guardar: ${Array.isArray(msg) ? msg.join(', ') : msg}`);
-        this.cdr.detectChanges();
-      }
-    });
+    if (this.f3Existente && this.f3IdPropio) {
+      this.civico.actualizarF3(this.f3IdPropio, payload).subscribe({
+        next: () => this.finalizarGuardado(),
+        error: (err) => this.manejarError(err)
+      });
+    } else {
+      this.civico.crearF3(payload).subscribe({
+        next: (res: any) => {
+          this.f3Existente = true;
+          this.f3IdPropio = res.idUUID || res.id;
+          this.finalizarGuardado();
+        },
+        error: (err) => this.manejarError(err)
+      });
+    }
+  }
+
+  private finalizarGuardado() {
+    this.guardando = false;
+    this.toast.showSuccess("Plan de Trabajo (F3) guardado correctamente.");
+    this.cdr.detectChanges();
+  }
+
+  private manejarError(err: any) {
+    this.guardando = false;
+    const msg = err.error?.message || err.message;
+    this.toast.showError('Error al guardar: ' + (Array.isArray(msg) ? msg.join(', ') : msg));
+    this.cdr.detectChanges();
   }
 
   descargarPlanPDF() {
     if (!this.expediente) return;
     const expId = this.expediente.idUUID || this.expediente.id;
 
+    console.log("--- DEBUG PDF PLAN DE VIDA ---");
+    console.log("Enviando ID de expediente:", expId);
+    console.log("Datos del expediente completo:", this.expediente);
+    console.log("Valores actuales del formulario (Proyecto de Vida):", this.planForm.value);
+
     this.generandoPDF = true;
     this.civico.generarDocumentoPDF('plan-vida', expId).subscribe({
       next: (blob: Blob) => {
+        console.log("Respuesta recibida (Blob del PDF)");
         this.generandoPDF = false;
         const a = document.createElement('a');
         const url = window.URL.createObjectURL(blob);

@@ -1,7 +1,23 @@
 
+<!-- ===== NOTIFICACIÓN CENTRADA EN PANTALLA ===== -->
+<div *ngIf="notificacionCentral.visible"
+     style="position: fixed; inset: 0; z-index: 9999; display: flex; align-items: center; justify-content: center; pointer-events: none;">
+  <div [ngStyle]="{
+      background: notificacionCentral.tipo === 'success' ? '#dcfce7' :
+                  notificacionCentral.tipo === 'error'   ? '#fee2e2' : '#dbeafe',
+      'border-left': '5px solid ' + (notificacionCentral.tipo === 'success' ? '#16a34a' :
+                                      notificacionCentral.tipo === 'error'   ? '#dc2626' : '#2563eb'),
+      color:         notificacionCentral.tipo === 'success' ? '#15803d' :
+                     notificacionCentral.tipo === 'error'   ? '#b91c1c' : '#1d4ed8'
+    }"
+       style="padding: 24px 36px; border-radius: 14px; box-shadow: 0 8px 32px rgba(0,0,0,0.18); font-size: 1.1rem; font-weight: 600; max-width: 480px; text-align: center; animation: fadeIn 0.3s ease;">
+    {{ notificacionCentral.mensaje }}
+  </div>
+</div>
+
 <div class="tabs-container">
   <button class="tab" [class.active]="tabActual === 'horas' || tabActual === 'asistencia'" (click)="cambiarTab('horas')">
-     ✨ Bitácora y Progreso
+     Bitácora y Progreso
   </button>
 </div>
 
@@ -63,47 +79,60 @@
       </div>
     </div>
 
-    <!-- PANEL DE ACCIONES DE SELECCIÓN (Solo para Asistencia Personalizada) -->
-    <div class="selection-floating-panel fade-in" *ngIf="haySeleccionados">
-      <div class="selection-info">
-        <span class="count-text">📋 {{ idsSeleccionados.size }} registros marcados</span>
-        <span class="helper-text">Genera las hojas de asistencia individuales para estos registros:</span>
-      </div>
-      
-      <div class="selection-actions-group">
-        <button class="btn-action-premium" 
-                (click)="descargarAsistenciaSeleccionada()" 
-                style="background: #10b981;">
-          <span class="btn-title">📄 Generar Hojas de Asistencia</span>
-          <span class="btn-subtitle">Auto-rellenadas con firma</span>
+
+    <!-- BARRA DE ACCIONES PRINCIPALES -->
+    <div class="bitacora-actions" style="margin-top: 20px; flex-wrap: wrap; gap: 10px; display: flex; align-items: center; justify-content: space-between;">
+
+      <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;" *ngIf="esGuia || esAdmin">
+
+        <!-- SUBIR ASISTENCIA A DRIVE: Sube todos los registros con foto -->
+        <button class="btn-primary-premium"
+                (click)="subirAsistenciaDrive()"
+                [disabled]="subiendoDrive"
+                style="background: #0ea5e9; padding: 0.7rem 1.2rem; font-size: 0.9em;"
+                title="Sube todos los registros con foto a Drive">
+          {{ subiendoDrive ? '⏳ Subiendo...' : '📤 Subir Asistencia a Drive' }}
         </button>
 
-        <!-- Opción secundaria para reporte de selección específica si se desea -->
-        <button class="btn-action-premium" 
-                (click)="descargarReporteSeleccionado()" 
-                style="background: #6366f1; min-width: 140px;">
-          <span class="btn-title">📊 Reporte de Selección</span>
-          <span class="btn-subtitle">Solo lo marcado</span>
-        </button>
-      </div>
-    </div>
-
-    <!-- BOTONES DE ACCIÓN GENERALES / REPORTES AUTOMÁTICOS -->
-    <div class="bitacora-actions" style="margin-top: 20px; flex-wrap: wrap;">
-      <div class="doc-btns" *ngIf="esGuia || esAdmin">
-        <!-- BOTÓN PRINCIPAL DE REPORTE (Sin necesidad de selección) -->
-        <button class="btn-primary-premium" 
-                (click)="descargarReporteSemanalAuto()"
-                style="background: #8b5cf6; padding: 0.8rem 1.5rem;">
-          📊 Generar Reporte Semanal (Auto)
-        </button>
-
-        <div class="template-group" style="display: flex; gap: 8px; margin-left: 10px;">
-          <button class="btn-ghost" (click)="descargarPDF('ficha-incidencias')" title="Ficha de incidencias">📄 Incidencias</button>
-          <button class="btn-ghost" (click)="descargarPDF('lista-asistencia')" title="Plantilla en blanco">📄 Asistencia Vacía</button>
+        <!-- PLANTILLA EN BLANCO: Dropdown para elegir qué plantilla -->
+        <div style="position: relative;">
+          <button class="btn-ghost"
+                  (click)="toggleMenuPlantillas()"
+                  title="Descarga una plantilla en blanco para llenar a mano">
+            📋 Plantilla en Blanco ▾
+          </button>
+          <!-- Mini menú desplegable -->
+          <div *ngIf="mostrarMenuPlantillas"
+               style="position: absolute; top: 100%; left: 0; z-index: 100; background: white; border: 1px solid #e2e8f0; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.12); min-width: 200px; overflow: hidden; margin-top: 4px;">
+            <button (click)="descargarPlantilla('lista-asistencia')"
+                    style="display: block; width: 100%; text-align: left; padding: 10px 15px; background: none; border: none; cursor: pointer; font-size: 0.9em; color: #1e293b; border-bottom: 1px solid #f1f5f9;"
+                    onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='none'">
+              📄 Lista de Asistencia
+            </button>
+            <button (click)="descargarPlantilla('reporte-semanal')"
+                    style="display: block; width: 100%; text-align: left; padding: 10px 15px; background: none; border: none; cursor: pointer; font-size: 0.9em; color: #1e293b;"
+                    onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='none'">
+              📊 Reporte Semanal
+            </button>
+          </div>
         </div>
+
+        <!-- REPORTE SEMANAL -->
+        <button class="btn-primary-premium"
+                (click)="descargarReporteSemanalAuto()"
+                style="background: #8b5cf6; padding: 0.7rem 1.2rem; font-size: 0.9em;">
+          📊 Reporte Semanal
+        </button>
+
+        <!-- INCIDENCIAS A DRIVE -->
+        <button class="btn-ghost"
+                (click)="subirIncidenciasDrive()"
+                title="Sube la ficha de incidencias a Drive">
+          📋 Incidencias
+        </button>
       </div>
-      
+
+      <!-- BOTÓN DE REGISTRO (solo Guía) -->
       <button class="btn-primary-premium" (click)="abrirModalBitacora()" *ngIf="puedeRegistrar">
         <span class="plus-icon">+</span> Registrar en Bitácora
       </button>
@@ -114,21 +143,16 @@
       <table class="premium-table">
         <thead>
           <tr>
-            <th style="width: 40px;">
-              <input type="checkbox" (change)="seleccionarTodoToggle()" [checked]="haySeleccionados && idsSeleccionados.size === registrosHoras.length">
-            </th>
             <th>Fecha</th>
             <th>Asistencia</th>
             <th>Hrs</th>
             <th>Actividad / Incidencia</th>
             <th>Evidencia</th>
+            <th style="width: 70px; text-align: center;">Eliminar</th>
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let reg of registrosHoras; let i = index" [class.row-selected]="estaSeleccionado(reg)">
-            <td style="text-align: center;">
-              <input type="checkbox" [checked]="estaSeleccionado(reg)" (change)="toggleSeleccion(reg)">
-            </td>
+          <tr *ngFor="let reg of registrosHoras; let i = index">
             <td>
               <div class="date-cell">
                 <span class="day">{{ reg.fechaActividad | date:'dd' }}</span>
@@ -148,27 +172,36 @@
                 <p class="obs-text">{{ reg.detalleIncidencia || reg.observaciones }}</p>
               </div>
             </td>
-            <td style="display: flex; gap: 10px; align-items: center; justify-content: space-between;">
-              <div style="display: flex; gap: 10px; align-items: center;">
-                <div *ngIf="reg.evidenciaUrl || reg.evidencia_url">
-                  <a [href]="reg.evidenciaUrl || reg.evidencia_url" target="_blank" style="background:#0ea5e9; color:white; padding:5px 10px; border-radius:5px; text-decoration:none; font-size: 0.85em;">🔗 Ver Drive</a>
-                </div>
-                <span class="no-evidence" *ngIf="!(reg.evidenciaUrl || reg.evidencia_url)">-</span>
+            <td style="text-align: center;">
+              <div *ngIf="reg.evidenciaUrl || reg.evidencia_url">
+                <a [href]="reg.evidenciaUrl || reg.evidencia_url" target="_blank"
+                   style="background:#0ea5e9; color:white; padding:4px 8px; border-radius:5px; text-decoration:none; font-size: 0.8em;">
+                  🔗 Drive
+                </a>
               </div>
-              
-              <button *ngIf="esAdmin" class="btn-delete-icon" (click)="eliminarRegistro(reg)" style="background: none; border: none; font-size: 1.2em; cursor: pointer; color: #ef4444;" title="Eliminar Registro">
-                🗑️
-              </button>
+              <span class="no-evidence" *ngIf="!(reg.evidenciaUrl || reg.evidencia_url)">-</span>
+            </td>
+            <td style="text-align: center;">
+              <div style="display: flex; gap: 5px; justify-content: center; align-items: center;">
+                
+                <!-- Eliminar (solo Admin) -->
+                <button *ngIf="esAdmin" class="btn-delete-icon" (click)="eliminarRegistro(reg)"
+                  style="background: none; border: none; font-size: 1.1em; cursor: pointer; color: #ef4444;"
+                  title="Eliminar Registro">
+                  🗑️
+                </button>
+              </div>
             </td>
           </tr>
           <tr *ngIf="registrosHoras.length === 0">
-            <td colspan="5" class="empty-row">No hay registros en la bitácora aún.</td>
+            <td colspan="6" class="empty-row">No hay registros en la bitácora aún.</td>
           </tr>
         </tbody>
       </table>
     </div>
   </div>
 }
+
 
 <!-- MODAL DE REGISTRO UNIFICADO -->
 <div class="modal-premium-overlay" *ngIf="mostrarModalBitacora">

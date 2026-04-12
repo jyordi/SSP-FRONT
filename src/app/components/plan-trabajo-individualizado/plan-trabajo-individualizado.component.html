@@ -27,7 +27,7 @@
       <!-- BOTÓN GIGANTE SI YA EXISTE -->
       <div class="header-action" *ngIf="planExistente">
         <button class="btn-gigante" (click)="irAPlanDetalle()">
-          🚀 Ir a Registro de Actividades <span>(Plan Detalle)</span>
+           Ir a Registro de Actividades <span>(Plan Detalle)</span>
         </button>
       </div>
     </header>
@@ -89,13 +89,13 @@
               
               <!-- PROCESO DE INGRESO -->
               <div formGroupName="proceso_ingreso" class="field full-width card-inner">
-                <label>📌 Proceso de Ingreso</label>
+                <label> Proceso de Ingreso</label>
                 <input type="text" formControlName="situacion_actual" placeholder="Situación actual (Ej. Ingreso derivado de juzgado cívico)">
               </div>
 
               <!-- SEGUIMIENTO -->
               <div formGroupName="proceso_seguimiento" class="field full-width card-inner">
-                <label>🔄 Proceso de Seguimiento</label>
+                <label> Proceso de Seguimiento</label>
                 <div class="grid-form-3col-inner">
                   <input type="text" formControlName="educativa" placeholder="Área Educativa">
                   <input type="text" formControlName="laboral" placeholder="Área Laboral">
@@ -105,7 +105,7 @@
 
               <!-- PROYECTO VIDA -->
               <div formGroupName="proyecto_vida" class="field full-width card-inner">
-                <label>🎯 Proyecto de Vida</label>
+                <label> Proyecto de Vida</label>
                 <div class="grid-form-2col-inner">
                   <input type="text" formControlName="personal" placeholder="Meta Personal (Ej. Mejoramiento de hábitos)">
                   <input type="text" formControlName="social" placeholder="Meta Social (Ej. Fortalecer red de apoyo comunitario)">
