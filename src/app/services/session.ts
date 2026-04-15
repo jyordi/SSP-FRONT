@@ -82,6 +82,9 @@ export class SessionService {
   esTallerista(): boolean { return this.hasRole('tallerista'); }
   esCoordinador(): boolean { return this.hasRole('coordinador'); }
   esTrabajadorSocial(): boolean { return this.hasRole('trabajo_social'); }
+  puedeEliminarEnVoluntarios(): boolean {
+    return !this.hasAnyRole(['coordinador', 'tallerista']);
+  }
   puedeAccederVoluntarios(): boolean {
     return this.hasAnyRole(['admin', 'coordinador', 'tallerista']);
   }

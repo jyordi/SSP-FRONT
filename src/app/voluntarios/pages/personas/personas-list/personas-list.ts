@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { PersonaService } from '../../../services/persona.service';
 import { CsvModal } from '../../../shared/csv-modal/csv-modal';
 import { Paginacion } from "../../../shared/paginacion/paginacion";
+import { SessionService } from '../../../../services/session';
 
 @Component({
   selector: 'app-personas-list',
@@ -14,8 +15,10 @@ import { Paginacion } from "../../../shared/paginacion/paginacion";
   styleUrl: './personas-list.css'
 })
 export class PersonasList {
-  private svc = inject(PersonaService);
-  private router = inject(Router);
+  private readonly svc = inject(PersonaService);
+  private readonly router = inject(Router);
+  private readonly session = inject(SessionService);
+  readonly puedeEliminar = this.session.puedeEliminarEnVoluntarios();
   mostrarModalCsv = signal(false);
 
   searchTerm   = signal('');
@@ -53,6 +56,7 @@ export class PersonasList {
 
   eliminar(id: string, event: Event): void {
     event.stopPropagation();
+    if (!this.puedeEliminar) return;
     if (confirm('¿Eliminar esta persona?')) {
       this.svc.delete(id).subscribe({
         next: () => console.log('Persona eliminada'),

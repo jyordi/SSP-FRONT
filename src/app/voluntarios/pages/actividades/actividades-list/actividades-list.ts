@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActividadService } from '../../../services/actividad.service';
 import { Paginacion } from "../../../shared/paginacion/paginacion";
+import { SessionService } from '../../../../services/session';
 
 @Component({
   selector: 'app-actividades-list',
@@ -13,7 +14,9 @@ import { Paginacion } from "../../../shared/paginacion/paginacion";
   styleUrl: './actividades-list.css'
 })
 export class ActividadesList {
-  private svc = inject(ActividadService);
+  private readonly svc = inject(ActividadService);
+  private readonly session = inject(SessionService);
+  readonly puedeEliminar = this.session.puedeEliminarEnVoluntarios();
 
   searchTerm   = signal('');
   filtroEstado = signal('Todos');
@@ -43,6 +46,7 @@ export class ActividadesList {
 
 
   eliminar(id: string): void {
+    if (!this.puedeEliminar) return;
     if (confirm('¿Eliminar esta actividad?')) {
       this.svc.delete(id).subscribe({
         next: () => console.log('Actividad eliminada'),
